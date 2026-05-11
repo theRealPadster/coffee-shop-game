@@ -117,7 +117,7 @@ input[type="range"] {
 
 .ingredient-row {
   display: grid;
-  grid-template-columns: 32px 1fr 50px 60px auto;
+  grid-template-columns: 1fr 50px 60px auto;
   gap: 8px;
   align-items: center;
   padding: 6px 4px;
@@ -137,7 +137,6 @@ input[type="range"] {
   font-size: 12px;
   min-width: 32px;
 }
-.bottleneck-badge { font-size: 16px; }
 
 .chevron {
   display: inline-flex;

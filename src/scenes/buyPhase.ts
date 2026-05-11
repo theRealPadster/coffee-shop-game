@@ -153,7 +153,6 @@ function ingredientRow(state: GameState, ing: Ingredient, bn: Ingredient | null)
   const isBn = bn === ing;
   return `
     <div class="ingredient-row ${isBn ? 'bottleneck' : ''}" data-row="${ing}">
-      <div>${isBn ? '<span class="bottleneck-badge" title="Bottleneck">🔻</span>' : ''}</div>
       <div class="name">${meta.emoji} ${meta.label}</div>
       <div class="price">${formatCents(price)} ${chevronEl(level)}</div>
       <div class="stock">${stock}</div>
@@ -222,10 +221,6 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
       root.querySelectorAll('.ingredient-row').forEach(row => {
         const rIng = (row as HTMLElement).dataset.row as Ingredient;
         row.classList.toggle('bottleneck', bn === rIng);
-        const badgeSlot = row.querySelector('div:first-child');
-        if (badgeSlot) {
-          badgeSlot.innerHTML = bn === rIng ? '<span class="bottleneck-badge" title="Bottleneck">🔻</span>' : '';
-        }
       });
     });
     slider.addEventListener('change', () => rerender());
