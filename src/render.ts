@@ -57,7 +57,7 @@ export function drawShop(ctx: CanvasRenderingContext2D, x: number, y: number, w:
   ctx.fill();
   // Awning stripes
   ctx.fillStyle = 'white';
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 5; i++) {
     ctx.fillRect(x + 6 + i * 24, y - 18, 8, 18);
   }
   // Sign
