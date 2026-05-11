@@ -69,6 +69,43 @@ export function drawShop(ctx: CanvasRenderingContext2D, x: number, y: number, w:
   ctx.fillText('COFFEE', x + w / 2, y + h * 0.6);
 }
 
+// Interpolate between two hex colours by fraction t (0–1).
+function lerpHex(c1: string, c2: string, t: number): string {
+  const f = (s: string, o: number) => parseInt(s.slice(o, o + 2), 16);
+  const mix = (a: number, b: number) => Math.round(a + (b - a) * t).toString(16).padStart(2, '0');
+  return `#${mix(f(c1,1),f(c2,1))}${mix(f(c1,3),f(c2,3))}${mix(f(c1,5),f(c2,5))}`;
+}
+
+// Pick a colour from a multi-stop gradient at position t (0–1).
+function colorAt(t: number, stops: [number, string][]): string {
+  if (t <= stops[0][0]) return stops[0][1];
+  for (let i = 0; i < stops.length - 1; i++) {
+    if (t <= stops[i + 1][0]) {
+      const f = (t - stops[i][0]) / (stops[i + 1][0] - stops[i][0]);
+      return lerpHex(stops[i][1], stops[i + 1][1], f);
+    }
+  }
+  return stops[stops.length - 1][1];
+}
+
+// Sky colour stops per weather condition: [time, topColour, botColour]
+const SKY: Record<string, [[number, string][], [number, string][]]> = {
+  sunny: [
+    [[0,'#e87c3e'],[0.15,'#5ab4e0'],[0.45,'#87ceeb'],[0.55,'#87ceeb'],[0.85,'#5ab4e0'],[1,'#e87c3e']],
+    [[0,'#ffd17a'],[0.15,'#c0e8f8'],[0.45,'#e0f6ff'],[0.55,'#e0f6ff'],[0.85,'#c0e8f8'],[1,'#ffd17a']],
+  ],
+  cloudy: [
+    [[0,'#8d6e63'],[0.15,'#9ba8af'],[0.45,'#b0bec5'],[0.55,'#b0bec5'],[0.85,'#9ba8af'],[1,'#8d6e63']],
+    [[0,'#d4a070'],[0.15,'#d0d8dc'],[0.45,'#eceff1'],[0.55,'#eceff1'],[0.85,'#d0d8dc'],[1,'#d4a070']],
+  ],
+  rainy:  [[[0,'#546e7a'],[1,'#546e7a']], [[0,'#90a4ae'],[1,'#90a4ae']]],
+  snowy:  [[[0,'#cfd8dc'],[1,'#cfd8dc']], [[0,'#ffffff'],[1,'#ffffff']]],
+};
+
+const SUN_COLOR: [number, string][] = [
+  [0,'#ff7a1a'],[0.12,'#ffb347'],[0.3,'#fff176'],[0.7,'#fff176'],[0.88,'#ffb347'],[1,'#ff7a1a'],
+];
+
 export function drawBackground(
   ctx: CanvasRenderingContext2D,
   w: number,
@@ -76,35 +113,42 @@ export function drawBackground(
   condition: string,
   timeOfDay = 0.5 // 0 = 8:00, 1 = 20:00
 ): void {
-  const isDawnDusk = timeOfDay < 0.13 || timeOfDay > 0.87;
+  const sky = SKY[condition] ?? SKY.sunny;
+  const skyTop = colorAt(timeOfDay, sky[0]);
+  const skyBot = colorAt(timeOfDay, sky[1]);
 
-  // Sky gradient — warm at dawn/dusk, blue at midday
-  let skyTop: string, skyBot: string;
-  if (condition === 'rainy') { skyTop = '#546e7a'; skyBot = '#90a4ae'; }
-  else if (condition === 'snowy') { skyTop = '#cfd8dc'; skyBot = '#ffffff'; }
-  else if (condition === 'cloudy') {
-    skyTop = isDawnDusk ? '#8d6e63' : '#b0bec5';
-    skyBot = isDawnDusk ? '#d4a070' : '#eceff1';
-  } else {
-    skyTop = isDawnDusk ? '#e87c3e' : '#87ceeb';
-    skyBot = isDawnDusk ? '#ffd17a' : '#e0f6ff';
-  }
   const grad = ctx.createLinearGradient(0, 0, 0, h * 0.6);
   grad.addColorStop(0, skyTop);
   grad.addColorStop(1, skyBot);
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, w, h * 0.6);
 
-  // Sun arc: rises left at 8:00, peaks centre at noon, sets right at 20:00
+  // Sun arc: rises from the left at 8:00, peaks at noon, sets right at 20:00.
+  // Size and colour animate through dawn → midday → dusk.
   if (condition !== 'rainy') {
     const arcR = Math.min(w * 0.38, h * 0.48);
-    const angle = Math.PI * (1 - timeOfDay); // π → 0 as day progresses
+    const angle = Math.PI * (1 - timeOfDay); // π → 0
     const sunX = w / 2 + arcR * Math.cos(angle);
     const sunY = h * 0.6 - arcR * Math.sin(angle);
+    // Larger at dawn/dusk due to atmospheric effect
+    const dawnDusk = 1 - Math.sin(timeOfDay * Math.PI);
+    const radius = 22 + 10 * dawnDusk;
+    const sunColor = condition === 'snowy' ? '#d0dce8' : colorAt(timeOfDay, SUN_COLOR);
+
+    // Soft glow near horizon
+    if (dawnDusk > 0.3 && condition !== 'snowy') {
+      ctx.globalAlpha = 0.22 * dawnDusk;
+      ctx.fillStyle = '#ff9a3c';
+      ctx.beginPath();
+      ctx.arc(sunX, sunY, radius * 2.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
     ctx.globalAlpha = condition === 'cloudy' ? 0.45 : 1;
-    ctx.fillStyle = isDawnDusk ? '#ff9a3c' : (condition === 'snowy' ? '#d0dce8' : '#fff176');
+    ctx.fillStyle = sunColor;
     ctx.beginPath();
-    ctx.arc(sunX, sunY, 24, 0, Math.PI * 2);
+    ctx.arc(sunX, sunY, radius, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = 1;
   }

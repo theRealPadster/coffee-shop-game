@@ -165,6 +165,10 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
     const clockEl = root.querySelector<HTMLElement>('#game-clock');
     if (clockEl) clockEl.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 
+    // shopX/shopY are used by both the customer logic and the draw call
+    const shopX = canvas.width * 0.5 - 60;
+    const shopY = canvas.height * 0.6 - 110; // bottom of shop = top of sidewalk
+
     if (!scene.paused) {
       const dt = Math.min(0.1, (now - (scene.lastFrame ?? now)) / 1000);
 
@@ -177,7 +181,6 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
       }
 
       // Update customer state machine
-      const shopX = canvas.width * 0.5 - 60;
       for (const c of scene.customers) {
         if (c.phase === 'walking') {
           c.x += c.vx * dt;
@@ -238,7 +241,7 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
 
     // Draw
     drawBackground(ctx, canvas.width, canvas.height, state.weather.condition, timeOfDay);
-    drawShop(ctx, canvas.width * 0.5 - 60, canvas.height * 0.45, 120, 110);
+    drawShop(ctx, shopX, shopY, 120, 110);
 
     for (const c of scene.customers) {
       c.sprite.draw(ctx, c.x, c.y, now);
