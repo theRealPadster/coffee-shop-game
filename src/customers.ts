@@ -111,7 +111,7 @@ export function decide(state: GameState, c: Customer): DecisionResult {
 
   let typeFit = 0;
   if (r.type !== c.wants) {
-    typeFit = -8 * (1 - c.flexibility);
+    typeFit = -4 * (1 - c.flexibility);
   }
 
   // Weather alignment with served drink (separate from typeFit)
@@ -124,7 +124,9 @@ export function decide(state: GameState, c: Customer): DecisionResult {
   if (!drinkIsHot && eff.hotDrinkAppeal > 0.5 && wantsHot) weatherFit = -1;
 
   const priceFitScore = priceFit >= 0 ? Math.min(2, priceFit / 100) : Math.max(-6, priceFit / 50);
-  const totalScore = priceFitScore + recipeFit * 0.5 + typeFit + weatherFit;
+  // baseInterest: a customer who stopped is already curious — give them a nudge toward buying.
+  const baseInterest = 1.5;
+  const totalScore = baseInterest + priceFitScore + recipeFit * 0.25 + typeFit + weatherFit;
 
   const buy = totalScore > 0;
 
