@@ -4,7 +4,7 @@ import { hypePriceTolerance, hypeStopMultiplier } from './hype';
 import { maxCups } from './recipe';
 import { randomPedestrianSprite, Sprite } from './render';
 
-export type CustomerPhase = 'walking' | 'considering' | 'buying' | 'leaving';
+export type CustomerPhase = 'walking' | 'queuing' | 'considering' | 'buying' | 'leaving';
 
 export interface Customer {
   id: number;
@@ -22,6 +22,8 @@ export interface Customer {
   icePref: number;
   flexibility: number;
   willStop: boolean;
+  // Queue
+  queueSlot: number | null; // index into scene queue array, null if not queued
   // Animation state
   considerUntil: number; // ms timestamp when consideration ends
   thought: string | null;
@@ -52,7 +54,7 @@ export function spawnCustomer(state: GameState, _canvasWidth: number, canvasHeig
     sprite: randomPedestrianSprite(),
     x: -40,
     y: canvasHeight * 0.72,
-    vx: rand(45, 75),
+    vx: rand(90, 140),
     phase: 'walking',
     wants,
     budget: Math.round(baseBudget + rand(-80, 120)),
@@ -62,6 +64,7 @@ export function spawnCustomer(state: GameState, _canvasWidth: number, canvasHeig
     icePref: Math.round(rand(3, 9)),
     flexibility: rand(0.1, 0.7),
     willStop: Math.random() < stopBase,
+    queueSlot: null,
     considerUntil: 0,
     thought: null,
     thoughtUntil: 0,
@@ -165,13 +168,30 @@ export function decide(state: GameState, c: Customer): DecisionResult {
     return { buy: true, thought, hypeDelta: hype, complaintKey: '', isHappy: true };
   }
 
-  // Pick the strongest negative
-  if (negatives.length === 0) {
-    return { buy: false, thought: 'Just browsing 🚶', hypeDelta: 0, complaintKey: 'Browsing', isHappy: false };
-  }
+  // Non-buyer: pick the strongest negative for hype/report card.
   negatives.sort((a, b) => b[0] - a[0]);
-  const [, thought, key, hype] = negatives[0];
-  return { buy: false, thought, hypeDelta: hype, complaintKey: key, isHappy: false };
+  const topNegative = negatives[0];
+  const complaintKey = topNegative?.[2] ?? 'Browsing';
+  const hypeDelta = topNegative?.[3] ?? 0;
+
+  // Thought bubble text: customers who don't buy haven't tasted the coffee,
+  // so they can only comment on observable things (price, drink type, weather).
+  // Recipe quality complaints ("watery", "too sweet", etc.) require tasting —
+  // only show those for customers who actually bought. For everyone else,
+  // if the recipe is the hidden reason, show a generic shrug.
+  const recipeQualityKeys = new Set(['Too watery', 'Too strong', 'Too sweet', 'Not sweet enough', 'Milk balance', 'Not enough ice', 'Too icy']);
+  const bestObservableNegative = negatives.find(n => !recipeQualityKeys.has(n[2]));
+
+  let thought: string;
+  if (bestObservableNegative) {
+    thought = bestObservableNegative[1];
+  } else if (negatives.length > 0) {
+    thought = 'Hmm, not today 🤔';
+  } else {
+    thought = 'Just browsing 🚶';
+  }
+
+  return { buy: false, thought, hypeDelta, complaintKey, isHappy: false };
 }
 
 export function spawnRate(state: GameState): number {

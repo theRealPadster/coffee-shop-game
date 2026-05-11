@@ -73,19 +73,41 @@ export function drawBackground(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
-  condition: string
+  condition: string,
+  timeOfDay = 0.5 // 0 = 8:00, 1 = 20:00
 ): void {
-  // Sky band
-  let skyTop = '#87ceeb';
-  let skyBot = '#e0f6ff';
-  if (condition === 'cloudy') { skyTop = '#b0bec5'; skyBot = '#eceff1'; }
-  else if (condition === 'rainy') { skyTop = '#546e7a'; skyBot = '#90a4ae'; }
+  const isDawnDusk = timeOfDay < 0.13 || timeOfDay > 0.87;
+
+  // Sky gradient — warm at dawn/dusk, blue at midday
+  let skyTop: string, skyBot: string;
+  if (condition === 'rainy') { skyTop = '#546e7a'; skyBot = '#90a4ae'; }
   else if (condition === 'snowy') { skyTop = '#cfd8dc'; skyBot = '#ffffff'; }
+  else if (condition === 'cloudy') {
+    skyTop = isDawnDusk ? '#8d6e63' : '#b0bec5';
+    skyBot = isDawnDusk ? '#d4a070' : '#eceff1';
+  } else {
+    skyTop = isDawnDusk ? '#e87c3e' : '#87ceeb';
+    skyBot = isDawnDusk ? '#ffd17a' : '#e0f6ff';
+  }
   const grad = ctx.createLinearGradient(0, 0, 0, h * 0.6);
   grad.addColorStop(0, skyTop);
   grad.addColorStop(1, skyBot);
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, w, h * 0.6);
+
+  // Sun arc: rises left at 8:00, peaks centre at noon, sets right at 20:00
+  if (condition !== 'rainy') {
+    const arcR = Math.min(w * 0.38, h * 0.48);
+    const angle = Math.PI * (1 - timeOfDay); // π → 0 as day progresses
+    const sunX = w / 2 + arcR * Math.cos(angle);
+    const sunY = h * 0.6 - arcR * Math.sin(angle);
+    ctx.globalAlpha = condition === 'cloudy' ? 0.45 : 1;
+    ctx.fillStyle = isDawnDusk ? '#ff9a3c' : (condition === 'snowy' ? '#d0dce8' : '#fff176');
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, 24, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
 
   // Sidewalk
   ctx.fillStyle = '#bdbdbd';
@@ -130,11 +152,5 @@ export function drawBackground(
       ctx.arc(sx, sy, 2, 0, Math.PI * 2);
       ctx.fill();
     }
-  } else if (condition === 'sunny') {
-    // Sun
-    ctx.fillStyle = '#fff176';
-    ctx.beginPath();
-    ctx.arc(w - 60, 50, 28, 0, Math.PI * 2);
-    ctx.fill();
   }
 }

@@ -7,16 +7,27 @@ import { consumeRecipe, maxCups } from '../recipe';
 import { play, isMuted, setMuted } from '../audio';
 
 export interface StreetPhaseCallbacks {
-  onCloseShop: () => void; // user clicked close; scene will show report card then call cb
+  onCloseShop: () => void;
   onStateChange: () => void;
 }
 
+// Real-time length of one game day (8:00 → 20:00)
+const DAY_DURATION_MS = 2 * 60 * 1000; // 2 minutes
+
+// Queue slots: x offsets from shopX where customers stand and wait
+const SLOT_OFFSETS = [10, 70, 130] as const;
+
 interface SceneState {
   customers: Customer[];
+  queue: Array<number | null>; // customer IDs occupying each slot, null = empty
   lastSpawn: number;
   running: boolean;
+  paused: boolean;
+  pausedAt: number | null;   // timestamp when the current pause started
+  totalPausedMs: number;     // accumulated pause time so far this day
   rafId: number | null;
   lastFrame: number | null;
+  dayStartTime: number;
 }
 
 export function renderStreetPhase(root: HTMLElement, state: GameState, cb: StreetPhaseCallbacks): () => void {
@@ -35,10 +46,17 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
         </div>
         <div id="hype-meter-host"></div>
         <div class="right">
-          <label style="font-size:12px;">Cup price
-            <input id="hud-cup-price" type="number" min="0" step="0.25" value="${(state.cupPrice / 100).toFixed(2)}" style="width:80px;" />
-          </label>
+          <div class="game-clock" id="game-clock">08:00</div>
+          <div class="cup-price-hud">
+            <span class="cup-price-label">Cup price</span>
+            <div class="cup-price-controls">
+              <button id="cup-price-minus" class="secondary">−</button>
+              <span id="cup-price-display">${formatCents(state.cupPrice)}</span>
+              <button id="cup-price-plus" class="secondary">+</button>
+            </div>
+          </div>
           <span>${weatherEmoji(state.weather.condition)} ${state.weather.tempC}°C</span>
+          <button id="pause-btn" class="secondary">⏸</button>
           <button id="hud-mute" class="secondary">${isMuted() ? '🔇' : '🔊'}</button>
           <button id="close-shop-btn" class="danger">Close Shop</button>
         </div>
@@ -63,20 +81,49 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
   const resizeObs = new ResizeObserver(resize);
   resizeObs.observe(wrap);
 
+  const now0 = performance.now();
   const scene: SceneState = {
     customers: [],
-    lastSpawn: performance.now(),
+    queue: [null, null, null],
+    lastSpawn: now0,
     running: true,
+    paused: false,
+    pausedAt: null,
+    totalPausedMs: 0,
     rafId: null,
     lastFrame: null,
+    dayStartTime: now0,
   };
 
-  // Cup price hud control
-  root.querySelector<HTMLInputElement>('#hud-cup-price')?.addEventListener('change', (e) => {
-    const v = parseFloat((e.target as HTMLInputElement).value);
-    if (!isNaN(v) && v >= 0) {
-      state.cupPrice = Math.round(v * 100);
-      cb.onStateChange();
+  // Cup price ± buttons
+  root.querySelector('#cup-price-minus')?.addEventListener('click', () => {
+    state.cupPrice = Math.max(0, state.cupPrice - 25);
+    const el = root.querySelector('#cup-price-display');
+    if (el) el.textContent = formatCents(state.cupPrice);
+    cb.onStateChange();
+  });
+  root.querySelector('#cup-price-plus')?.addEventListener('click', () => {
+    state.cupPrice += 25;
+    const el = root.querySelector('#cup-price-display');
+    if (el) el.textContent = formatCents(state.cupPrice);
+    cb.onStateChange();
+  });
+
+  // Pause / resume
+  root.querySelector('#pause-btn')?.addEventListener('click', () => {
+    const btn = root.querySelector<HTMLButtonElement>('#pause-btn');
+    if (scene.paused) {
+      if (scene.pausedAt !== null) {
+        scene.totalPausedMs += performance.now() - scene.pausedAt;
+        scene.pausedAt = null;
+      }
+      scene.paused = false;
+      scene.lastFrame = null; // avoid a dt spike on first resumed frame
+      if (btn) btn.textContent = '⏸';
+    } else {
+      scene.pausedAt = performance.now();
+      scene.paused = true;
+      if (btn) btn.textContent = '▶';
     }
   });
 
@@ -87,71 +134,110 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
   });
 
   root.querySelector('#close-shop-btn')?.addEventListener('click', () => {
-    if (scene.running) {
-      scene.running = false;
-      if (scene.rafId !== null) cancelAnimationFrame(scene.rafId);
-      play('bell');
-      showReportCard(root, state, cb);
-    }
+    if (scene.running) closeShop();
   });
+
+  function closeShop(): void {
+    scene.running = false;
+    if (scene.rafId !== null) cancelAnimationFrame(scene.rafId);
+    play('bell');
+    showReportCard(state, cb);
+  }
 
   function tick(now: number): void {
     if (!scene.running) return;
-    const dt = Math.min(0.1, (now - (scene.lastFrame ?? now)) / 1000);
+
+    // Elapsed game time, pauses subtracted out
+    const currentPauseMs = scene.pausedAt !== null ? now - scene.pausedAt : 0;
+    const elapsed = now - scene.dayStartTime - scene.totalPausedMs - currentPauseMs;
+    const timeOfDay = Math.min(1, elapsed / DAY_DURATION_MS);
+    const gameHour = 8 + timeOfDay * 12; // 8.0 → 20.0
+
+    // Auto-close at 20:00
+    if (gameHour >= 20) {
+      closeShop();
+      return;
+    }
+
+    // Update clock display
+    const h = Math.floor(gameHour);
+    const m = Math.floor((gameHour - h) * 60);
+    const clockEl = root.querySelector<HTMLElement>('#game-clock');
+    if (clockEl) clockEl.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+
+    if (!scene.paused) {
+      const dt = Math.min(0.1, (now - (scene.lastFrame ?? now)) / 1000);
+
+      // Spawn customers
+      const sps = spawnRate(state);
+      const since = (now - scene.lastSpawn) / 1000;
+      if (since >= 1 / sps) {
+        scene.lastSpawn = now;
+        scene.customers.push(spawnCustomer(state, canvas.width, canvas.height));
+      }
+
+      // Update customer state machine
+      const shopX = canvas.width * 0.5 - 60;
+      for (const c of scene.customers) {
+        if (c.phase === 'walking') {
+          c.x += c.vx * dt;
+          // When a willing customer reaches the queue entry point, try to claim a slot.
+          if (c.willStop && !c.decided && c.x >= shopX - 20) {
+            const freeSlot = scene.queue.findIndex(id => id === null);
+            if (freeSlot >= 0) {
+              scene.queue[freeSlot] = c.id;
+              c.queueSlot = freeSlot;
+              c.phase = 'queuing';
+            } else {
+              // Queue full — let them walk by naturally; walk-off handler counts walkedBy.
+              c.willStop = false;
+            }
+          } else if (c.x > canvas.width + 60) {
+            if (!c.decided) {
+              state.todayStats.walkedBy++;
+              play('walkby');
+            }
+            c.phase = 'leaving';
+          }
+        } else if (c.phase === 'queuing') {
+          // Walk to the assigned slot position, then start considering.
+          const targetX = shopX + SLOT_OFFSETS[c.queueSlot!];
+          c.x = Math.min(c.x + c.vx * 0.5 * dt, targetX);
+          if (c.x >= targetX) {
+            c.x = targetX;
+            c.phase = 'considering';
+            c.considerUntil = now + 1500 + Math.random() * 1500;
+            const dec = decide(state, c);
+            c.thought = dec.thought;
+            c.thoughtUntil = c.considerUntil;
+            applyOutcome(state, c, dec);
+          }
+        } else if (c.phase === 'considering') {
+          if (now >= c.considerUntil) {
+            // Free the queue slot so the next customer can step in.
+            if (c.queueSlot !== null) {
+              scene.queue[c.queueSlot] = null;
+              c.queueSlot = null;
+            }
+            c.phase = c.hasBought ? 'buying' : 'leaving';
+            if (!c.hasBought) state.todayStats.walkedBy++;
+          }
+        } else if (c.phase === 'buying') {
+          c.x += c.vx * 0.5 * dt;
+          if (now >= c.considerUntil + 600) c.phase = 'leaving';
+        } else if (c.phase === 'leaving') {
+          c.x += c.vx * dt;
+        }
+      }
+
+      scene.customers = scene.customers.filter(c => c.x < canvas.width + 80);
+    }
+
+    // Always update lastFrame so unpause doesn't cause a dt spike
     scene.lastFrame = now;
 
-    // Spawn
-    const sps = spawnRate(state);
-    const since = (now - scene.lastSpawn) / 1000;
-    if (since >= 1 / sps) {
-      scene.lastSpawn = now;
-      scene.customers.push(spawnCustomer(state, canvas.width, canvas.height));
-    }
-
-    // Update
-    const shopX = canvas.width * 0.5 - 60;
-    for (const c of scene.customers) {
-      if (c.phase === 'walking') {
-        c.x += c.vx * dt;
-        if (c.willStop && !c.decided && c.x > shopX + 20 && c.x < shopX + 60) {
-          c.phase = 'considering';
-          c.considerUntil = now + 1500 + Math.random() * 1500;
-          const dec = decide(state, c);
-          c.thought = dec.thought;
-          c.thoughtUntil = c.considerUntil;
-          // Apply outcome now so other customers see updated hype/stock
-          applyOutcome(state, c, dec);
-        } else if (c.x > canvas.width + 60) {
-          // walked off screen without stopping
-          if (!c.decided && c.phase === 'walking') {
-            state.todayStats.walkedBy++;
-            play('walkby');
-          }
-          c.phase = 'leaving';
-        }
-      } else if (c.phase === 'considering') {
-        // Pause; thought bubble shown via DOM overlay
-        if (now >= c.considerUntil) {
-          c.phase = c.hasBought ? 'buying' : 'leaving';
-          if (!c.hasBought) {
-            state.todayStats.walkedBy++;
-          }
-        }
-      } else if (c.phase === 'buying') {
-        // Show "bought" indicator briefly then walk off
-        c.x += c.vx * 0.5 * dt;
-        if (now >= c.considerUntil + 600) {
-          c.phase = 'leaving';
-        }
-      } else if (c.phase === 'leaving') {
-        c.x += c.vx * dt;
-      }
-    }
-
-    scene.customers = scene.customers.filter(c => c.x < canvas.width + 80);
-
     // Draw
-    drawBackground(ctx, canvas.width, canvas.height, state.weather.condition);
+    drawBackground(ctx, canvas.width, canvas.height, state.weather.condition, timeOfDay);
     drawShop(ctx, canvas.width * 0.5 - 60, canvas.height * 0.45, 120, 110);
 
     for (const c of scene.customers) {
@@ -164,8 +250,9 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
       }
     }
 
-    // Update thought bubble overlays
-    renderThoughtBubbles(wrap, scene.customers, canvas, now);
+    // Freeze thought bubble expiry timestamps while paused
+    const renderNow = scene.paused && scene.pausedAt !== null ? scene.pausedAt : now;
+    renderThoughtBubbles(wrap, scene.customers, canvas, renderNow);
 
     // Update HUD counters
     updateHud(root, state);
@@ -271,7 +358,7 @@ function renderHypeMeter(host: HTMLElement, hype: number): void {
   `;
 }
 
-function showReportCard(_root: HTMLElement, state: GameState, cb: StreetPhaseCallbacks): void {
+function showReportCard(state: GameState, cb: StreetPhaseCallbacks): void {
   const hypeDelta = state.hype - state.todayStats.hypeStart;
   const complaints = Object.entries(state.todayStats.complaints).sort((a, b) => b[1] - a[1]);
   const topComplaint = complaints.length > 0 ? `${complaints[0][0]} (${complaints[0][1]}x)` : '—';
