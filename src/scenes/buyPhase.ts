@@ -111,7 +111,7 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
           </div>
           <div class="cup-price-row">
             <label>Cup price</label>
-            <input id="cup-price-input" type="number" min="0" step="0.25" value="${(state.cupPrice / 100).toFixed(2)}" />
+            <div class="cup-price-input-wrap"><span>$</span><input id="cup-price-input" type="number" min="0" step="0.25" value="${(state.cupPrice / 100).toFixed(2)}" /></div>
           </div>
           <div class="cups-producible">
             Cups producible today: <strong>${cups}</strong>
