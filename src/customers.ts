@@ -47,7 +47,7 @@ function pickWants(hotAppeal: number): DrinkType {
 export function spawnCustomer(state: GameState, _canvasWidth: number, canvasHeight: number): Customer {
   const eff = weatherEffects(state.weather);
   const wants = pickWants(eff.hotDrinkAppeal);
-  const stopBase = 0.45 * hypeStopMultiplier(state.hype);
+  const stopBase = Math.min(1, 0.65 * hypeStopMultiplier(state.hype));
   const baseBudget = eff.baseBudget + hypePriceTolerance(state.hype);
   return {
     id: nextId++,
