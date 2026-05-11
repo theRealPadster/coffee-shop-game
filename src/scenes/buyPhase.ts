@@ -83,11 +83,13 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
                 `<option value="${sr.id}" ${sr.id === state.activeRecipeSourceId ? 'selected' : ''}>${escapeAttr(sr.name)} (${sr.type})</option>`
               ).join('')}
             </select>
+            <button id="new-recipe-btn" class="secondary">New</button>
+          </div>
+          <div class="library-controls">
             <button id="load-btn" class="secondary" ${state.savedRecipes.length === 0 ? 'disabled' : ''}>Load</button>
             <button id="save-recipe-btn" class="secondary" ${state.activeRecipeSourceId === null ? 'disabled' : ''}>Save</button>
             <button id="save-as-btn" class="secondary">Save As…</button>
             <button id="delete-btn" class="danger" ${state.activeRecipeSourceId === null ? 'disabled' : ''}>Delete</button>
-            <button id="new-recipe-btn" class="secondary">New</button>
           </div>
         </div>
 
