@@ -132,7 +132,7 @@ export function drawBackground(
   // Sun is already risen when shop opens; sets ~6pm while shop still runs.
   if (condition !== 'rainy') {
     const gameHour = 8 + timeOfDay * 12;
-    const solarTime = Math.min(1, Math.max(0, (gameHour - SUNRISE_HOUR) / (SUNSET_HOUR - SUNRISE_HOUR)));
+    const solarTime = Math.max(0, (gameHour - SUNRISE_HOUR) / (SUNSET_HOUR - SUNRISE_HOUR));
     const arcR = Math.min(w * 0.38, h * 0.48);
     const angle = Math.PI * (1 - solarTime);
     const sunX = w / 2 + arcR * Math.cos(angle);
@@ -141,6 +141,11 @@ export function drawBackground(
     const dawnDusk = 1 - Math.sin(solarTime * Math.PI);
     const radius = 22 + 10 * dawnDusk;
     const sunColor = condition === 'snowy' ? '#d0dce8' : colorAt(timeOfDay, SUN_COLOR);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, w, h * 0.6);
+    ctx.clip();
 
     // Soft glow near horizon
     if (dawnDusk > 0.3 && condition !== 'snowy') {
@@ -158,6 +163,7 @@ export function drawBackground(
     ctx.arc(sunX, sunY, radius, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = 1;
+    ctx.restore();
   }
 
   // Sidewalk
