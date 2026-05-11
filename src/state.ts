@@ -113,7 +113,7 @@ export function initialState(): GameState {
       ice: midpoint(PRICE_BANDS.ice),
       cups: midpoint(PRICE_BANDS.cups),
     },
-    cupPrice: 350, // $3.50
+    cupPrice: 300, // $3.00
     weather: startWeather,
     tomorrowWeather: startTomorrow,
     phase: 'buy',
