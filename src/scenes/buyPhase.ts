@@ -3,7 +3,8 @@ import { classifyPrice, PriceLevel } from '../economy';
 import { weatherEmoji } from '../weather';
 import { maxCups, bottleneck, cloneRecipe, isActiveRecipeDirty, setRecipeType } from '../recipe';
 import { saveGame, loadGame, clearSave } from '../save';
-import { play, isMuted, setMuted } from '../audio';
+import { play } from '../audio';
+import { appHeaderHtml, renderHypeMeter, attachHeaderMute } from '../header';
 
 export interface BuyPhaseCallbacks {
   onStartDay: () => void;
@@ -28,15 +29,6 @@ function chevronEl(level: PriceLevel): string {
   return `<span class="chevron ${level}"><span>${chars}</span></span>`;
 }
 
-function hypeMeterHtml(hype: number, compact = true): string {
-  return `
-    <div class="hype-meter${compact ? '' : ' large'}">
-      <div class="label"><span>Hype</span><span>${Math.round(hype)}</span></div>
-      <div class="bar"><div class="fill" style="width:${hype}%"></div></div>
-    </div>
-  `;
-}
-
 export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhaseCallbacks): void {
   const dirty = isActiveRecipeDirty(state);
   const bn = bottleneck(state.stock, state.activeRecipe);
@@ -44,16 +36,8 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
   const r = state.activeRecipe;
 
   root.innerHTML = `
+    ${appHeaderHtml(state)}
     <div class="buy-phase">
-      <div class="header">
-        <h1>☕ Coffee Shop — Day ${state.day}</h1>
-        <div class="stats">
-          <div class="stat"><span class="v">${formatCents(state.cash)}</span><span>Cash</span></div>
-          ${hypeMeterHtml(state.hype)}
-          <button id="mute-btn" class="secondary" title="Toggle sound">${isMuted() ? '🔇' : '🔊'}</button>
-        </div>
-      </div>
-
       <div class="buy-grid">
         <!-- Recipe panel -->
         <div class="panel">
@@ -131,6 +115,11 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
     </div>
   `;
 
+  const hypeHost = root.querySelector<HTMLElement>('#hype-meter-host');
+  if (hypeHost) {
+    renderHypeMeter(hypeHost, state.hype);
+  }
+  attachHeaderMute(root, state);
   attachBuyPhaseEvents(root, state, cb);
 }
 
@@ -176,12 +165,6 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
   const rerender = () => {
     renderBuyPhase(root, state, cb);
   };
-
-  root.querySelector('#mute-btn')?.addEventListener('click', () => {
-    setMuted(!isMuted());
-    state.muted = isMuted();
-    rerender();
-  });
 
   // Recipe name
   const nameInput = root.querySelector<HTMLInputElement>('#recipe-name-input');

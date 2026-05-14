@@ -4,7 +4,8 @@ import { weatherEmoji } from '../weather';
 import { spawnCustomer, decide, spawnRate, Customer } from '../customers';
 import { applyHype } from '../hype';
 import { consumeRecipe, maxCups } from '../recipe';
-import { play, isMuted, setMuted } from '../audio';
+import { play } from '../audio';
+import { appHeaderHtml, renderHypeMeter, attachHeaderMute } from '../header';
 
 export interface StreetPhaseCallbacks {
   onCloseShop: () => void;
@@ -12,7 +13,7 @@ export interface StreetPhaseCallbacks {
 }
 
 // Real-time length of one game day (8:00 → 20:00)
-const DAY_DURATION_MS = 2 * 60 * 1000; // 2 minutes
+const DAY_DURATION_MS = 0.5 * 60 * 1000; // 2 minutes
 
 // Queue slots: x offsets from shopX where customers stand and wait
 const SLOT_OFFSETS = [10, 70, 130] as const;
@@ -34,33 +35,33 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
   // Reset today's stats at the start of the day
   state.todayStats = freshStats(state.hype);
 
-  root.innerHTML = `
-    <div class="street-phase">
-      <div class="street-hud">
-        <div class="stat"><span class="v">${formatCents(state.cash)}</span><span>Cash</span></div>
-        <div class="stat"><span class="v" id="cups-left">${maxCups(state.stock, state.activeRecipe)}</span><span>Cups left</span></div>
-        <div class="stat"><span class="v" id="sold-count">0</span><span>Sold</span></div>
-        <div class="stat"><span class="v" id="walkby-count">0</span><span>Walk-bys</span></div>
-        <div class="recipe-badge ${state.activeRecipe.type === 'iced' ? 'iced' : ''}">
-          ${state.activeRecipe.type === 'hot' ? '☕' : '🧊'} ${state.activeRecipe.name}
-        </div>
-        <div id="hype-meter-host"></div>
-        <div class="right">
-          <div class="game-clock" id="game-clock">08:00</div>
-          <div class="cup-price-hud">
-            <span class="cup-price-label">Cup price</span>
-            <div class="cup-price-controls">
-              <button id="cup-price-minus" class="secondary">−</button>
-              <span id="cup-price-display">${formatCents(state.cupPrice)}</span>
-              <button id="cup-price-plus" class="secondary">+</button>
-            </div>
-          </div>
-          <span>${weatherEmoji(state.weather.condition)} ${state.weather.tempC}°C</span>
-          <button id="pause-btn" class="secondary">⏸</button>
-          <button id="hud-mute" class="secondary">${isMuted() ? '🔇' : '🔊'}</button>
-          <button id="close-shop-btn" class="danger">Close Shop</button>
-        </div>
+  const headerCenter = `
+    <div class="recipe-badge ${state.activeRecipe.type === 'iced' ? 'iced' : ''}">
+      ${state.activeRecipe.type === 'hot' ? '☕' : '🧊'} ${state.activeRecipe.name}
+    </div>
+    <div class="stat"><span class="v" id="cups-left">${maxCups(state.stock, state.activeRecipe)}</span><span>Cups left</span></div>
+    <div class="stat"><span class="v" id="sold-count">0</span><span>Sold</span></div>
+    <div class="stat"><span class="v" id="walkby-count">0</span><span>Walk-bys</span></div>
+    <div class="game-clock" id="game-clock">08:00</div>
+    <span class="weather-chip">${weatherEmoji(state.weather.condition)} ${state.weather.tempC}°C</span>
+  `;
+
+  const headerRight = `
+    <div class="cup-price-hud">
+      <span class="cup-price-label">Cup price</span>
+      <div class="cup-price-controls">
+        <button id="cup-price-minus" class="secondary">−</button>
+        <span id="cup-price-display">${formatCents(state.cupPrice)}</span>
+        <button id="cup-price-plus" class="secondary">+</button>
       </div>
+    </div>
+    <button id="pause-btn" class="secondary">⏸</button>
+    <button id="close-shop-btn" class="danger">Close Shop</button>
+  `;
+
+  root.innerHTML = `
+    ${appHeaderHtml(state, { center: headerCenter, rightExtra: headerRight })}
+    <div class="street-phase">
       <div class="street-canvas-wrap">
         <canvas id="street-canvas"></canvas>
       </div>
@@ -127,11 +128,7 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
     }
   });
 
-  root.querySelector('#hud-mute')?.addEventListener('click', () => {
-    setMuted(!isMuted());
-    const btn = root.querySelector('#hud-mute');
-    if (btn) btn.textContent = isMuted() ? '🔇' : '🔊';
-  });
+  attachHeaderMute(root, state);
 
   root.querySelector('#close-shop-btn')?.addEventListener('click', () => {
     if (scene.running) closeShop();
@@ -339,7 +336,7 @@ function renderThoughtBubbles(wrap: HTMLElement, customers: Customer[], canvas: 
 }
 
 function updateHud(root: HTMLElement, state: GameState): void {
-  const cashEl = root.querySelector('.street-hud .stat:nth-child(1) .v');
+  const cashEl = root.querySelector('#header-cash');
   if (cashEl) cashEl.textContent = formatCents(state.cash);
   const cupsLeftEl = root.querySelector('#cups-left');
   if (cupsLeftEl) cupsLeftEl.textContent = String(maxCups(state.stock, state.activeRecipe));
@@ -347,18 +344,6 @@ function updateHud(root: HTMLElement, state: GameState): void {
   if (soldEl) soldEl.textContent = String(state.todayStats.sold);
   const wbEl = root.querySelector('#walkby-count');
   if (wbEl) wbEl.textContent = String(state.todayStats.walkedBy);
-}
-
-let lastHype = -1;
-function renderHypeMeter(host: HTMLElement, hype: number): void {
-  const pulse = lastHype >= 0 && Math.abs(hype - lastHype) >= 1;
-  lastHype = hype;
-  host.innerHTML = `
-    <div class="hype-meter ${pulse ? 'pulse' : ''}">
-      <div class="label"><span>Hype</span><span>${Math.round(hype)}</span></div>
-      <div class="bar"><div class="fill" style="width:${hype}%"></div></div>
-    </div>
-  `;
 }
 
 function showReportCard(state: GameState, cb: StreetPhaseCallbacks): void {
