@@ -1,6 +1,7 @@
-import { GameState, initialState } from './state';
+import { GameState, Ingredient, Recipe, initialState } from './state';
 
 const KEY = 'coffee-shop-save';
+const MAX_DOSE = 5;
 
 export function saveGame(state: GameState): boolean {
   try {
@@ -11,6 +12,16 @@ export function saveGame(state: GameState): boolean {
   }
 }
 
+function clampDoses(r: Recipe): Recipe {
+  const doses = { ...r.doses };
+  for (const k of Object.keys(doses) as Ingredient[]) {
+    if (k === 'cups') continue;
+    const v = doses[k];
+    if (typeof v === 'number' && v > MAX_DOSE) doses[k] = MAX_DOSE;
+  }
+  return { ...r, doses };
+}
+
 export function loadGame(): GameState | null {
   try {
     const raw = localStorage.getItem(KEY);
@@ -18,7 +29,10 @@ export function loadGame(): GameState | null {
     const parsed = JSON.parse(raw) as Partial<GameState>;
     // Light validation: must have day and stock
     if (typeof parsed.day !== 'number' || !parsed.stock) return null;
-    return { ...initialState(), ...parsed } as GameState;
+    const merged = { ...initialState(), ...parsed } as GameState;
+    merged.activeRecipe = clampDoses(merged.activeRecipe);
+    merged.savedRecipes = merged.savedRecipes.map(clampDoses);
+    return merged;
   } catch {
     return null;
   }

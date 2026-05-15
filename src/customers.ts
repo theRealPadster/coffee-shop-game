@@ -58,10 +58,10 @@ export function spawnCustomer(state: GameState, _canvasWidth: number, canvasHeig
     phase: 'walking',
     wants,
     budget: Math.round(baseBudget + rand(-80, 120)),
-    sweetPref: Math.round(rand(2, 9)),
-    strengthPref: Math.round(rand(3, 9)),
-    milkPref: Math.round(rand(1, 8)),
-    icePref: Math.round(rand(3, 9)),
+    sweetPref: Math.round(rand(1, 5)),
+    strengthPref: Math.round(rand(2, 5)),
+    milkPref: Math.round(rand(1, 4)),
+    icePref: Math.round(rand(2, 5)),
     flexibility: rand(0.1, 0.7),
     willStop: Math.random() < stopBase,
     queueSlot: null,
@@ -126,7 +126,7 @@ export function decide(state: GameState, c: Customer): DecisionResult {
   const priceFitScore = priceFit >= 0 ? Math.min(2, priceFit / 100) : Math.max(-6, priceFit / 50);
   // baseInterest: a customer who stopped is already curious — give them a nudge toward buying.
   const baseInterest = 1.5;
-  const totalScore = baseInterest + priceFitScore + recipeFit * 0.25 + typeFit + weatherFit;
+  const totalScore = baseInterest + priceFitScore + recipeFit * 0.5 + typeFit + weatherFit;
 
   const buy = totalScore > 0;
 
@@ -137,25 +137,25 @@ export function decide(state: GameState, c: Customer): DecisionResult {
     const t = wantsHot ? 'Wanted a hot one ☕🙅' : 'Wanted an iced today 🧊🙅';
     negatives.push([Math.abs(typeFit), t, 'Wrong drink type', -1]);
   }
-  if (coffeeMiss >= 3 && coffeeDose < c.strengthPref) {
+  if (coffeeMiss >= 2 && coffeeDose < c.strengthPref) {
     negatives.push([coffeeMiss, 'Watery ☕💧', 'Too watery', -1]);
   }
-  if (coffeeMiss >= 3 && coffeeDose > c.strengthPref) {
+  if (coffeeMiss >= 2 && coffeeDose > c.strengthPref) {
     negatives.push([coffeeMiss, 'Way too strong 😵', 'Too strong', -1]);
   }
-  if (sugarMiss >= 3 && sugarDose > c.sweetPref) {
+  if (sugarMiss >= 2 && sugarDose > c.sweetPref) {
     negatives.push([sugarMiss, 'Too sweet 😬', 'Too sweet', -1]);
   }
-  if (sugarMiss >= 3 && sugarDose < c.sweetPref) {
+  if (sugarMiss >= 2 && sugarDose < c.sweetPref) {
     negatives.push([sugarMiss, 'Not sweet enough 😕', 'Not sweet enough', 0]);
   }
-  if (milkMiss >= 3) {
+  if (milkMiss >= 2) {
     negatives.push([milkMiss, 'Milk balance is off 🥛', 'Milk balance', 0]);
   }
-  if (r.type === 'iced' && iceMiss >= 3 && iceDose < c.icePref) {
+  if (r.type === 'iced' && iceMiss >= 2 && iceDose < c.icePref) {
     negatives.push([iceMiss, "Where's the ice? 🧊", 'Not enough ice', -1]);
   }
-  if (r.type === 'iced' && iceMiss >= 3 && iceDose > c.icePref) {
+  if (r.type === 'iced' && iceMiss >= 2 && iceDose > c.icePref) {
     negatives.push([iceMiss, 'Too icy 🧊', 'Too icy', -1]);
   }
   if (weatherFit < -0.5) {

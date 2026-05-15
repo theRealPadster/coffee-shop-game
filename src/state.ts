@@ -73,12 +73,12 @@ function midpoint([min, max]: [number, number]): number {
 
 export function defaultRecipe(type: DrinkType = 'hot'): Recipe {
   const doses: Partial<Record<Ingredient, number>> = {
-    coffee: 5,
-    sugar: 3,
-    milk: 4,
+    coffee: 3,
+    sugar: 2,
+    milk: 2,
     cups: 1,
   };
-  if (type === 'iced') doses.ice = 5;
+  if (type === 'iced') doses.ice = 3;
   return { id: newId(), name: type === 'hot' ? 'Classic Hot' : 'Classic Iced', type, doses };
 }
 

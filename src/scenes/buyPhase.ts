@@ -130,7 +130,7 @@ function sliderRow(ing: Ingredient, r: GameState['activeRecipe']): string {
   return `
     <div class="slider-row ${applicable ? '' : 'disabled'}" data-ing="${ing}">
       <span>${meta.emoji} ${meta.label}</span>
-      <input type="range" min="0" max="10" step="1" value="${dose}" data-ing="${ing}" ${applicable ? '' : 'disabled'} />
+      <input type="range" min="0" max="5" step="1" value="${dose}" data-ing="${ing}" ${applicable ? '' : 'disabled'} />
       <span class="dose-val" data-dose-val="${ing}">${dose}</span>
     </div>
   `;
@@ -260,7 +260,7 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
       id: newId(),
       name: 'Untitled',
       type: 'hot',
-      doses: { coffee: 5, sugar: 3, milk: 4, cups: 1 },
+      doses: { coffee: 3, sugar: 2, milk: 2, cups: 1 },
     };
     state.activeRecipeSourceId = null;
     cb.onStateChange();

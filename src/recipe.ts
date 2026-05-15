@@ -68,7 +68,7 @@ export function setRecipeType(r: Recipe, type: Recipe['type']): Recipe {
   if (type === 'hot') {
     delete doses.ice;
   } else {
-    if (doses.ice === undefined) doses.ice = 5;
+    if (doses.ice === undefined) doses.ice = 3;
   }
   return { ...r, type, doses };
 }
