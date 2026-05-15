@@ -72,19 +72,21 @@ input[type="range"] {
 /* ===== Buy Phase ===== */
 .buy-phase {
   padding: 16px;
-  max-width: 1200px;
+  max-width: 768px;
   margin: 0 auto;
   width: 100%;
 }
 
-.buy-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 16px;
+.shop-panel { margin-bottom: 16px; }
+.shop-panel .recipe-header { margin-bottom: 8px; }
+.shop-panel .library-controls { margin-bottom: 12px; }
+
+.shop-rows {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin: 8px 0;
 }
-@media (max-width: 900px) {
-  .buy-grid { grid-template-columns: 1fr; }
-}
+.dose-static { color: var(--muted); font-size: 12px; flex: 1; }
 
 .panel {
   background: var(--panel);
@@ -134,11 +136,7 @@ input[type="range"] {
 .stat .v { font-size: 18px; font-weight: 600; color: var(--ink); }
 
 .ingredient-row {
-  display: grid;
-  grid-template-columns: 1fr 50px 60px auto;
-  gap: 8px;
-  align-items: center;
-  padding: 6px 4px;
+  padding: 8px 4px;
   border-bottom: 1px dashed var(--border);
 }
 .ingredient-row:last-child { border-bottom: none; }
@@ -146,14 +144,44 @@ input[type="range"] {
   background: #fff2cc;
   border-radius: 4px;
 }
-.ingredient-row .name { display: flex; align-items: center; gap: 6px; }
-.ingredient-row .price { font-variant-numeric: tabular-nums; }
-.ingredient-row .stock { font-variant-numeric: tabular-nums; text-align: right; font-weight: 600; }
-.ingredient-row .controls { display: flex; gap: 2px; }
+.ingredient-row .row-top,
+.ingredient-row .row-bottom {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ingredient-row .row-bottom { margin-top: 4px; }
+.ingredient-row .name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 130px;
+  flex-shrink: 0;
+}
+.ingredient-row .row-top input[type="range"] { flex: 1; }
+.ingredient-row .row-top input[type="range"]:disabled { opacity: 0.4; }
+.ingredient-row .dose-val {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  font-weight: 600;
+  width: 24px;
+}
+.ingredient-row .stock {
+  width: 130px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.ingredient-row .stock strong { font-weight: 600; }
+.stock-unit, .price-unit { font-size: 11px; color: var(--muted); }
+.ingredient-row .price strong { font-weight: 600; }
+.ingredient-row .controls { display: flex; gap: 4px; }
 .ingredient-row .controls button {
-  padding: 2px 6px;
+  padding: 3px 8px;
   font-size: 12px;
-  min-width: 32px;
+}
+.ingredient-row .controls .sell-btn + .buy-btn { margin-left: 8px; }
+.ingredient-row .price {
+  font-variant-numeric: tabular-nums;
 }
 
 .chevron {
@@ -169,21 +197,6 @@ input[type="range"] {
 .chevron.mid { color: var(--neutral); }
 .chevron.low { color: var(--good); }
 .chevron.very-low { color: var(--good); }
-
-.recipe-sliders .slider-row {
-  display: grid;
-  grid-template-columns: 100px 1fr 30px;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 0;
-}
-.recipe-sliders .slider-row.disabled {
-  opacity: 0.4;
-}
-.recipe-sliders .slider-row .dose-val {
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-}
 
 .recipe-header {
   display: flex;

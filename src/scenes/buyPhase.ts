@@ -38,78 +38,61 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
   root.innerHTML = `
     ${appHeaderHtml(state)}
     <div class="buy-phase">
-      <div class="buy-grid">
-        <!-- Recipe panel -->
-        <div class="panel">
-          <h2>Today's Recipe</h2>
-          <div class="recipe-header">
-            <div class="recipe-name">
-              <input id="recipe-name-input" type="text" value="${escapeAttr(r.name)}" />
-            </div>
-            ${dirty ? '<span class="dirty-indicator">unsaved</span>' : ''}
+      <div class="panel shop-panel">
+        <div class="recipe-header">
+          <div class="recipe-name">
+            <input id="recipe-name-input" type="text" value="${escapeAttr(r.name)}" />
           </div>
+          ${dirty ? '<span class="dirty-indicator">unsaved</span>' : ''}
           <div class="type-toggle" role="group">
             <button data-type="hot" class="${r.type === 'hot' ? 'active' : ''}">Hot ☕</button>
             <button data-type="iced" class="${r.type === 'iced' ? 'active' : ''}">Iced 🧊</button>
           </div>
-          <div class="recipe-sliders" style="margin-top:10px;">
-            ${INGREDIENTS.filter(i => i !== 'cups').map(ing => sliderRow(ing, r)).join('')}
-            <div class="slider-row">
-              <span>🥤 Cups</span>
-              <span style="color:var(--muted);font-size:12px;">1 per drink</span>
-              <span></span>
-            </div>
-          </div>
-          <div class="library-controls">
-            <select id="library-select">
-              <option value="">— Saved recipes —</option>
-              ${state.savedRecipes.map(sr =>
-                `<option value="${sr.id}" ${sr.id === state.activeRecipeSourceId ? 'selected' : ''}>${escapeAttr(sr.name)} (${sr.type})</option>`
-              ).join('')}
-            </select>
-            <button id="new-recipe-btn" class="secondary">New</button>
-          </div>
-          <div class="library-controls">
-            <button id="load-btn" class="secondary" ${state.savedRecipes.length === 0 ? 'disabled' : ''}>Load</button>
-            <button id="save-recipe-btn" class="secondary" ${state.activeRecipeSourceId === null ? 'disabled' : ''}>Save</button>
-            <button id="save-as-btn" class="secondary">Save As…</button>
-            <button id="delete-btn" class="danger" ${state.activeRecipeSourceId === null ? 'disabled' : ''}>Delete</button>
-          </div>
+        </div>
+        <div class="library-controls">
+          <select id="library-select">
+            <option value="">— Saved recipes —</option>
+            ${state.savedRecipes.map(sr =>
+              `<option value="${sr.id}" ${sr.id === state.activeRecipeSourceId ? 'selected' : ''}>${escapeAttr(sr.name)} (${sr.type})</option>`
+            ).join('')}
+          </select>
+          <button id="new-recipe-btn" class="secondary">New</button>
+          <button id="load-btn" class="secondary" ${state.savedRecipes.length === 0 ? 'disabled' : ''}>Load</button>
+          <button id="save-recipe-btn" class="secondary" ${state.activeRecipeSourceId === null ? 'disabled' : ''}>Save</button>
+          <button id="save-as-btn" class="secondary">Save As…</button>
+          <button id="delete-btn" class="danger" ${state.activeRecipeSourceId === null ? 'disabled' : ''}>Delete</button>
         </div>
 
-        <!-- Inventory panel -->
-        <div class="panel">
-          <h2>Ingredients (Market)</h2>
-          ${INGREDIENTS.map(ing => ingredientRow(state, ing, bn)).join('')}
+        <div class="shop-rows">
+          ${INGREDIENTS.map(ing => shopRow(state, ing, r, bn)).join('')}
         </div>
 
-        <!-- Day controls panel -->
-        <div class="panel">
-          <h2>Today</h2>
-          <div class="weather-widget ${state.weather.condition}">
-            <span class="icon">${weatherEmoji(state.weather.condition)}</span>
-            <div>
-              <div class="temp">${state.weather.tempC}°C</div>
-              <div class="cond">${state.weather.condition}</div>
-            </div>
-          </div>
-          <div class="cup-price-row">
-            <label>Cup price</label>
-            <div class="cup-price-input-wrap"><span>$</span><input id="cup-price-input" type="number" min="0" step="0.25" value="${(state.cupPrice / 100).toFixed(2)}" /></div>
-          </div>
-          <div class="cups-producible">
-            Cups producible today: <strong>${cups}</strong>
-            ${bn ? `<div style="font-size:12px;font-weight:normal;margin-top:4px;">Bottleneck: ${INGREDIENT_META[bn].emoji} ${INGREDIENT_META[bn].label}</div>` : ''}
-          </div>
+        <div class="cup-price-row">
+          <label>Cup price</label>
+          <div class="cup-price-input-wrap"><span>$</span><input id="cup-price-input" type="number" min="0" step="0.25" value="${(state.cupPrice / 100).toFixed(2)}" /></div>
+        </div>
+        <div class="cups-producible">
+          Cups producible today: <strong>${cups}</strong>
+          ${bn ? `<div style="font-size:12px;font-weight:normal;margin-top:4px;">Bottleneck: ${INGREDIENT_META[bn].emoji} ${INGREDIENT_META[bn].label}</div>` : ''}
+        </div>
+      </div>
 
-          <div class="day-footer">
-            <div class="save-controls">
-              <button id="save-game-btn" class="secondary" title="Save game">💾 Save</button>
-              <button id="restore-game-btn" class="secondary" title="Restore saved game">↩ Restore</button>
-              <button id="reset-game-btn" class="danger" title="Reset to a new game">⟲ Reset</button>
-            </div>
-            <button id="start-day-btn">Start Day ▶</button>
+      <div class="panel today-panel">
+        <h2>Today</h2>
+        <div class="weather-widget ${state.weather.condition}">
+          <span class="icon">${weatherEmoji(state.weather.condition)}</span>
+          <div>
+            <div class="temp">${state.weather.tempC}°C</div>
+            <div class="cond">${state.weather.condition}</div>
           </div>
+        </div>
+        <div class="day-footer">
+          <div class="save-controls">
+            <button id="save-game-btn" class="secondary" title="Save game">💾 Save</button>
+            <button id="restore-game-btn" class="secondary" title="Restore saved game">↩ Restore</button>
+            <button id="reset-game-btn" class="danger" title="Reset to a new game">⟲ Reset</button>
+          </div>
+          <button id="start-day-btn">Start Day ▶</button>
         </div>
       </div>
     </div>
@@ -123,35 +106,40 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
   attachBuyPhaseEvents(root, state, cb);
 }
 
-function sliderRow(ing: Ingredient, r: GameState['activeRecipe']): string {
-  const meta = INGREDIENT_META[ing];
-  const applicable = ing !== 'ice' || r.type === 'iced';
-  const dose = r.doses[ing] ?? 0;
-  return `
-    <div class="slider-row ${applicable ? '' : 'disabled'}" data-ing="${ing}">
-      <span>${meta.emoji} ${meta.label}</span>
-      <input type="range" min="0" max="5" step="1" value="${dose}" data-ing="${ing}" ${applicable ? '' : 'disabled'} />
-      <span class="dose-val" data-dose-val="${ing}">${dose}</span>
-    </div>
-  `;
-}
-
-function ingredientRow(state: GameState, ing: Ingredient, bn: Ingredient | null): string {
+function shopRow(state: GameState, ing: Ingredient, r: GameState['activeRecipe'], bn: Ingredient | null): string {
   const meta = INGREDIENT_META[ing];
   const price = state.prices[ing];
   const level = classifyPrice(price, PRICE_BANDS[ing]);
   const stock = state.stock[ing];
   const isBn = bn === ing;
+  const dose = r.doses[ing] ?? 0;
+
+  let doseCell: string;
+  if (ing === 'cups') {
+    doseCell = `<span class="dose-static">1 per drink</span>`;
+  } else {
+    const applicable = ing !== 'ice' || r.type === 'iced';
+    doseCell = `
+      <input type="range" min="0" max="5" step="1" value="${dose}" data-ing="${ing}" ${applicable ? '' : 'disabled'} />
+      <span class="dose-val" data-dose-val="${ing}">${dose}</span>
+    `;
+  }
+
   return `
     <div class="ingredient-row ${isBn ? 'bottleneck' : ''}" data-row="${ing}">
-      <div class="name">${meta.emoji} ${meta.label}</div>
-      <div class="price">${formatCents(price)} ${chevronEl(level)}</div>
-      <div class="stock">${stock}</div>
-      <div class="controls">
-        <button data-buy="${ing}" data-qty="-10">-10</button>
-        <button data-buy="${ing}" data-qty="-1">-1</button>
-        <button data-buy="${ing}" data-qty="1">+1</button>
-        <button data-buy="${ing}" data-qty="10">+10</button>
+      <div class="row-top">
+        <div class="name">${meta.emoji} ${meta.label}</div>
+        ${doseCell}
+      </div>
+      <div class="row-bottom">
+        <div class="stock"><strong>${stock}</strong> <span class="stock-unit">in stock</span></div>
+        <div class="controls">
+          <button class="secondary sell-btn" data-buy="${ing}" data-qty="-10">Sell 10</button>
+          <button class="secondary sell-btn" data-buy="${ing}" data-qty="-1">Sell 1</button>
+          <button class="buy-btn" data-buy="${ing}" data-qty="1">Buy 1</button>
+          <button class="buy-btn" data-buy="${ing}" data-qty="10">Buy 10</button>
+        </div>
+        <div class="price"><strong>${formatCents(price)}</strong> <span class="price-unit">each</span> ${chevronEl(level)}</div>
       </div>
     </div>
   `;
@@ -185,7 +173,7 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
   });
 
   // Sliders
-  root.querySelectorAll<HTMLInputElement>('.recipe-sliders input[type="range"]').forEach(slider => {
+  root.querySelectorAll<HTMLInputElement>('input[type="range"][data-ing]').forEach(slider => {
     slider.addEventListener('input', () => {
       const ing = slider.dataset.ing as Ingredient;
       const v = parseInt(slider.value, 10);
