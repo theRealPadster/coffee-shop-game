@@ -13,7 +13,7 @@ export interface StreetPhaseCallbacks {
 }
 
 // Real-time length of one game day (8:00 → 20:00)
-const DAY_DURATION_MS = 0.5 * 60 * 1000; // 2 minutes
+const DAY_DURATION_MS = 90 * 1000; // 90 seconds
 
 // Queue slots: x offsets from shopX where customers stand and wait
 const SLOT_OFFSETS = [10, 70, 130] as const;
