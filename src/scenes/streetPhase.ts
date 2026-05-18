@@ -5,7 +5,7 @@ import { spawnCustomer, decide, spawnRate, Customer } from '../customers';
 import { applyHype } from '../hype';
 import { consumeRecipe, maxCups } from '../recipe';
 import { play } from '../audio';
-import { appHeaderHtml, renderHypeMeter, attachHeaderMute } from '../header';
+import { appHeaderHtml, renderHypeMeter, attachHeaderMute, attachHeaderTheme } from '../header';
 
 export interface StreetPhaseCallbacks {
   onCloseShop: () => void;
@@ -130,6 +130,7 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
   });
 
   attachHeaderMute(root, state);
+  attachHeaderTheme(root);
 
   root.querySelector('#close-shop-btn')?.addEventListener('click', () => {
     if (scene.running) closeShop();

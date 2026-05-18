@@ -1,4 +1,5 @@
 :root {
+  /* Core palette */
   --bg: #f4e9d8;
   --panel: #fffaf0;
   --ink: #2b1d0e;
@@ -12,7 +13,84 @@
   --neutral: #9e9e9e;
   --border: #d8c5a3;
   --shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+  /* Theme-tunable accents */
+  --input-bg: #ffffff;
+  --secondary-hover: #f0e4cc;
+  --warn-soft: #fff2cc;
+  --banner-hot-from: #fff5e1;
+  --banner-hot-to: #ffe9c8;
+  --banner-iced-from: #e3f2fd;
+  --banner-iced-to: #bbdefb;
+  --chip-mid-bg: rgba(0, 0, 0, 0.06);
+  --hype-track: rgba(0, 0, 0, 0.08);
+
   --font: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+}
+
+:root[data-theme="sunset"] {
+  --bg: #fff1e3;
+  --panel: #fffaf3;
+  --ink: #3a2418;
+  --muted: #97765d;
+  --accent: #e26b3a;
+  --accent-light: #f4a261;
+  --border: #f0d9bf;
+  --shadow: 0 2px 6px rgba(58, 36, 24, 0.10);
+
+  --secondary-hover: #ffe4ca;
+  --warn-soft: #ffe2b0;
+  --banner-hot-from: #fff3e2;
+  --banner-hot-to: #ffd9b3;
+}
+
+:root[data-theme="blossom"] {
+  --bg: #fcecc9;
+  --panel: #fff7e1;
+  --ink: #445e93;
+  --muted: #975d3c;
+  --accent: #445e93;
+  --accent-light: #7eb2dd;
+  --bad-soft: #fcb0b3;
+  --neutral: #97765d;
+  --border: #e8d5b8;
+  --shadow: 0 2px 6px rgba(68, 94, 147, 0.15);
+
+  --input-bg: #fff7e1;
+  --secondary-hover: #f5e2bf;
+  --warn-soft: #fcb0b3;
+  --banner-hot-from: #fff0d6;
+  --banner-hot-to: #fcb0b3;
+  --banner-iced-from: #d6e8f4;
+  --banner-iced-to: #7eb2dd;
+  --chip-mid-bg: rgba(68, 94, 147, 0.08);
+  --hype-track: rgba(68, 94, 147, 0.12);
+}
+
+:root[data-theme="dark"] {
+  --bg: #1a1410;
+  --panel: #25201b;
+  --ink: #f4e9d8;
+  --muted: #a9967a;
+  --accent: #d99858;
+  --accent-light: #f4b87b;
+  --good: #66bb6a;
+  --good-soft: rgba(102, 187, 106, 0.18);
+  --bad: #ef5350;
+  --bad-soft: rgba(239, 83, 80, 0.20);
+  --neutral: #6b6760;
+  --border: #3b332a;
+  --shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+
+  --input-bg: #14110e;
+  --secondary-hover: #3a3128;
+  --warn-soft: #4a3a18;
+  --banner-hot-from: #3d2718;
+  --banner-hot-to: #4d3320;
+  --banner-iced-from: #1a2e3d;
+  --banner-iced-to: #234055;
+  --chip-mid-bg: rgba(255, 255, 255, 0.08);
+  --hype-track: rgba(255, 255, 255, 0.10);
 }
 
 * { box-sizing: border-box; }
@@ -52,7 +130,17 @@ button.secondary {
   color: var(--ink);
   border: 1px solid var(--border);
 }
-button.secondary:hover:not(:disabled) { background: #f0e4cc; }
+button.secondary:hover:not(:disabled) { background: var(--secondary-hover); }
+
+.theme-select {
+  font-size: 12px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  cursor: pointer;
+}
 button.danger { background: var(--bad); }
 button.success { background: var(--good); }
 
@@ -62,7 +150,7 @@ input[type="number"], input[type="text"], select {
   padding: 4px 8px;
   border: 1px solid var(--border);
   border-radius: 4px;
-  background: white;
+  background: var(--input-bg);
   color: var(--ink);
 }
 input[type="range"] {
@@ -140,7 +228,7 @@ input[type="range"] {
 }
 .ingredient-row:last-child { border-bottom: none; }
 .ingredient-row.bottleneck {
-  background: #fff2cc;
+  background: var(--warn-soft);
   border-radius: 4px;
 }
 .ingredient-row .row-top,
@@ -200,12 +288,12 @@ input[type="range"] {
 .price-chip-arrow { font-size: 9px; line-height: 1; }
 .price-chip.very-high { background: var(--bad-soft); color: var(--bad); border-color: rgba(198,40,40,0.25); }
 .price-chip.high { background: var(--bad-soft); color: var(--bad); }
-.price-chip.mid { background: rgba(0,0,0,0.06); color: var(--muted); }
+.price-chip.mid { background: var(--chip-mid-bg); color: var(--muted); }
 .price-chip.low { background: var(--good-soft); color: var(--good); }
 .price-chip.very-low { background: var(--good-soft); color: var(--good); border-color: rgba(46,125,50,0.25); }
 
 .serving-banner {
-  background: linear-gradient(135deg, #fff5e1, #ffe9c8);
+  background: linear-gradient(135deg, var(--banner-hot-from), var(--banner-hot-to));
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px 12px;
@@ -214,7 +302,7 @@ input[type="range"] {
   gap: 8px;
 }
 .serving-banner.iced {
-  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  background: linear-gradient(135deg, var(--banner-iced-from), var(--banner-iced-to));
 }
 .serving-label {
   font-size: 11px;
@@ -240,7 +328,7 @@ input[type="range"] {
 }
 .serving-main input:hover,
 .serving-main input:focus {
-  background: white;
+  background: var(--input-bg);
   border-color: var(--border);
 }
 .serving-price-row {
@@ -294,7 +382,7 @@ input[type="range"] {
 .cups-producible {
   margin-top: 10px;
   padding: 8px;
-  background: #fff2cc;
+  background: var(--warn-soft);
   border-radius: 6px;
   font-weight: 600;
   text-align: center;
@@ -340,7 +428,7 @@ input[type="range"] {
 .hype-meter .label { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; }
 .hype-meter .bar {
   height: 10px;
-  background: rgba(0,0,0,0.08);
+  background: var(--hype-track);
   border-radius: 5px;
   overflow: hidden;
 }

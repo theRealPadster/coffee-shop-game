@@ -4,7 +4,7 @@ import { weatherEmoji } from '../weather';
 import { maxCups, bottleneck } from '../recipe';
 import { saveGame, loadGame, clearSave } from '../save';
 import { play } from '../audio';
-import { appHeaderHtml, renderHypeMeter, attachHeaderMute } from '../header';
+import { appHeaderHtml, renderHypeMeter, attachHeaderMute, attachHeaderTheme } from '../header';
 
 export interface BuyPhaseCallbacks {
   onStartDay: () => void;
@@ -98,6 +98,7 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
     renderHypeMeter(hypeHost, state.hype);
   }
   attachHeaderMute(root, state);
+  attachHeaderTheme(root);
   attachBuyPhaseEvents(root, state, cb);
 }
 
