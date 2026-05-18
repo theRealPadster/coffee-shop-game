@@ -1,5 +1,5 @@
-import { GameState, formatCents, freshStats } from '../state';
-import { drawBackground, drawShop } from '../render';
+import { GameState, formatCents, freshStats, activeRecipe } from '../state';
+import { drawBackground, drawShop, drawMenuSign } from '../render';
 import { weatherEmoji } from '../weather';
 import { spawnCustomer, decide, spawnRate, Customer } from '../customers';
 import { applyHype } from '../hype';
@@ -35,11 +35,12 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
   // Reset today's stats at the start of the day
   state.todayStats = freshStats(state.hype);
 
+  const todayRecipe = activeRecipe(state);
   const headerCenter = `
-    <div class="recipe-badge ${state.activeRecipe.type === 'iced' ? 'iced' : ''}">
-      ${state.activeRecipe.type === 'hot' ? '☕' : '🧊'} ${state.activeRecipe.name}
+    <div class="recipe-badge ${todayRecipe.type === 'iced' ? 'iced' : ''}">
+      ${todayRecipe.type === 'hot' ? '☕' : '🧊'} ${todayRecipe.name}
     </div>
-    <div class="stat"><span class="v" id="cups-left">${maxCups(state.stock, state.activeRecipe)}</span><span>Cups left</span></div>
+    <div class="stat"><span class="v" id="cups-left">${maxCups(state.stock, todayRecipe)}</span><span>Cups left</span></div>
     <div class="stat"><span class="v" id="sold-count">0</span><span>Sold</span></div>
     <div class="stat"><span class="v" id="walkby-count">0</span><span>Walk-bys</span></div>
     <div class="game-clock" id="game-clock">08:00</div>
@@ -240,6 +241,12 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
     drawBackground(ctx, canvas.width, canvas.height, state.weather.condition, timeOfDay);
     drawShop(ctx, shopX, shopY, 120, 110);
 
+    // Menu sandwich-board sign on the sidewalk to the right of the shop
+    const signCx = shopX + 120 + 60;
+    const signBase = shopY + 110 + 16;
+    const curRecipe = activeRecipe(state);
+    drawMenuSign(ctx, signCx, signBase, curRecipe.name, formatCents(state.cupPrice), curRecipe.type === 'iced');
+
     for (const c of scene.customers) {
       c.sprite.draw(ctx, c.x, c.y, now);
       if (c.phase === 'buying') {
@@ -339,7 +346,7 @@ function updateHud(root: HTMLElement, state: GameState): void {
   const cashEl = root.querySelector('#header-cash');
   if (cashEl) cashEl.textContent = formatCents(state.cash);
   const cupsLeftEl = root.querySelector('#cups-left');
-  if (cupsLeftEl) cupsLeftEl.textContent = String(maxCups(state.stock, state.activeRecipe));
+  if (cupsLeftEl) cupsLeftEl.textContent = String(maxCups(state.stock, activeRecipe(state)));
   const soldEl = root.querySelector('#sold-count');
   if (soldEl) soldEl.textContent = String(state.todayStats.sold);
   const wbEl = root.querySelector('#walkby-count');

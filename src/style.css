@@ -78,8 +78,7 @@ input[type="range"] {
 }
 
 .shop-panel { margin-bottom: 16px; }
-.shop-panel .recipe-header { margin-bottom: 8px; }
-.shop-panel .library-controls { margin-bottom: 12px; }
+.shop-panel .serving-banner { margin-bottom: 12px; }
 
 .shop-rows {
   border-top: 1px solid var(--border);
@@ -184,33 +183,76 @@ input[type="range"] {
   font-variant-numeric: tabular-nums;
 }
 
-.chevron {
+.price-chip {
   display: inline-flex;
-  flex-direction: column;
-  line-height: 0.7;
-  font-size: 10px;
-  margin-left: 4px;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-left: 6px;
+  text-transform: lowercase;
   vertical-align: middle;
+  border: 1px solid transparent;
 }
-.chevron.very-high { color: var(--bad); }
-.chevron.high { color: var(--bad); }
-.chevron.mid { color: var(--neutral); }
-.chevron.low { color: var(--good); }
-.chevron.very-low { color: var(--good); }
+.price-chip-arrow { font-size: 9px; line-height: 1; }
+.price-chip.very-high { background: var(--bad-soft); color: var(--bad); border-color: rgba(198,40,40,0.25); }
+.price-chip.high { background: var(--bad-soft); color: var(--bad); }
+.price-chip.mid { background: rgba(0,0,0,0.06); color: var(--muted); }
+.price-chip.low { background: var(--good-soft); color: var(--good); }
+.price-chip.very-low { background: var(--good-soft); color: var(--good); border-color: rgba(46,125,50,0.25); }
 
-.recipe-header {
+.serving-banner {
+  background: linear-gradient(135deg, #fff5e1, #ffe9c8);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 8px;
+}
+.serving-banner.iced {
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+}
+.serving-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 700;
+}
+.serving-main {
+  display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
 }
-.recipe-name {
-  font-size: 16px;
-  font-weight: 600;
+.serving-icon { font-size: 24px; }
+.serving-main input {
   flex: 1;
+  font-size: 18px;
+  font-weight: 700;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 2px 6px;
 }
-.recipe-name input { width: 100%; font-size: 16px; font-weight: 600; }
+.serving-main input:hover,
+.serving-main input:focus {
+  background: white;
+  border-color: var(--border);
+}
+.serving-price-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink);
+}
+.serving-price-row label { color: var(--muted); }
+.serving-per-cup { color: var(--muted); font-size: 12px; }
+
 .type-toggle {
   display: flex;
   gap: 2px;
@@ -228,18 +270,8 @@ input[type="range"] {
   background: var(--accent);
   color: white;
 }
-.dirty-indicator { color: var(--muted); font-style: italic; font-size: 12px; }
-
-.library-controls {
-  display: flex;
-  gap: 4px;
-  margin-top: 10px;
-  flex-wrap: wrap;
-}
-.library-controls select { flex: 1; min-width: 100px; }
-.library-controls button {
-  padding: 4px 8px;
-  font-size: 12px;
+.serving-banner.iced .type-toggle button.active {
+  background: #0277bd;
 }
 
 .weather-widget {
@@ -269,13 +301,6 @@ input[type="range"] {
   font-size: 16px;
 }
 
-.cup-price-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 8px 0;
-}
-.cup-price-row label { flex: 1; }
 .cup-price-input-wrap {
   position: relative;
   display: inline-flex;

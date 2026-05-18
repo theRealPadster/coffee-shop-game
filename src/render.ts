@@ -37,6 +37,64 @@ export const sprites = {
   buying: emojiSprite('💰', 24),
 };
 
+export function drawMenuSign(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  baseY: number,
+  drinkName: string,
+  priceText: string,
+  isIced: boolean,
+): void {
+  const w = 96;
+  const h = 84;
+  const x = cx - w / 2;
+  const y = baseY - h;
+
+  // Drop shadow on the sidewalk
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.beginPath();
+  ctx.ellipse(cx, baseY + 3, w * 0.55, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // A-frame leg behind the board
+  ctx.fillStyle = '#7a4a1a';
+  ctx.fillRect(cx - 2, y + h - 4, 4, 8);
+
+  // Wooden frame
+  ctx.fillStyle = '#5a3a1b';
+  ctx.fillRect(x - 4, y - 4, w + 8, h + 8);
+  // Chalkboard surface
+  ctx.fillStyle = '#1d2a22';
+  ctx.fillRect(x, y, w, h);
+
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+
+  // "— TODAY —" header
+  ctx.fillStyle = '#cdb98a';
+  ctx.font = 'bold 9px sans-serif';
+  ctx.fillText('— TODAY —', cx, y + 6);
+
+  // Drink icon
+  ctx.font = '18px serif';
+  ctx.fillText(isIced ? '🧊' : '☕', cx, y + 18);
+
+  // Name (truncated to fit)
+  let name = drinkName.trim() || 'Untitled';
+  if (name.length > 14) name = name.slice(0, 13) + '…';
+  ctx.fillStyle = '#fffefa';
+  ctx.font = 'bold 11px sans-serif';
+  ctx.fillText(name, cx, y + 42);
+
+  // Price
+  ctx.fillStyle = '#ffe082';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.fillText(priceText, cx, y + 58);
+
+  ctx.restore();
+}
+
 export function drawShop(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): void {
   // Wooden stand
   ctx.fillStyle = '#8b5a2b';

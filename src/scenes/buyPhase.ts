@@ -1,7 +1,7 @@
-import { GameState, INGREDIENTS, INGREDIENT_META, PRICE_BANDS, formatCents, Ingredient, DrinkType, newId } from '../state';
+import { GameState, INGREDIENTS, INGREDIENT_META, PRICE_BANDS, formatCents, Ingredient, DrinkType, activeRecipe } from '../state';
 import { classifyPrice, PriceLevel } from '../economy';
 import { weatherEmoji } from '../weather';
-import { maxCups, bottleneck, cloneRecipe, isActiveRecipeDirty, setRecipeType } from '../recipe';
+import { maxCups, bottleneck } from '../recipe';
 import { saveGame, loadGame, clearSave } from '../save';
 import { play } from '../audio';
 import { appHeaderHtml, renderHypeMeter, attachHeaderMute } from '../header';
@@ -13,64 +13,59 @@ export interface BuyPhaseCallbacks {
   onReset: () => void;
 }
 
-const CHEVRON_FOR_LEVEL: Record<PriceLevel, string> = {
-  'very-high': '▲▲',
-  'high': '▲',
-  'mid': '▬',
-  'low': '▼',
-  'very-low': '▼▼',
+const LEVEL_LABEL: Record<PriceLevel, string> = {
+  'very-low': 'bargain',
+  'low': 'cheap',
+  'mid': 'avg price',
+  'high': 'pricey',
+  'very-high': 'expensive',
 };
 
-function chevronEl(level: PriceLevel): string {
-  const chars = CHEVRON_FOR_LEVEL[level];
-  if (chars.length === 2) {
-    return `<span class="chevron ${level}"><span>${chars[0]}</span><span>${chars[1]}</span></span>`;
-  }
-  return `<span class="chevron ${level}"><span>${chars}</span></span>`;
+const LEVEL_ARROW: Record<PriceLevel, string> = {
+  'very-low': '▼▼',
+  'low': '▼',
+  'mid': '',
+  'high': '▲',
+  'very-high': '▲▲',
+};
+
+function priceChip(level: PriceLevel): string {
+  const arrow = LEVEL_ARROW[level];
+  const arrowHtml = arrow ? ` <span class="price-chip-arrow">${arrow}</span>` : '';
+  return `<span class="price-chip ${level}">${LEVEL_LABEL[level]}${arrowHtml}</span>`;
 }
 
 export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhaseCallbacks): void {
-  const dirty = isActiveRecipeDirty(state);
-  const bn = bottleneck(state.stock, state.activeRecipe);
-  const cups = maxCups(state.stock, state.activeRecipe);
-  const r = state.activeRecipe;
+  const r = activeRecipe(state);
+  const bn = bottleneck(state.stock, r);
+  const cups = maxCups(state.stock, r);
+  const typeIcon = r.type === 'hot' ? '☕' : '🧊';
 
   root.innerHTML = `
     ${appHeaderHtml(state)}
     <div class="buy-phase">
       <div class="panel shop-panel">
-        <div class="recipe-header">
-          <div class="recipe-name">
+        <div class="serving-banner ${r.type}">
+          <div class="serving-label">Serving Today</div>
+          <div class="serving-main">
+            <span class="serving-icon">${typeIcon}</span>
             <input id="recipe-name-input" type="text" value="${escapeAttr(r.name)}" />
+            <div class="type-toggle" role="group">
+              <button data-type="hot" class="${r.type === 'hot' ? 'active' : ''}">Hot ☕</button>
+              <button data-type="iced" class="${r.type === 'iced' ? 'active' : ''}">Iced 🧊</button>
+            </div>
           </div>
-          ${dirty ? '<span class="dirty-indicator">unsaved</span>' : ''}
-          <div class="type-toggle" role="group">
-            <button data-type="hot" class="${r.type === 'hot' ? 'active' : ''}">Hot ☕</button>
-            <button data-type="iced" class="${r.type === 'iced' ? 'active' : ''}">Iced 🧊</button>
+          <div class="serving-price-row">
+            <label for="cup-price-input">Selling for</label>
+            <div class="cup-price-input-wrap"><span>$</span><input id="cup-price-input" type="number" min="0" step="0.25" value="${(state.cupPrice / 100).toFixed(2)}" /></div>
+            <span class="serving-per-cup">per cup</span>
           </div>
-        </div>
-        <div class="library-controls">
-          <select id="library-select">
-            <option value="">— Saved recipes —</option>
-            ${state.savedRecipes.map(sr =>
-              `<option value="${sr.id}" ${sr.id === state.activeRecipeSourceId ? 'selected' : ''}>${escapeAttr(sr.name)} (${sr.type})</option>`
-            ).join('')}
-          </select>
-          <button id="new-recipe-btn" class="secondary">New</button>
-          <button id="load-btn" class="secondary" ${state.savedRecipes.length === 0 ? 'disabled' : ''}>Load</button>
-          <button id="save-recipe-btn" class="secondary" ${state.activeRecipeSourceId === null ? 'disabled' : ''}>Save</button>
-          <button id="save-as-btn" class="secondary">Save As…</button>
-          <button id="delete-btn" class="danger" ${state.activeRecipeSourceId === null ? 'disabled' : ''}>Delete</button>
         </div>
 
         <div class="shop-rows">
           ${INGREDIENTS.map(ing => shopRow(state, ing, r, bn)).join('')}
         </div>
 
-        <div class="cup-price-row">
-          <label>Cup price</label>
-          <div class="cup-price-input-wrap"><span>$</span><input id="cup-price-input" type="number" min="0" step="0.25" value="${(state.cupPrice / 100).toFixed(2)}" /></div>
-        </div>
         <div class="cups-producible">
           Cups producible today: <strong>${cups}</strong>
           ${bn ? `<div style="font-size:12px;font-weight:normal;margin-top:4px;">Bottleneck: ${INGREDIENT_META[bn].emoji} ${INGREDIENT_META[bn].label}</div>` : ''}
@@ -106,7 +101,7 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
   attachBuyPhaseEvents(root, state, cb);
 }
 
-function shopRow(state: GameState, ing: Ingredient, r: GameState['activeRecipe'], bn: Ingredient | null): string {
+function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot'], bn: Ingredient | null): string {
   const meta = INGREDIENT_META[ing];
   const price = state.prices[ing];
   const level = classifyPrice(price, PRICE_BANDS[ing]);
@@ -134,12 +129,10 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['activeRecipe']
       <div class="row-bottom">
         <div class="stock"><strong>${stock}</strong> <span class="stock-unit">in stock</span></div>
         <div class="controls">
-          <button class="secondary sell-btn" data-buy="${ing}" data-qty="-10">Sell 10</button>
-          <button class="secondary sell-btn" data-buy="${ing}" data-qty="-1">Sell 1</button>
           <button class="buy-btn" data-buy="${ing}" data-qty="1">Buy 1</button>
           <button class="buy-btn" data-buy="${ing}" data-qty="10">Buy 10</button>
         </div>
-        <div class="price"><strong>${formatCents(price)}</strong> <span class="price-unit">each</span> ${chevronEl(level)}</div>
+        <div class="price"><strong>${formatCents(price)}</strong> <span class="price-unit">each</span> ${priceChip(level)}</div>
       </div>
     </div>
   `;
@@ -154,36 +147,40 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
     renderBuyPhase(root, state, cb);
   };
 
-  // Recipe name
+  // Recipe name — edits the currently active recipe
   const nameInput = root.querySelector<HTMLInputElement>('#recipe-name-input');
   nameInput?.addEventListener('change', () => {
-    state.activeRecipe = { ...state.activeRecipe, name: nameInput.value.trim() || 'Untitled' };
+    const cur = activeRecipe(state);
+    state.recipes[state.activeType] = { ...cur, name: nameInput.value.trim() || 'Untitled' };
     cb.onStateChange();
     rerender();
   });
 
-  // Type toggle
+  // Type toggle — switches which recipe is being served / edited today
   root.querySelectorAll<HTMLButtonElement>('.type-toggle button').forEach(btn => {
     btn.addEventListener('click', () => {
       const t = btn.dataset.type as DrinkType;
-      state.activeRecipe = setRecipeType(state.activeRecipe, t);
+      if (state.activeType === t) return;
+      state.activeType = t;
       cb.onStateChange();
       rerender();
     });
   });
 
-  // Sliders
+  // Sliders — edit the currently active recipe's doses
   root.querySelectorAll<HTMLInputElement>('input[type="range"][data-ing]').forEach(slider => {
     slider.addEventListener('input', () => {
       const ing = slider.dataset.ing as Ingredient;
       const v = parseInt(slider.value, 10);
-      state.activeRecipe = { ...state.activeRecipe, doses: { ...state.activeRecipe.doses, [ing]: v } };
+      const cur = activeRecipe(state);
+      state.recipes[state.activeType] = { ...cur, doses: { ...cur.doses, [ing]: v } };
       const span = root.querySelector(`[data-dose-val="${ing}"]`);
       if (span) span.textContent = String(v);
       cb.onStateChange();
       // Update only cups-producible + bottleneck without full re-render for slider smoothness
-      const c = maxCups(state.stock, state.activeRecipe);
-      const bn = bottleneck(state.stock, state.activeRecipe);
+      const updated = activeRecipe(state);
+      const c = maxCups(state.stock, updated);
+      const bn = bottleneck(state.stock, updated);
       const cupsDiv = root.querySelector('.cups-producible');
       if (cupsDiv) {
         cupsDiv.innerHTML = `
@@ -197,62 +194,6 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
       });
     });
     slider.addEventListener('change', () => rerender());
-  });
-
-  // Library load
-  const select = root.querySelector<HTMLSelectElement>('#library-select');
-  root.querySelector('#load-btn')?.addEventListener('click', () => {
-    const id = select?.value;
-    if (!id) return;
-    const src = state.savedRecipes.find(s => s.id === id);
-    if (!src) return;
-    state.activeRecipe = { ...src, id: newId(), doses: { ...src.doses } };
-    state.activeRecipeSourceId = src.id;
-    cb.onStateChange();
-    rerender();
-  });
-
-  root.querySelector('#save-recipe-btn')?.addEventListener('click', () => {
-    if (state.activeRecipeSourceId === null) return;
-    const idx = state.savedRecipes.findIndex(s => s.id === state.activeRecipeSourceId);
-    if (idx < 0) return;
-    const updated = { ...state.activeRecipe, id: state.activeRecipeSourceId };
-    state.savedRecipes = [...state.savedRecipes];
-    state.savedRecipes[idx] = updated;
-    cb.onStateChange();
-    rerender();
-  });
-
-  root.querySelector('#save-as-btn')?.addEventListener('click', () => {
-    const name = prompt('Name this recipe:', state.activeRecipe.name) || state.activeRecipe.name;
-    const newSaved = cloneRecipe({ ...state.activeRecipe, name });
-    state.savedRecipes = [...state.savedRecipes, newSaved];
-    state.activeRecipeSourceId = newSaved.id;
-    // Keep editing the active copy (different id), but match content
-    state.activeRecipe = { ...state.activeRecipe, name };
-    cb.onStateChange();
-    rerender();
-  });
-
-  root.querySelector('#delete-btn')?.addEventListener('click', () => {
-    if (state.activeRecipeSourceId === null) return;
-    if (!confirm('Delete this saved recipe?')) return;
-    state.savedRecipes = state.savedRecipes.filter(s => s.id !== state.activeRecipeSourceId);
-    state.activeRecipeSourceId = null;
-    cb.onStateChange();
-    rerender();
-  });
-
-  root.querySelector('#new-recipe-btn')?.addEventListener('click', () => {
-    state.activeRecipe = {
-      id: newId(),
-      name: 'Untitled',
-      type: 'hot',
-      doses: { coffee: 3, sugar: 2, milk: 2, cups: 1 },
-    };
-    state.activeRecipeSourceId = null;
-    cb.onStateChange();
-    rerender();
   });
 
   // Cup price
@@ -298,7 +239,7 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
 
   // Start day
   root.querySelector('#start-day-btn')?.addEventListener('click', () => {
-    if (maxCups(state.stock, state.activeRecipe) <= 0) {
+    if (maxCups(state.stock, activeRecipe(state)) <= 0) {
       if (!confirm("You can't brew any cups with your current recipe and stock. Start day anyway?")) return;
     }
     play('bell');
@@ -307,27 +248,17 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
 }
 
 function attemptTrade(state: GameState, ing: Ingredient, qty: number): void {
-  if (qty === 0) return;
+  if (qty <= 0) return;
   const price = state.prices[ing];
-  if (qty > 0) {
-    const cost = price * qty;
-    if (state.cash < cost) {
-      const affordable = Math.floor(state.cash / price);
-      if (affordable <= 0) return;
-      state.cash -= price * affordable;
-      state.stock[ing] += affordable;
-      play('cashier');
-    } else {
-      state.cash -= cost;
-      state.stock[ing] += qty;
-      play('cashier');
-    }
+  const cost = price * qty;
+  if (state.cash < cost) {
+    const affordable = Math.floor(state.cash / price);
+    if (affordable <= 0) return;
+    state.cash -= price * affordable;
+    state.stock[ing] += affordable;
   } else {
-    const sell = Math.min(-qty, state.stock[ing]);
-    if (sell <= 0) return;
-    // Sell back at 70% of current market price
-    state.cash += Math.floor(price * sell * 0.7);
-    state.stock[ing] -= sell;
-    play('cashier');
+    state.cash -= cost;
+    state.stock[ing] += qty;
   }
+  play('cashier');
 }

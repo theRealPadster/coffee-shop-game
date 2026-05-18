@@ -1,4 +1,4 @@
-import { GameState, DrinkType } from './state';
+import { GameState, DrinkType, activeRecipe } from './state';
 import { weatherEffects } from './weather';
 import { hypePriceTolerance, hypeStopMultiplier } from './hype';
 import { maxCups } from './recipe';
@@ -82,7 +82,7 @@ export interface DecisionResult {
 }
 
 export function decide(state: GameState, c: Customer): DecisionResult {
-  const r = state.activeRecipe;
+  const r = activeRecipe(state);
   const eff = weatherEffects(state.weather);
   const cupsLeft = maxCups(state.stock, r);
 
