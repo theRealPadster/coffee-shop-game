@@ -263,7 +263,7 @@ input[type="range"] {
 .ingredient-row .price strong { font-weight: 600; }
 .ingredient-row .controls {
   display: grid;
-  grid-template-columns: auto auto;
+  grid-template-columns: auto auto auto;
   column-gap: 4px;
   row-gap: 2px;
   align-items: center;
