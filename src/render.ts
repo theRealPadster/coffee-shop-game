@@ -114,14 +114,33 @@ export function drawMenuSign(
 }
 
 export function drawShop(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): void {
-  // Wooden stand
+  // Ground shadow under the stand
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.beginPath();
+  ctx.ellipse(x + w / 2, y + h + 3, w * 0.55, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Wooden stand front
   ctx.fillStyle = '#8b5a2b';
   ctx.fillRect(x, y, w, h);
+  // Darker right edge for depth
+  ctx.fillStyle = '#6b4520';
+  ctx.fillRect(x + w - 6, y, 6, h);
+  // Top trim
   ctx.fillStyle = '#5a3a1b';
   ctx.fillRect(x, y, w, 6);
-  // Counter top
+
+  // Front-panel inset (subtle paneling)
+  ctx.strokeStyle = '#6b4520';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x + 8, y + h * 0.55, w - 22, h * 0.35);
+
+  // Counter top with slight bevel
   ctx.fillStyle = '#deb887';
   ctx.fillRect(x - 4, y + h * 0.4, w + 8, 8);
+  ctx.fillStyle = '#c19c6b';
+  ctx.fillRect(x - 4, y + h * 0.4 + 6, w + 8, 2);
+
   // Awning
   ctx.fillStyle = '#c0392b';
   ctx.beginPath();
@@ -136,6 +155,10 @@ export function drawShop(ctx: CanvasRenderingContext2D, x: number, y: number, w:
   for (let i = 0; i < 5; i++) {
     ctx.fillRect(x + 6 + i * 24, y - 18, 8, 18);
   }
+  // Awning shadow under the lip
+  ctx.fillStyle = 'rgba(0,0,0,0.15)';
+  ctx.fillRect(x - 6, y, w + 12, 3);
+
   // Sign
   sprites.shopSign.draw(ctx, x + w / 2, y + h * 0.25, 0);
   ctx.fillStyle = '#fff';
@@ -143,6 +166,42 @@ export function drawShop(ctx: CanvasRenderingContext2D, x: number, y: number, w:
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
   ctx.fillText('COFFEE', x + w / 2, y + h * 0.6);
+}
+
+// A puffy stylized cloud built from a few overlapping circles.
+function drawCloud(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+  ctx.beginPath();
+  ctx.arc(cx - r * 0.9, cy + r * 0.1, r * 0.7, 0, Math.PI * 2);
+  ctx.arc(cx - r * 0.2, cy - r * 0.4, r * 0.95, 0, Math.PI * 2);
+  ctx.arc(cx + r * 0.6, cy - r * 0.2, r * 0.8, 0, Math.PI * 2);
+  ctx.arc(cx + r * 1.0, cy + r * 0.15, r * 0.6, 0, Math.PI * 2);
+  ctx.arc(cx + r * 0.2, cy + r * 0.3, r * 0.75, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// Distant city silhouette drawn at the horizon line behind the shop.
+// Deterministic per pixel column so it doesn't flicker.
+function drawCitySilhouette(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  horizonY: number,
+  baseColor: string,
+): void {
+  ctx.save();
+  ctx.globalAlpha = 0.32;
+  ctx.fillStyle = baseColor;
+  const widths = [54, 38, 70, 46, 60, 32, 78, 50, 42, 66];
+  const heights = [48, 64, 36, 72, 52, 80, 44, 58, 40, 68];
+  let bx = -12;
+  let i = 0;
+  while (bx < w + 20) {
+    const bw = widths[i % widths.length];
+    const bh = heights[(i * 3 + 1) % heights.length];
+    ctx.fillRect(bx, horizonY - bh, bw, bh);
+    bx += bw - 4; // slight overlap so they read as a continuous skyline
+    i++;
+  }
+  ctx.restore();
 }
 
 // Interpolate between two hex colours by fraction t (0–1).
@@ -175,7 +234,7 @@ const SKY: Record<string, [[number, string][], [number, string][]]> = {
     [[0,'#d4a070'],[0.15,'#d0d8dc'],[0.45,'#eceff1'],[0.55,'#eceff1'],[0.85,'#d0d8dc'],[1,'#d4a070']],
   ],
   rainy:  [[[0,'#546e7a'],[1,'#546e7a']], [[0,'#90a4ae'],[1,'#90a4ae']]],
-  snowy:  [[[0,'#cfd8dc'],[1,'#cfd8dc']], [[0,'#ffffff'],[1,'#ffffff']]],
+  snowy:  [[[0,'#6b7a85'],[1,'#6b7a85']], [[0,'#a4b3bd'],[1,'#a4b3bd']]],
 };
 
 const SUNRISE_HOUR = 7;
@@ -242,26 +301,62 @@ export function drawBackground(
     ctx.restore();
   }
 
-  // Sidewalk
-  ctx.fillStyle = '#bdbdbd';
-  ctx.fillRect(0, h * 0.6, w, h * 0.25);
-  // Sidewalk cracks
-  ctx.strokeStyle = '#9e9e9e';
-  ctx.lineWidth = 1;
-  for (let i = 0; i < w; i += 80) {
-    ctx.beginPath();
-    ctx.moveTo(i, h * 0.6);
-    ctx.lineTo(i, h * 0.85);
-    ctx.stroke();
+  // Clouds (skip for rainy — the flat overcast sky reads better on its own)
+  if (condition !== 'rainy') {
+    ctx.save();
+    if (condition === 'sunny') {
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    } else if (condition === 'snowy') {
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    } else {
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    }
+    const clouds = condition === 'cloudy'
+      ? [[0.08,0.10,1.1],[0.28,0.18,0.85],[0.48,0.08,1.3],[0.70,0.20,0.95],[0.92,0.12,1.0]]
+      : [[0.10,0.12,0.9],[0.42,0.07,1.1],[0.78,0.18,0.8]];
+    for (const [fx, fy, fs] of clouds) {
+      drawCloud(ctx, fx * w, fy * h, 22 * fs);
+    }
+    ctx.restore();
   }
 
-  // Road
-  ctx.fillStyle = '#37474f';
-  ctx.fillRect(0, h * 0.85, w, h * 0.15);
-  // Road dashes
-  ctx.fillStyle = '#fdd835';
+  // Distant city silhouette at the horizon, tinted toward the sky for haze.
+  drawCitySilhouette(ctx, w, h * 0.6, lerpHex(skyBot, '#39455a', 0.65));
+
+  // Sidewalk — flat concrete with a vertical gradient (lighter at back, darker toward curb)
+  const sidewalkTop = h * 0.6;
+  const sidewalkBot = h * 0.85;
+  const sidewalkH = sidewalkBot - sidewalkTop;
+  const sidewalkGrad = ctx.createLinearGradient(0, sidewalkTop, 0, sidewalkBot);
+  sidewalkGrad.addColorStop(0, '#d4d0c8');
+  sidewalkGrad.addColorStop(1, '#b8b3a9');
+  ctx.fillStyle = sidewalkGrad;
+  ctx.fillRect(0, sidewalkTop, w, sidewalkH);
+
+  // Subtle warm trim line at the building edge
+  ctx.fillStyle = 'rgba(120, 100, 80, 0.18)';
+  ctx.fillRect(0, sidewalkTop, w, 2);
+
+  // Curb: a small raised lip with highlight on top and dark face below
+  const curbY = sidewalkBot - 6;
+  ctx.fillStyle = '#9a948a';
+  ctx.fillRect(0, curbY, w, 6);
+  ctx.fillStyle = '#cfc9bf';
+  ctx.fillRect(0, curbY, w, 1); // top highlight
+  ctx.fillStyle = '#5e5950';
+  ctx.fillRect(0, sidewalkBot, w, 2); // shadow into the road
+
+  // Road — asphalt with a centered dashed yellow line
+  ctx.fillStyle = '#3b424a';
+  ctx.fillRect(0, sidewalkBot + 2, w, h - (sidewalkBot + 2));
+  // Subtle lighter asphalt top edge
+  ctx.fillStyle = '#4a525c';
+  ctx.fillRect(0, sidewalkBot + 2, w, 3);
+  // Centered dashed yellow line
+  const roadMid = sidewalkBot + 2 + (h - (sidewalkBot + 2)) * 0.5;
+  ctx.fillStyle = '#f5c842';
   for (let i = 20; i < w; i += 60) {
-    ctx.fillRect(i, h * 0.92, 28, 4);
+    ctx.fillRect(i, roadMid - 2, 28, 4);
   }
 
   // Weather overlays
@@ -277,13 +372,16 @@ export function drawBackground(
       ctx.stroke();
     }
   } else if (condition === 'snowy') {
+    ctx.strokeStyle = 'rgba(60, 80, 95, 0.55)';
+    ctx.lineWidth = 1;
     ctx.fillStyle = 'white';
     for (let i = 0; i < 40; i++) {
       const sx = Math.random() * w;
       const sy = Math.random() * h * 0.6;
       ctx.beginPath();
-      ctx.arc(sx, sy, 2, 0, Math.PI * 2);
+      ctx.arc(sx, sy, 2.4, 0, Math.PI * 2);
       ctx.fill();
+      ctx.stroke();
     }
   }
 }
