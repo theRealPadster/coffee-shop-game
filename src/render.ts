@@ -7,7 +7,7 @@ export interface Sprite {
   height: number;
 }
 
-export function emojiSprite(emoji: string, size = 36): Sprite {
+export function emojiSprite(emoji: string, size = 36, mirror = false): Sprite {
   return {
     width: size,
     height: size,
@@ -16,18 +16,36 @@ export function emojiSprite(emoji: string, size = 36): Sprite {
       ctx.font = `${size}px serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(emoji, x, y);
+      if (mirror) {
+        ctx.translate(x, y);
+        ctx.scale(-1, 1);
+        ctx.fillText(emoji, 0, 0);
+      } else {
+        ctx.fillText(emoji, x, y);
+      }
       ctx.restore();
     },
   };
 }
 
-// A pool of "person" emoji to give variety.
-const PEOPLE_EMOJI = ['🚶', '🚶‍♀️', '🧍', '🚶‍♂️', '🧑', '👩', '👨', '👵', '👴', '🧒'];
+// Pedestrian pool. `mirror: true` flips the glyph so default-left-facing
+// walking emoji face right, matching customer velocity (always rightward).
+const PEDESTRIANS: Array<{ emoji: string; mirror: boolean }> = [
+  { emoji: '🚶',     mirror: true  },
+  { emoji: '🚶‍♀️', mirror: true  },
+  { emoji: '🚶‍♂️', mirror: true  },
+  { emoji: '🧍',     mirror: false },
+  { emoji: '🧑',     mirror: false },
+  { emoji: '👩',     mirror: false },
+  { emoji: '👨',     mirror: false },
+  { emoji: '👵',     mirror: false },
+  { emoji: '👴',     mirror: false },
+  { emoji: '🧒',     mirror: false },
+];
 
 export function randomPedestrianSprite(): Sprite {
-  const e = PEOPLE_EMOJI[Math.floor(Math.random() * PEOPLE_EMOJI.length)];
-  return emojiSprite(e, 40);
+  const p = PEDESTRIANS[Math.floor(Math.random() * PEDESTRIANS.length)];
+  return emojiSprite(p.emoji, 40, p.mirror);
 }
 
 export const sprites = {
