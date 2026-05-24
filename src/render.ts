@@ -209,7 +209,6 @@ function drawCitySilhouette(
   baseColor: string,
 ): void {
   ctx.save();
-  ctx.globalAlpha = 0.32;
   ctx.fillStyle = baseColor;
   const widths = [54, 38, 70, 46, 60, 32, 78, 50, 42, 66];
   const heights = [48, 64, 36, 72, 52, 80, 44, 58, 40, 68];
@@ -357,7 +356,8 @@ export function drawBackground(
   }
 
   // Distant city silhouette at the horizon, tinted toward the sky for haze.
-  drawCitySilhouette(ctx, w, h * 0.6, lerpHex(skyBot, '#39455a', 0.65));
+  // Opaque so it occludes the sun; the heavy sky-blend gives the distant feel.
+  drawCitySilhouette(ctx, w, h * 0.6, lerpHex(skyBot, '#39455a', 0.22));
 
   // Sidewalk — flat concrete with a vertical gradient (lighter at back, darker toward curb)
   const sidewalkTop = h * 0.6;
