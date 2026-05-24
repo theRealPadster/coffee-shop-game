@@ -5,6 +5,7 @@ import { renderStreetPhase } from './scenes/streetPhase';
 import { rollPrices } from './economy';
 import { generateForecast } from './weather';
 import { decayHype } from './hype';
+import { loadAndApplyTheme } from './themes';
 
 let state: GameState = initialState();
 const root = document.getElementById('app')!;
@@ -50,6 +51,5 @@ function renderCurrent(): void {
   }
 }
 
-// Pre-roll one day of forecast so day 1 already has a "tomorrow" set in initialState.
-// Initial state already provides one; no extra work needed.
+loadAndApplyTheme();
 renderCurrent();

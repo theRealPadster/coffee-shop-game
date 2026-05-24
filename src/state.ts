@@ -28,7 +28,6 @@ export interface Weather {
 }
 
 export interface Recipe {
-  id: string;
   name: string;
   type: DrinkType;
   doses: Partial<Record<Ingredient, number>>;
@@ -49,9 +48,8 @@ export interface GameState {
   cash: number; // cents
   hype: number; // 0-100
   stock: Record<Ingredient, number>;
-  activeRecipe: Recipe;
-  activeRecipeSourceId: string | null; // library entry the active recipe was loaded from
-  savedRecipes: Recipe[];
+  recipes: { hot: Recipe; iced: Recipe };
+  activeType: DrinkType;
   prices: Record<Ingredient, number>;
   cupPrice: number; // cents
   weather: Weather;
@@ -61,25 +59,19 @@ export interface GameState {
   muted: boolean;
 }
 
-let _idCounter = 0;
-export function newId(): string {
-  _idCounter++;
-  return `r${Date.now().toString(36)}${_idCounter}`;
+export function activeRecipe(state: GameState): Recipe {
+  return state.recipes[state.activeType];
 }
 
 function midpoint([min, max]: [number, number]): number {
   return Math.round((min + max) / 2);
 }
 
-export function defaultRecipe(type: DrinkType = 'hot'): Recipe {
-  const doses: Partial<Record<Ingredient, number>> = {
-    coffee: 3,
-    sugar: 2,
-    milk: 2,
-    cups: 1,
+export function defaultRecipes(): { hot: Recipe; iced: Recipe } {
+  return {
+    hot: { name: 'Classic Hot', type: 'hot', doses: { coffee: 3, sugar: 2, milk: 2, cups: 1 } },
+    iced: { name: 'Classic Iced', type: 'iced', doses: { coffee: 3, sugar: 2, milk: 2, ice: 3, cups: 1 } },
   };
-  if (type === 'iced') doses.ice = 3;
-  return { id: newId(), name: type === 'hot' ? 'Classic Hot' : 'Classic Iced', type, doses };
 }
 
 export function freshStats(hypeStart: number): TodayStats {
@@ -97,15 +89,13 @@ export function freshStats(hypeStart: number): TodayStats {
 export function initialState(): GameState {
   const startWeather: Weather = { tempC: 18, condition: 'sunny' };
   const startTomorrow: Weather = { tempC: 17, condition: 'cloudy' };
-  const startRecipe = defaultRecipe('hot');
   return {
     day: 1,
     cash: 5000, // $50.00
     hype: 50,
     stock: { coffee: 20, sugar: 20, milk: 20, ice: 20, cups: 20 },
-    activeRecipe: startRecipe,
-    activeRecipeSourceId: null,
-    savedRecipes: [],
+    recipes: defaultRecipes(),
+    activeType: 'hot',
     prices: {
       coffee: midpoint(PRICE_BANDS.coffee),
       sugar: midpoint(PRICE_BANDS.sugar),
