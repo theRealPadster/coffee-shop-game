@@ -168,14 +168,35 @@ export function drawShop(ctx: CanvasRenderingContext2D, x: number, y: number, w:
   ctx.fillText('COFFEE', x + w / 2, y + h * 0.6);
 }
 
-// A puffy stylized cloud built from a few overlapping circles.
-function drawCloud(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+// Cloud shape library — each entry is a list of [dx, dy, rRatio] bumps.
+// Bumps are tuned so each shape has a flat-ish bottom (dy + rRatio ≈ 0.3,
+// the cumulus condensation line) with the puffy variation on top.
+const CLOUD_SHAPES: Array<Array<[number, number, number]>> = [
+  // 0: classic 4-bump cumulus
+  [[-0.90, -0.40, 0.70], [-0.20, -0.65, 0.95], [0.45, -0.50, 0.80], [1.00, -0.35, 0.65]],
+  // 1: long & low stratus
+  [[-1.40, -0.25, 0.55], [-0.70, -0.40, 0.70], [0.00, -0.40, 0.70], [0.70, -0.35, 0.65], [1.40, -0.20, 0.50]],
+  // 2: tall lumpy cumulus
+  [[-0.50, -0.40, 0.70], [-0.15, -0.65, 0.95], [0.30, -0.45, 0.75], [0.60, -0.55, 0.85]],
+  // 3: small wispy 3-bump
+  [[-0.55, -0.25, 0.55], [0.00, -0.45, 0.75], [0.55, -0.30, 0.60]],
+  // 4: asymmetric — heavy on left, trailing wisp on right
+  [[-0.85, -0.40, 0.70], [-0.40, -0.65, 0.95], [0.10, -0.55, 0.85], [0.55, -0.30, 0.60]],
+];
+
+function drawCloud(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  r: number,
+  shapeIdx: number,
+  stretch = 1,
+): void {
+  const shape = CLOUD_SHAPES[shapeIdx % CLOUD_SHAPES.length];
   ctx.beginPath();
-  ctx.arc(cx - r * 0.9, cy + r * 0.1, r * 0.7, 0, Math.PI * 2);
-  ctx.arc(cx - r * 0.2, cy - r * 0.4, r * 0.95, 0, Math.PI * 2);
-  ctx.arc(cx + r * 0.6, cy - r * 0.2, r * 0.8, 0, Math.PI * 2);
-  ctx.arc(cx + r * 1.0, cy + r * 0.15, r * 0.6, 0, Math.PI * 2);
-  ctx.arc(cx + r * 0.2, cy + r * 0.3, r * 0.75, 0, Math.PI * 2);
+  for (const [dx, dy, rr] of shape) {
+    ctx.arc(cx + dx * r * stretch, cy + dy * r, rr * r, 0, Math.PI * 2);
+  }
   ctx.fill();
 }
 
@@ -303,21 +324,36 @@ export function drawBackground(
 
   // Clouds (skip for rainy — the flat overcast sky reads better on its own)
   if (condition !== 'rainy') {
-    ctx.save();
-    if (condition === 'sunny') {
-      ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    } else if (condition === 'snowy') {
-      ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    } else {
-      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    // Each cloud: [xFrac, yFrac, sizeMul, shapeIdx, stretch, alpha]
+    const sunnyClouds: Array<[number, number, number, number, number, number]> = [
+      [0.08, 0.13, 0.85, 3, 1.0, 0.85],
+      [0.27, 0.07, 1.30, 1, 1.1, 0.75],
+      [0.55, 0.18, 1.00, 0, 1.0, 0.90],
+      [0.78, 0.09, 0.75, 2, 1.0, 0.80],
+      [0.93, 0.20, 0.95, 4, 0.9, 0.70],
+    ];
+    const cloudyClouds: Array<[number, number, number, number, number, number]> = [
+      [0.05, 0.10, 1.20, 1, 1.2, 0.85],
+      [0.24, 0.20, 0.95, 4, 1.0, 0.78],
+      [0.46, 0.07, 1.50, 0, 1.1, 0.90],
+      [0.66, 0.22, 1.05, 2, 0.95, 0.80],
+      [0.84, 0.12, 1.10, 1, 1.0, 0.88],
+      [0.96, 0.25, 0.70, 3, 1.0, 0.75],
+    ];
+    const snowyClouds: Array<[number, number, number, number, number, number]> = [
+      [0.15, 0.10, 1.10, 1, 1.15, 0.55],
+      [0.50, 0.18, 1.30, 0, 1.0, 0.60],
+      [0.82, 0.08, 0.85, 2, 1.0, 0.55],
+    ];
+    const clouds =
+      condition === 'cloudy' ? cloudyClouds :
+      condition === 'snowy'  ? snowyClouds  : sunnyClouds;
+    for (const [fx, fy, fs, idx, stretch, alpha] of clouds) {
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = '#ffffff';
+      drawCloud(ctx, fx * w, fy * h, 22 * fs, idx, stretch);
     }
-    const clouds = condition === 'cloudy'
-      ? [[0.08,0.10,1.1],[0.28,0.18,0.85],[0.48,0.08,1.3],[0.70,0.20,0.95],[0.92,0.12,1.0]]
-      : [[0.10,0.12,0.9],[0.42,0.07,1.1],[0.78,0.18,0.8]];
-    for (const [fx, fy, fs] of clouds) {
-      drawCloud(ctx, fx * w, fy * h, 22 * fs);
-    }
-    ctx.restore();
+    ctx.globalAlpha = 1;
   }
 
   // Distant city silhouette at the horizon, tinted toward the sky for haze.
@@ -325,7 +361,7 @@ export function drawBackground(
 
   // Sidewalk — flat concrete with a vertical gradient (lighter at back, darker toward curb)
   const sidewalkTop = h * 0.6;
-  const sidewalkBot = h * 0.85;
+  const sidewalkBot = h * 0.74;
   const sidewalkH = sidewalkBot - sidewalkTop;
   const sidewalkGrad = ctx.createLinearGradient(0, sidewalkTop, 0, sidewalkBot);
   sidewalkGrad.addColorStop(0, '#d4d0c8');

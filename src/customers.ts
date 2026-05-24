@@ -53,7 +53,7 @@ export function spawnCustomer(state: GameState, _canvasWidth: number, canvasHeig
     id: nextId++,
     sprite: randomPedestrianSprite(),
     x: -40,
-    y: canvasHeight * 0.72,
+    y: canvasHeight * 0.68,
     vx: rand(90, 140),
     phase: 'walking',
     wants,
