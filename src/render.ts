@@ -286,7 +286,7 @@ export function drawBackground(
   // gameHour = 8 + timeOfDay*12, so solarTime = (gameHour - 6) / 12.
   // At noon (gameHour=12), solarTime=0.5 → sun is dead center.
   // Sun is already risen when shop opens; sets ~6pm while shop still runs.
-  if (condition !== 'rainy') {
+  {
     const gameHour = 8 + timeOfDay * 12;
     const solarTime = Math.max(0, (gameHour - SUNRISE_HOUR) / (SUNSET_HOUR - SUNRISE_HOUR));
     const arcR = Math.min(w * 0.38, h * 0.48);
@@ -296,7 +296,10 @@ export function drawBackground(
     // Larger at dawn/dusk due to atmospheric effect
     const dawnDusk = 1 - Math.sin(solarTime * Math.PI);
     const radius = 22 + 10 * dawnDusk;
-    const sunColor = condition === 'snowy' ? '#d0dce8' : colorAt(timeOfDay, SUN_COLOR);
+    const sunColor =
+      condition === 'snowy' || condition === 'rainy'
+        ? '#d0dce8'
+        : colorAt(timeOfDay, SUN_COLOR);
 
     ctx.save();
     ctx.beginPath();
@@ -304,7 +307,7 @@ export function drawBackground(
     ctx.clip();
 
     // Soft glow near horizon
-    if (dawnDusk > 0.3 && condition !== 'snowy') {
+    if (dawnDusk > 0.3 && condition !== 'snowy' && condition !== 'rainy') {
       ctx.globalAlpha = 0.22 * dawnDusk;
       ctx.fillStyle = '#ff9a3c';
       ctx.beginPath();
@@ -313,7 +316,7 @@ export function drawBackground(
       ctx.globalAlpha = 1;
     }
 
-    ctx.globalAlpha = condition === 'cloudy' ? 0.45 : 1;
+    ctx.globalAlpha = condition === 'rainy' ? 0.3 : condition === 'cloudy' ? 0.45 : 1;
     ctx.fillStyle = sunColor;
     ctx.beginPath();
     ctx.arc(sunX, sunY, radius, 0, Math.PI * 2);
