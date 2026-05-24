@@ -267,6 +267,7 @@ input[type="range"] {
   column-gap: 4px;
   row-gap: 2px;
   align-items: center;
+  margin-left: auto;
 }
 .ingredient-row .controls button {
   padding: 3px 8px;
