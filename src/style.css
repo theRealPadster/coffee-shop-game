@@ -261,12 +261,24 @@ input[type="range"] {
 .ingredient-row .stock strong { font-weight: 600; }
 .stock-unit, .price-unit { font-size: 11px; color: var(--muted); }
 .ingredient-row .price strong { font-weight: 600; }
-.ingredient-row .controls { display: flex; gap: 4px; }
+.ingredient-row .controls {
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 4px;
+  row-gap: 2px;
+  align-items: center;
+}
 .ingredient-row .controls button {
   padding: 3px 8px;
   font-size: 12px;
 }
-.ingredient-row .controls .sell-btn + .buy-btn { margin-left: 8px; }
+.ingredient-row .controls .buy-cost {
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
 .ingredient-row .price {
   font-variant-numeric: tabular-nums;
 }

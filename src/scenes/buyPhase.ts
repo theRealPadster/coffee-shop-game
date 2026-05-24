@@ -132,6 +132,8 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
         <div class="controls">
           <button class="buy-btn" data-buy="${ing}" data-qty="1">Buy 1</button>
           <button class="buy-btn" data-buy="${ing}" data-qty="10">Buy 10</button>
+          <span class="buy-cost">${formatCents(price)}</span>
+          <span class="buy-cost">${formatCents(price * 10)}</span>
         </div>
         <div class="price"><strong>${formatCents(price)}</strong> <span class="price-unit">each</span> ${priceChip(level)}</div>
       </div>
