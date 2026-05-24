@@ -269,7 +269,8 @@ export function drawBackground(
   w: number,
   h: number,
   condition: string,
-  timeOfDay = 0.5 // 0 = 8:00, 1 = 20:00
+  timeOfDay = 0.5, // 0 = 8:00, 1 = 20:00
+  elapsedMs = 0    // pause-aware game time, used for cloud drift
 ): void {
   const sky = SKY[condition] ?? SKY.sunny;
   const skyTop = colorAt(timeOfDay, sky[0]);
@@ -323,34 +324,42 @@ export function drawBackground(
 
   // Clouds (skip for rainy — the flat overcast sky reads better on its own)
   if (condition !== 'rainy') {
-    // Each cloud: [xFrac, yFrac, sizeMul, shapeIdx, stretch, alpha]
-    const sunnyClouds: Array<[number, number, number, number, number, number]> = [
-      [0.08, 0.13, 0.85, 3, 1.0, 0.85],
-      [0.27, 0.07, 1.30, 1, 1.1, 0.75],
-      [0.55, 0.18, 1.00, 0, 1.0, 0.90],
-      [0.78, 0.09, 0.75, 2, 1.0, 0.80],
-      [0.93, 0.20, 0.95, 4, 0.9, 0.70],
+    // Each cloud: [xFrac, yFrac, sizeMul, shapeIdx, stretch, alpha, speedPxPerSec]
+    // Larger clouds drift faster (parallax: they "feel" closer).
+    const sunnyClouds: Array<[number, number, number, number, number, number, number]> = [
+      [0.08, 0.13, 0.85, 3, 1.0, 0.85,  7],
+      [0.27, 0.07, 1.30, 1, 1.1, 0.75, 12],
+      [0.55, 0.18, 1.00, 0, 1.0, 0.90,  9],
+      [0.78, 0.09, 0.75, 2, 1.0, 0.80,  6],
+      [0.93, 0.20, 0.95, 4, 0.9, 0.70,  8],
     ];
-    const cloudyClouds: Array<[number, number, number, number, number, number]> = [
-      [0.05, 0.10, 1.20, 1, 1.2, 0.85],
-      [0.24, 0.20, 0.95, 4, 1.0, 0.78],
-      [0.46, 0.07, 1.50, 0, 1.1, 0.90],
-      [0.66, 0.22, 1.05, 2, 0.95, 0.80],
-      [0.84, 0.12, 1.10, 1, 1.0, 0.88],
-      [0.96, 0.25, 0.70, 3, 1.0, 0.75],
+    const cloudyClouds: Array<[number, number, number, number, number, number, number]> = [
+      [0.05, 0.10, 1.20, 1, 1.2, 0.85, 10],
+      [0.24, 0.20, 0.95, 4, 1.0, 0.78,  8],
+      [0.46, 0.07, 1.50, 0, 1.1, 0.90, 13],
+      [0.66, 0.22, 1.05, 2, 0.95, 0.80, 9],
+      [0.84, 0.12, 1.10, 1, 1.0, 0.88, 11],
+      [0.96, 0.25, 0.70, 3, 1.0, 0.75,  6],
     ];
-    const snowyClouds: Array<[number, number, number, number, number, number]> = [
-      [0.15, 0.10, 1.10, 1, 1.15, 0.55],
-      [0.50, 0.18, 1.30, 0, 1.0, 0.60],
-      [0.82, 0.08, 0.85, 2, 1.0, 0.55],
+    const snowyClouds: Array<[number, number, number, number, number, number, number]> = [
+      [0.15, 0.10, 1.10, 1, 1.15, 0.55,  9],
+      [0.50, 0.18, 1.30, 0, 1.0, 0.60, 11],
+      [0.82, 0.08, 0.85, 2, 1.0, 0.55,  7],
     ];
     const clouds =
       condition === 'cloudy' ? cloudyClouds :
       condition === 'snowy'  ? snowyClouds  : sunnyClouds;
-    for (const [fx, fy, fs, idx, stretch, alpha] of clouds) {
+    // Wrap with margin so clouds glide off-screen on the right before
+    // reappearing on the left, instead of popping at the edge.
+    const margin = 120;
+    const wrapW = w + margin * 2;
+    const tSec = elapsedMs / 1000;
+    for (const [fx, fy, fs, idx, stretch, alpha, speed] of clouds) {
+      const drift = tSec * speed;
+      const x = ((fx * w + drift + margin) % wrapW + wrapW) % wrapW - margin;
       ctx.globalAlpha = alpha;
       ctx.fillStyle = '#ffffff';
-      drawCloud(ctx, fx * w, fy * h, 22 * fs, idx, stretch);
+      drawCloud(ctx, x, fy * h, 22 * fs, idx, stretch);
     }
     ctx.globalAlpha = 1;
   }

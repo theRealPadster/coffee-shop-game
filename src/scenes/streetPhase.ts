@@ -239,7 +239,7 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
     scene.lastFrame = now;
 
     // Draw
-    drawBackground(ctx, canvas.width, canvas.height, state.weather.condition, timeOfDay);
+    drawBackground(ctx, canvas.width, canvas.height, state.weather.condition, timeOfDay, elapsed);
     drawShop(ctx, shopX, shopY, 120, 110);
 
     // Menu sandwich-board sign on the sidewalk to the right of the shop
