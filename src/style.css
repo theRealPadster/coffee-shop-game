@@ -467,6 +467,7 @@ input[type="range"] {
   position: absolute;
   transform: translate(-50%, -100%);
   background: white;
+  color: #2b1d0e;
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 4px 10px;
