@@ -370,6 +370,7 @@ input[type="range"] {
   background: linear-gradient(135deg, #b3e5fc, #fff9c4);
   border-radius: 6px;
   margin-bottom: 8px;
+  color: #2b1d0e;
 }
 .weather-widget.sunny { background: linear-gradient(135deg, #fff59d, #ffe082); }
 .weather-widget.cloudy { background: linear-gradient(135deg, #cfd8dc, #eceff1); }
@@ -377,7 +378,7 @@ input[type="range"] {
 .weather-widget.snowy { background: linear-gradient(135deg, #e1f5fe, #ffffff); }
 .weather-widget .icon { font-size: 32px; }
 .weather-widget .temp { font-size: 20px; font-weight: 600; }
-.weather-widget .cond { color: var(--muted); text-transform: capitalize; }
+.weather-widget .cond { color: rgba(43, 29, 14, 0.7); text-transform: capitalize; }
 
 .cups-producible {
   margin-top: 10px;
