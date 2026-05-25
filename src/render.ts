@@ -184,6 +184,61 @@ const CLOUD_SHAPES: Array<Array<[number, number, number]>> = [
   [[-0.85, -0.40, 0.70], [-0.40, -0.65, 0.95], [0.10, -0.55, 0.85], [0.55, -0.30, 0.60]],
 ];
 
+// Raindrops grouped into depth bands for parallax: far drops are slow, short,
+// thin, and faint; near drops are fast, long, thicker, and more visible.
+interface Raindrop {
+  x: number; yOffset: number; speed: number;
+  length: number; width: number; alpha: number;
+}
+const RAINDROPS: Raindrop[] = (() => {
+  const out: Raindrop[] = [];
+  const bands = [
+    { count: 28, speed: 260, speedJitter: 60,  length: 8,  width: 0.6, alpha: 0.22 }, // far
+    { count: 36, speed: 430, speedJitter: 90,  length: 14, width: 1.0, alpha: 0.40 }, // mid
+    { count: 22, speed: 620, speedJitter: 120, length: 22, width: 1.3, alpha: 0.55 }, // near
+  ];
+  let i = 0;
+  for (const b of bands) {
+    for (let k = 0; k < b.count; k++, i++) {
+      const r1 = Math.abs((Math.sin(i * 17.31) * 28371.13) % 1);
+      const r2 = Math.abs((Math.sin(i * 51.77) * 91234.56) % 1);
+      const r3 = Math.abs((Math.sin(i * 33.21) * 47811.02) % 1);
+      out.push({
+        x: r1,
+        yOffset: r2,
+        speed: b.speed + r3 * b.speedJitter,
+        length: b.length,
+        width: b.width,
+        alpha: b.alpha,
+      });
+    }
+  }
+  return out;
+})();
+
+// Snowflakes: deterministic lanes so they fall steadily and freeze on pause.
+// Each flake has a fixed x lane, an initial y offset, a per-flake fall speed,
+// a radius, and a sway phase for gentle horizontal drift.
+const SNOWFLAKES: Array<{
+  x: number; yOffset: number; speed: number; size: number; swayPhase: number;
+}> = (() => {
+  const out = [];
+  for (let i = 0; i < 35; i++) {
+    // Cheap deterministic pseudo-random based on i.
+    const r1 = (Math.sin(i * 12.9898) * 43758.5453) % 1;
+    const r2 = (Math.sin(i * 78.233)  * 12345.6789) % 1;
+    const r3 = (Math.sin(i * 9.45)    * 5432.21)    % 1;
+    out.push({
+      x: Math.abs(r1),
+      yOffset: Math.abs(r2),
+      speed: 18 + Math.abs(r3) * 22, // 18–40 px/sec
+      size: 1.6 + Math.abs(r3) * 1.4,
+      swayPhase: Math.abs(r1) * Math.PI * 2,
+    });
+  }
+  return out;
+})();
+
 function drawCloud(
   ctx: CanvasRenderingContext2D,
   cx: number,
@@ -409,25 +464,41 @@ export function drawBackground(
 
   // Weather overlays
   if (condition === 'rainy') {
-    ctx.strokeStyle = 'rgba(200,220,255,0.6)';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < 50; i++) {
-      const rx = Math.random() * w;
-      const ry = Math.random() * h * 0.6;
+    const tSec = elapsedMs / 1000;
+    const fallH = h * 0.6 + 24;
+    ctx.lineCap = 'round';
+    // Wind lean: same direction & ratio for every drop so the rain reads as one weather pattern.
+    // Drops travel along the same vector as their streak (vx = -leanRatio * vy)
+    // so the visible trail matches the actual motion path.
+    const leanRatio = 0.22;
+    for (const d of RAINDROPS) {
+      const vy = d.speed;
+      const vx = -leanRatio * vy;
+      const baseX = d.x * w;
+      const y = (d.yOffset * fallH + vy * tSec) % fallH;
+      const x = ((baseX + vx * tSec) % w + w) % w;
+      const dx = -d.length * leanRatio;
+      const dy = d.length;
+      ctx.strokeStyle = `rgba(180, 210, 240, ${d.alpha})`;
+      ctx.lineWidth = d.width;
       ctx.beginPath();
-      ctx.moveTo(rx, ry);
-      ctx.lineTo(rx - 4, ry + 10);
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + dx, y + dy);
       ctx.stroke();
     }
+    ctx.lineCap = 'butt';
   } else if (condition === 'snowy') {
     ctx.strokeStyle = 'rgba(60, 80, 95, 0.55)';
     ctx.lineWidth = 1;
     ctx.fillStyle = 'white';
-    for (let i = 0; i < 40; i++) {
-      const sx = Math.random() * w;
-      const sy = Math.random() * h * 0.6;
+    const tSec = elapsedMs / 1000;
+    const fallH = h * 0.6 + 12; // sky band plus a small overlap for wrap
+    for (const f of SNOWFLAKES) {
+      const y = (f.yOffset * fallH + f.speed * tSec) % fallH;
+      const sway = Math.sin(tSec * 0.6 + f.swayPhase) * 6;
+      const x = (f.x * w + sway + w) % w;
       ctx.beginPath();
-      ctx.arc(sx, sy, 2.4, 0, Math.PI * 2);
+      ctx.arc(x, y, f.size, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
     }
