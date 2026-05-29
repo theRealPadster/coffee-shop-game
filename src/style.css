@@ -45,26 +45,30 @@
 }
 
 :root[data-theme="blossom"] {
-  --bg: #fcecc9;
-  --panel: #fff7e1;
-  --ink: #445e93;
-  --muted: #975d3c;
-  --accent: #445e93;
-  --accent-light: #7eb2dd;
-  --bad-soft: #fcb0b3;
-  --neutral: #97765d;
-  --border: #e8d5b8;
-  --shadow: 0 2px 6px rgba(68, 94, 147, 0.15);
+  /* Cherry blossom: blush pinks, deep rose ink, petal accents, sage-green hype */
+  --bg: #fdeff3;
+  --panel: #fffafb;
+  --ink: #5a2a43;
+  --muted: #a06b82;
+  --accent: #b23e66;
+  --accent-light: #ef9fbc;
+  --good: #4e9e6a;
+  --good-soft: #d8ecdc;
+  --bad: #c0445f;
+  --bad-soft: #f7d2dd;
+  --neutral: #c9a3b3;
+  --border: #f0d4de;
+  --shadow: 0 2px 6px rgba(90, 42, 67, 0.12);
 
-  --input-bg: #fff7e1;
-  --secondary-hover: #f5e2bf;
-  --warn-soft: #fcb0b3;
-  --banner-hot-from: #fff0d6;
-  --banner-hot-to: #fcb0b3;
-  --banner-iced-from: #d6e8f4;
-  --banner-iced-to: #7eb2dd;
-  --chip-mid-bg: rgba(68, 94, 147, 0.08);
-  --hype-track: rgba(68, 94, 147, 0.12);
+  --input-bg: #fffafb;
+  --secondary-hover: #fbe4ec;
+  --warn-soft: #fbe7c2;
+  --banner-hot-from: #ffeef4;
+  --banner-hot-to: #f9cddd;
+  --banner-iced-from: #eaf3fb;
+  --banner-iced-to: #cfe6f5;
+  --chip-mid-bg: rgba(90, 42, 67, 0.07);
+  --hype-track: rgba(90, 42, 67, 0.10);
 }
 
 :root[data-theme="seaside"] {
