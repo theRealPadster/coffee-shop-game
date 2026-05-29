@@ -67,6 +67,28 @@
   --hype-track: rgba(68, 94, 147, 0.12);
 }
 
+:root[data-theme="seaside"] {
+  /* Rich Cerulean #2274a5, Sand Dune #e7dfc6, Alice Blue #e9f1f7, Ink Black #131b23, Taupe #816c61 */
+  --bg: #e7dfc6;
+  --panel: #e9f1f7;
+  --ink: #131b23;
+  --muted: #816c61;
+  --accent: #2274a5;
+  --accent-light: #5a9fc7;
+  --border: #cabfa0;
+  --shadow: 0 2px 6px rgba(19, 27, 35, 0.12);
+
+  --input-bg: #ffffff;
+  --secondary-hover: #dcd3b8;
+  --warn-soft: #f3ead0;
+  --banner-hot-from: #faf4e3;
+  --banner-hot-to: #efe6cb;
+  --banner-iced-from: #e9f1f7;
+  --banner-iced-to: #cfe2f0;
+  --chip-mid-bg: rgba(19, 27, 35, 0.06);
+  --hype-track: rgba(19, 27, 35, 0.08);
+}
+
 :root[data-theme="dark"] {
   --bg: #1a1410;
   --panel: #25201b;

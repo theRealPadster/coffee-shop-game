@@ -1,4 +1,4 @@
-export type ThemeId = 'classic' | 'sunset' | 'dark' | 'blossom';
+export type ThemeId = 'classic' | 'sunset' | 'dark' | 'blossom' | 'seaside';
 
 export interface ThemeMeta {
   id: ThemeId;
@@ -10,6 +10,7 @@ export const THEMES: ThemeMeta[] = [
   { id: 'sunset', label: '🌅 Sunset' },
   { id: 'dark', label: '🌙 Dark' },
   { id: 'blossom', label: '🌸 Blossom' },
+  { id: 'seaside', label: '🌊 Seaside' },
 ];
 
 const KEY = 'coffee-shop-theme';
