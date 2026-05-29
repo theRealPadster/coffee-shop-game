@@ -177,6 +177,7 @@ input[type="number"], input[type="text"], select {
 }
 input[type="range"] {
   width: 100%;
+  accent-color: var(--accent);
 }
 
 /* ===== Buy Phase ===== */
