@@ -1,4 +1,4 @@
-import { GameState, INGREDIENTS, INGREDIENT_META, PRICE_BANDS, formatCents, Ingredient, DrinkType, activeRecipe } from '../state';
+import { GameState, INGREDIENTS, INGREDIENT_META, PRICE_BANDS, formatCents, Ingredient, DrinkType, activeRecipe, activeCupPrice } from '../state';
 import { classifyPrice, PriceLevel } from '../economy';
 import { weatherEmoji } from '../weather';
 import { maxCups, bottleneck } from '../recipe';
@@ -57,7 +57,7 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
           </div>
           <div class="serving-price-row">
             <label for="cup-price-input">Selling for</label>
-            <div class="cup-price-input-wrap"><span>$</span><input id="cup-price-input" type="number" min="0" step="0.25" value="${(state.cupPrice / 100).toFixed(2)}" /></div>
+            <div class="cup-price-input-wrap"><span>$</span><input id="cup-price-input" type="number" min="0" step="0.25" value="${(activeCupPrice(state) / 100).toFixed(2)}" /></div>
             <span class="serving-per-cup">per cup</span>
           </div>
         </div>
@@ -206,7 +206,7 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
   cpInput?.addEventListener('change', () => {
     const dollars = parseFloat(cpInput.value);
     if (!isNaN(dollars) && dollars >= 0) {
-      state.cupPrice = Math.round(dollars * 100);
+      state.cupPrices[state.activeType] = Math.round(dollars * 100);
       cb.onStateChange();
     }
   });

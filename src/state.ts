@@ -51,7 +51,7 @@ export interface GameState {
   recipes: { hot: Recipe; iced: Recipe };
   activeType: DrinkType;
   prices: Record<Ingredient, number>;
-  cupPrice: number; // cents
+  cupPrices: { hot: number; iced: number }; // cents, per drink type
   weather: Weather;
   tomorrowWeather: Weather;
   phase: Phase;
@@ -61,6 +61,10 @@ export interface GameState {
 
 export function activeRecipe(state: GameState): Recipe {
   return state.recipes[state.activeType];
+}
+
+export function activeCupPrice(state: GameState): number {
+  return state.cupPrices[state.activeType];
 }
 
 function midpoint([min, max]: [number, number]): number {
@@ -103,7 +107,7 @@ export function initialState(): GameState {
       ice: midpoint(PRICE_BANDS.ice),
       cups: midpoint(PRICE_BANDS.cups),
     },
-    cupPrice: 300, // $3.00
+    cupPrices: { hot: 300, iced: 300 }, // $3.00 each
     weather: startWeather,
     tomorrowWeather: startTomorrow,
     phase: 'buy',

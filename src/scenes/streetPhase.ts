@@ -1,4 +1,4 @@
-import { GameState, formatCents, freshStats, activeRecipe } from '../state';
+import { GameState, formatCents, freshStats, activeRecipe, activeCupPrice } from '../state';
 import { drawBackground, drawShop, drawMenuSign } from '../render';
 import { weatherEmoji } from '../weather';
 import { spawnCustomer, decide, spawnRate, Customer } from '../customers';
@@ -52,7 +52,7 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
       <span class="cup-price-label">Cup price</span>
       <div class="cup-price-controls">
         <button id="cup-price-minus" class="secondary">−</button>
-        <span id="cup-price-display">${formatCents(state.cupPrice)}</span>
+        <span id="cup-price-display">${formatCents(activeCupPrice(state))}</span>
         <button id="cup-price-plus" class="secondary">+</button>
       </div>
     </div>
@@ -99,15 +99,15 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
 
   // Cup price ± buttons
   root.querySelector('#cup-price-minus')?.addEventListener('click', () => {
-    state.cupPrice = Math.max(0, state.cupPrice - 25);
+    state.cupPrices[state.activeType] = Math.max(0, activeCupPrice(state) - 25);
     const el = root.querySelector('#cup-price-display');
-    if (el) el.textContent = formatCents(state.cupPrice);
+    if (el) el.textContent = formatCents(activeCupPrice(state));
     cb.onStateChange();
   });
   root.querySelector('#cup-price-plus')?.addEventListener('click', () => {
-    state.cupPrice += 25;
+    state.cupPrices[state.activeType] += 25;
     const el = root.querySelector('#cup-price-display');
-    if (el) el.textContent = formatCents(state.cupPrice);
+    if (el) el.textContent = formatCents(activeCupPrice(state));
     cb.onStateChange();
   });
 
@@ -246,7 +246,7 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
     const signCx = shopX + 120 + 60;
     const signBase = shopY + 110 + 16;
     const curRecipe = activeRecipe(state);
-    drawMenuSign(ctx, signCx, signBase, curRecipe.name, formatCents(state.cupPrice), curRecipe.type === 'iced');
+    drawMenuSign(ctx, signCx, signBase, curRecipe.name, formatCents(activeCupPrice(state)), curRecipe.type === 'iced');
 
     for (const c of scene.customers) {
       c.sprite.draw(ctx, c.x, c.y, now);
@@ -286,9 +286,9 @@ function applyOutcome(state: GameState, c: Customer, dec: ReturnType<typeof deci
   if (dec.buy) {
     const ok = consumeRecipe(state);
     if (ok) {
-      state.cash += state.cupPrice;
+      state.cash += activeCupPrice(state);
       state.todayStats.sold++;
-      state.todayStats.revenue += state.cupPrice;
+      state.todayStats.revenue += activeCupPrice(state);
       state.todayStats.happyCount++;
       c.hasBought = true;
       applyHype(state, dec.hypeDelta);

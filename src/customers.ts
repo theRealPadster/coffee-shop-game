@@ -1,4 +1,4 @@
-import { GameState, DrinkType, activeRecipe } from './state';
+import { GameState, DrinkType, activeRecipe, activeCupPrice } from './state';
 import { weatherEffects } from './weather';
 import { hypePriceTolerance, hypeStopMultiplier } from './hype';
 import { maxCups } from './recipe';
@@ -96,7 +96,7 @@ export function decide(state: GameState, c: Customer): DecisionResult {
     };
   }
 
-  const priceFit = c.budget - state.cupPrice; // positive = affordable
+  const priceFit = c.budget - activeCupPrice(state); // positive = affordable
   const sugarDose = r.doses.sugar ?? 0;
   const coffeeDose = r.doses.coffee ?? 0;
   const milkDose = r.doses.milk ?? 0;
