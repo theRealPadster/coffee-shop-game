@@ -35,6 +35,32 @@ function priceChip(level: PriceLevel): string {
   return `<span class="price-chip ${level}">${LEVEL_LABEL[level]}${arrowHtml}</span>`;
 }
 
+/**
+ * Small inline sparkline of the last few days of an ingredient's price,
+ * normalized to its band. Stroke color reflects the most recent day's direction.
+ */
+function priceSparkline(history: number[], band: [number, number]): string {
+  if (!history || history.length < 2) return '';
+  const w = 52;
+  const h = 16;
+  const pad = 2;
+  const [min, max] = band;
+  const span = max - min || 1;
+  const n = history.length;
+  const points = history
+    .map((v, i) => {
+      const x = pad + (i / (n - 1)) * (w - pad * 2);
+      const t = Math.max(0, Math.min(1, (v - min) / span));
+      const y = h - pad - t * (h - pad * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(' ');
+  const delta = history[n - 1] - history[n - 2];
+  const dir = delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat';
+  const title = `Last ${n} days: ${history.map(formatCents).join(' → ')}`;
+  return `<svg class="price-spark ${dir}" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><title>${title}</title><polyline points="${points}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" /></svg>`;
+}
+
 export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhaseCallbacks): void {
   const r = activeRecipe(state);
   const bn = bottleneck(state.stock, r);
@@ -129,7 +155,7 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
       </div>
       <div class="row-bottom">
         <div class="stock"><strong>${stock}</strong> <span class="stock-unit">in stock</span></div>
-        <div class="price"><strong>${formatCents(price)}</strong> <span class="price-unit">each</span> ${priceChip(level)}</div>
+        <div class="price"><strong>${formatCents(price)}</strong> <span class="price-unit">each</span> ${priceChip(level)}${priceSparkline(state.priceHistory[ing], PRICE_BANDS[ing])}</div>
         <div class="controls">
           <button class="buy-btn" data-buy="${ing}" data-qty="5">Buy 5</button>
           <button class="buy-btn" data-buy="${ing}" data-qty="10">Buy 10</button>

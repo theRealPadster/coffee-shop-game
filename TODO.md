@@ -5,7 +5,7 @@ Loose backlog. No commitments, no order — just stuff to consider next.
 ## Gameplay
 
 - **Multi-recipe menu.** Let players serve more than one drink per day. Currently deferred — `Serving Today` plus a single hot/iced pair is intentionally simple. Revisit if testers feel constrained after the current UI lands.
-- **Per-recipe cup price.** `state.cupPrice` is global today; tying it to the recipe means switching hot ↔ iced remembers the price you charged last time. Small UX win, small state change.
+- ~~**Per-recipe cup price.**~~ ✅ Done — `state.cupPrices` now holds a separate hot/iced price; switching hot ↔ iced remembers the price you charged last time.
 - **Customer variety.** Right now `spawnCustomer` just rolls preferences from uniform ranges. Could introduce archetypes (sweet-tooth, espresso purist, ice fiend) that show up in different proportions with weather.
 - **Day-over-day events.** Random one-off events at the start of a day — supplier sale, festival nearby, equipment breakdown — that tweak prices, demand, or capacity.
 - **Upgrade system.** Persistent purchases unlocked once you've banked enough cash, applied between days from the buy phase. Each one nudges a specific lever in customer/spawn/economy logic. Some seed ideas:
@@ -21,7 +21,7 @@ Loose backlog. No commitments, no order — just stuff to consider next.
 ## UI / UX
 
 - **Tutorial / onboarding.** First-time playthrough is confusing per testing. A few inline tooltips on day 1 ("this slider sets dose", "this chip says today's market price") would go a long way.
-- **Price history sparkline.** The market chips show *today*'s level vs the band, but not the trend. A 3–5 day sparkline next to each ingredient would make stocking decisions feel less random.
+- ~~**Price history sparkline.**~~ ✅ Done — a 5-day sparkline (`state.priceHistory`) now sits next to each ingredient's price chip, normalized to the band and colored by the last day's direction.
 - **Report card depth.** End-of-day card shows totals and top complaint. Could also show which customer types walked by without buying — useful signal for recipe tuning.
 
 ## Tech / polish

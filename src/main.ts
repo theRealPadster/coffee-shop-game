@@ -2,7 +2,7 @@ import './style.css';
 import { GameState, initialState } from './state';
 import { renderBuyPhase } from './scenes/buyPhase';
 import { renderStreetPhase } from './scenes/streetPhase';
-import { rollPrices } from './economy';
+import { rollPrices, recordPrices } from './economy';
 import { generateForecast } from './weather';
 import { decayHype } from './hype';
 import { loadAndApplyTheme } from './themes';
@@ -41,6 +41,7 @@ function renderCurrent(): void {
         // Advance to next day: new prices, new weather, hype decay
         state.day += 1;
         state.prices = rollPrices(state.prices);
+        state.priceHistory = recordPrices(state.priceHistory, state.prices);
         state.weather = state.tomorrowWeather;
         state.tomorrowWeather = generateForecast(state.weather);
         decayHype(state);

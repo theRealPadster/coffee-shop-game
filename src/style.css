@@ -299,6 +299,15 @@ input[type="range"] {
   border: 1px solid transparent;
 }
 .price-chip-arrow { font-size: 9px; line-height: 1; }
+
+.price-spark {
+  vertical-align: middle;
+  margin-left: 6px;
+  overflow: visible;
+}
+.price-spark.up { color: var(--bad); }
+.price-spark.down { color: var(--good); }
+.price-spark.flat { color: var(--muted); }
 .price-chip.very-high { background: var(--bad-soft); color: var(--bad); border-color: rgba(198,40,40,0.25); }
 .price-chip.high { background: var(--bad-soft); color: var(--bad); }
 .price-chip.mid { background: var(--chip-mid-bg); color: var(--muted); }

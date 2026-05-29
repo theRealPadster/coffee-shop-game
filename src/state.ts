@@ -51,6 +51,7 @@ export interface GameState {
   recipes: { hot: Recipe; iced: Recipe };
   activeType: DrinkType;
   prices: Record<Ingredient, number>;
+  priceHistory: Record<Ingredient, number[]>; // last few days of each ingredient's price (cents), oldest→newest
   cupPrices: { hot: number; iced: number }; // cents, per drink type
   weather: Weather;
   tomorrowWeather: Weather;
@@ -106,6 +107,13 @@ export function initialState(): GameState {
       milk: midpoint(PRICE_BANDS.milk),
       ice: midpoint(PRICE_BANDS.ice),
       cups: midpoint(PRICE_BANDS.cups),
+    },
+    priceHistory: {
+      coffee: [midpoint(PRICE_BANDS.coffee)],
+      sugar: [midpoint(PRICE_BANDS.sugar)],
+      milk: [midpoint(PRICE_BANDS.milk)],
+      ice: [midpoint(PRICE_BANDS.ice)],
+      cups: [midpoint(PRICE_BANDS.cups)],
     },
     cupPrices: { hot: 300, iced: 300 }, // $3.00 each
     weather: startWeather,
