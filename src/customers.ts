@@ -160,7 +160,7 @@ export function decide(state: GameState, c: Customer): DecisionResult {
   // They bought — now they taste it. Recipe mismatches become specific complaints
   // and drag hype down; a well-matched drink earns praise and lifts hype.
   const recipeComplaints: Array<[number, string, string]> = [];
-  if (coffeeMiss >= 2 && coffeeDose < c.strengthPref) recipeComplaints.push([coffeeMiss, 'Watery ☕💧', 'Too watery']);
+  if (coffeeMiss >= 2 && coffeeDose < c.strengthPref) recipeComplaints.push([coffeeMiss, 'Too weak ☕😕', 'Too weak']);
   if (coffeeMiss >= 2 && coffeeDose > c.strengthPref) recipeComplaints.push([coffeeMiss, 'Way too strong 😵', 'Too strong']);
   if (sugarMiss >= 2 && sugarDose > c.sweetPref) recipeComplaints.push([sugarMiss, 'Too sweet 😬', 'Too sweet']);
   if (sugarMiss >= 2 && sugarDose < c.sweetPref) recipeComplaints.push([sugarMiss, 'Not sweet enough 😕', 'Not sweet enough']);
