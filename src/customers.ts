@@ -30,6 +30,7 @@ export interface Customer {
   thoughtUntil: number;
   decided: boolean;
   hasBought: boolean;
+  postSaleComplaint: string | null; // a recipe gripe voiced only after buying, as they walk off
 }
 
 let nextId = 1;
@@ -70,6 +71,7 @@ export function spawnCustomer(state: GameState, _canvasWidth: number, canvasHeig
     thoughtUntil: 0,
     decided: false,
     hasBought: false,
+    postSaleComplaint: null,
   };
 }
 
@@ -107,8 +109,6 @@ export function decide(state: GameState, c: Customer): DecisionResult {
   const milkMiss = Math.abs(milkDose - c.milkPref);
   const iceMiss = r.type === 'iced' ? Math.abs(iceDose - c.icePref) : 0;
 
-  const recipeFit = -(sugarMiss + coffeeMiss + milkMiss + iceMiss);
-
   let typeFit = 0;
   if (r.type !== c.wants) {
     typeFit = -4 * (1 - c.flexibility);
@@ -126,69 +126,63 @@ export function decide(state: GameState, c: Customer): DecisionResult {
   const priceFitScore = priceFit >= 0 ? Math.min(2, priceFit / 100) : Math.max(-6, priceFit / 50);
   // baseInterest: a customer who stopped is already curious — give them a nudge toward buying.
   const baseInterest = 1.5;
-  const totalScore = baseInterest + priceFitScore + recipeFit * 0.5 + typeFit + weatherFit;
 
-  const buy = totalScore > 0;
+  // The purchase decision is based ONLY on what a passerby can judge before buying:
+  // the price, the drink type on offer, and how well it suits the weather. Recipe
+  // quality (strength, sweetness, milk, ice) can't be known until they taste it, so
+  // it does NOT affect whether they buy — only how they feel afterward.
+  const buyScore = baseInterest + priceFitScore + typeFit + weatherFit;
+  const buy = buyScore > 0;
 
-  // Determine dominant factor for thought
-  const negatives: Array<[number, string, string, number]> = [];
-  if (priceFit < 0) negatives.push([Math.abs(priceFitScore), 'Too expensive 💸', 'Too expensive', -1]);
+  // Observable objections — the only reasons a non-buyer can cite.
+  const observable: Array<[number, string, string, number]> = [];
+  if (priceFit < 0) observable.push([Math.abs(priceFitScore), 'Too expensive 💸', 'Too expensive', -1]);
   if (typeFit < -1) {
     const t = wantsHot ? 'Wanted a hot one ☕🙅' : 'Wanted an iced today 🧊🙅';
-    negatives.push([Math.abs(typeFit), t, 'Wrong drink type', -1]);
-  }
-  if (coffeeMiss >= 2 && coffeeDose < c.strengthPref) {
-    negatives.push([coffeeMiss, 'Watery ☕💧', 'Too watery', -1]);
-  }
-  if (coffeeMiss >= 2 && coffeeDose > c.strengthPref) {
-    negatives.push([coffeeMiss, 'Way too strong 😵', 'Too strong', -1]);
-  }
-  if (sugarMiss >= 2 && sugarDose > c.sweetPref) {
-    negatives.push([sugarMiss, 'Too sweet 😬', 'Too sweet', -1]);
-  }
-  if (sugarMiss >= 2 && sugarDose < c.sweetPref) {
-    negatives.push([sugarMiss, 'Not sweet enough 😕', 'Not sweet enough', 0]);
-  }
-  if (milkMiss >= 2) {
-    negatives.push([milkMiss, 'Milk balance is off 🥛', 'Milk balance', 0]);
-  }
-  if (r.type === 'iced' && iceMiss >= 2 && iceDose < c.icePref) {
-    negatives.push([iceMiss, "Where's the ice? 🧊", 'Not enough ice', -1]);
-  }
-  if (r.type === 'iced' && iceMiss >= 2 && iceDose > c.icePref) {
-    negatives.push([iceMiss, 'Too icy 🧊', 'Too icy', -1]);
+    observable.push([Math.abs(typeFit), t, 'Wrong drink type', -1]);
   }
   if (weatherFit < -0.5) {
-    negatives.push([Math.abs(weatherFit), drinkIsHot ? 'Too hot for hot coffee 🥵' : "Brrr, no iced today 🥶", 'Wrong for weather', 0]);
+    observable.push([Math.abs(weatherFit), drinkIsHot ? 'Too hot for hot coffee 🥵' : "Brrr, no iced today 🥶", 'Wrong for weather', 0]);
   }
 
-  if (buy) {
-    let thought = 'Good value! ✨';
-    let hype = 1;
-    if (weatherFit > 0.5) { thought = 'Hits the spot ☂️'; hype = 1; }
-    if (totalScore > 4) { thought = 'Best coffee in town! 🤩'; hype = 2; }
-    return { buy: true, thought, hypeDelta: hype, complaintKey: '', isHappy: true };
+  if (!buy) {
+    observable.sort((a, b) => b[0] - a[0]);
+    const top = observable[0];
+    return {
+      buy: false,
+      thought: top ? top[1] : 'Maybe another time 🚶',
+      hypeDelta: top ? top[3] : 0,
+      complaintKey: top ? top[2] : '',
+      isHappy: false,
+    };
   }
 
-  // Non-buyer: they haven't tasted the coffee, so they can only react to things
-  // they can observe — price, drink type, and weather suitability.
-  // Recipe quality ("watery", "too sweet", etc.) requires tasting; those only
-  // belong to customers who actually bought. We still apply hype impact from the
-  // strongest reason, but only log and show observable complaints.
-  negatives.sort((a, b) => b[0] - a[0]);
-  const hypeDelta = negatives[0]?.[3] ?? 0;
+  // They bought — now they taste it. Recipe mismatches become specific complaints
+  // and drag hype down; a well-matched drink earns praise and lifts hype.
+  const recipeComplaints: Array<[number, string, string]> = [];
+  if (coffeeMiss >= 2 && coffeeDose < c.strengthPref) recipeComplaints.push([coffeeMiss, 'Watery ☕💧', 'Too watery']);
+  if (coffeeMiss >= 2 && coffeeDose > c.strengthPref) recipeComplaints.push([coffeeMiss, 'Way too strong 😵', 'Too strong']);
+  if (sugarMiss >= 2 && sugarDose > c.sweetPref) recipeComplaints.push([sugarMiss, 'Too sweet 😬', 'Too sweet']);
+  if (sugarMiss >= 2 && sugarDose < c.sweetPref) recipeComplaints.push([sugarMiss, 'Not sweet enough 😕', 'Not sweet enough']);
+  if (milkMiss >= 2) recipeComplaints.push([milkMiss, 'Milk balance is off 🥛', 'Milk balance']);
+  if (r.type === 'iced' && iceMiss >= 2 && iceDose < c.icePref) recipeComplaints.push([iceMiss, "Where's the ice? 🧊", 'Not enough ice']);
+  if (r.type === 'iced' && iceMiss >= 2 && iceDose > c.icePref) recipeComplaints.push([iceMiss, 'Too icy 🧊', 'Too icy']);
 
-  const recipeQualityKeys = new Set(['Too watery', 'Too strong', 'Too sweet', 'Not sweet enough', 'Milk balance', 'Not enough ice', 'Too icy']);
-  const bestObservable = negatives.find(n => !recipeQualityKeys.has(n[2]));
+  if (recipeComplaints.length > 0) {
+    recipeComplaints.sort((a, b) => b[0] - a[0]);
+    const [miss, thought, complaintKey] = recipeComplaints[0];
+    // Bigger miss → unhappier customer → bigger hit to hype.
+    const hypeDelta = miss >= 4 ? -2 : -1;
+    return { buy: true, thought, hypeDelta, complaintKey, isHappy: false };
+  }
 
-  const thought = bestObservable ? bestObservable[1]
-    : negatives.length > 0 ? 'Hmm, not today 🤔'
-    : 'Just browsing 🚶';
-
-  // complaintKey drives the report card — only log observable reasons here too.
-  const complaintKey = bestObservable?.[2] ?? '';
-
-  return { buy: false, thought, hypeDelta, complaintKey, isHappy: false };
+  // Bought and satisfied — reaction scales with how well the drink landed.
+  const totalMiss = sugarMiss + coffeeMiss + milkMiss + iceMiss;
+  let thought = 'Good value! ✨';
+  let hype = 1;
+  if (weatherFit > 0.5) thought = 'Hits the spot ☂️';
+  if (totalMiss <= 1 && buyScore > 3) { thought = 'Best coffee in town! 🤩'; hype = 2; }
+  return { buy: true, thought, hypeDelta: hype, complaintKey: '', isHappy: true };
 }
 
 export function spawnRate(state: GameState): number {

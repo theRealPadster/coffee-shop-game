@@ -210,9 +210,14 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
             c.phase = 'considering';
             c.considerUntil = now + 1500 + Math.random() * 1500;
             const dec = decide(state, c);
-            c.thought = dec.thought;
-            c.thoughtUntil = c.considerUntil;
             applyOutcome(state, c, dec);
+            if (dec.buy && !dec.isHappy) {
+              // They bought but didn't love it — hold the gripe until they walk off.
+              c.thought = null;
+            } else {
+              c.thought = dec.thought;
+              c.thoughtUntil = c.considerUntil;
+            }
           }
         } else if (c.phase === 'considering') {
           if (now >= c.considerUntil) {
@@ -226,7 +231,16 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
           }
         } else if (c.phase === 'buying') {
           c.x += c.vx * 0.5 * dt;
-          if (now >= c.considerUntil + 600) c.phase = 'leaving';
+          if (now >= c.considerUntil + 600) {
+            c.phase = 'leaving';
+            // Now that the sale has landed, an unhappy buyer grumbles on the way out.
+            if (c.postSaleComplaint) {
+              c.thought = c.postSaleComplaint;
+              c.thoughtUntil = now + 1800;
+              c.postSaleComplaint = null;
+              play('grumble');
+            }
+          }
         } else if (c.phase === 'leaving') {
           c.x += c.vx * dt;
         }
@@ -289,10 +303,19 @@ function applyOutcome(state: GameState, c: Customer, dec: ReturnType<typeof deci
       state.cash += activeCupPrice(state);
       state.todayStats.sold++;
       state.todayStats.revenue += activeCupPrice(state);
-      state.todayStats.happyCount++;
       c.hasBought = true;
-      applyHype(state, dec.hypeDelta);
+      // Cha-ching: every sale gets the money sound the moment they pay.
       play('coin');
+      if (dec.isHappy) {
+        state.todayStats.happyCount++;
+      } else {
+        // Bought it, but the recipe disappointed them. Log it now, but let them
+        // voice the gripe (bubble + grumble) a beat later as they walk off.
+        state.todayStats.grumpyCount++;
+        if (dec.complaintKey) bumpComplaint(state, dec.complaintKey);
+        c.postSaleComplaint = dec.thought;
+      }
+      if (dec.hypeDelta !== 0) applyHype(state, dec.hypeDelta);
     } else {
       // Lost the sale to sold-out between scoring and consumption
       c.thought = 'Sold out 🚫';
