@@ -159,6 +159,12 @@ export function decide(state: GameState, c: Customer): DecisionResult {
 
   // They bought — now they taste it. Recipe mismatches become specific complaints
   // and drag hype down; a well-matched drink earns praise and lifts hype.
+
+  // An empty cup (nothing whatsoever in it) reads as a rip-off, not a taste miss.
+  if (coffeeDose === 0 && sugarDose === 0 && milkDose === 0 && iceDose === 0) {
+    return { buy: true, thought: 'This is just an empty cup?! 🤬', hypeDelta: -3, complaintKey: 'Empty cup (scam!)', isHappy: false };
+  }
+
   const recipeComplaints: Array<[number, string, string]> = [];
   if (coffeeMiss >= 2 && coffeeDose < c.strengthPref) recipeComplaints.push([coffeeMiss, 'Too weak ☕😕', 'Too weak']);
   if (coffeeMiss >= 2 && coffeeDose > c.strengthPref) recipeComplaints.push([coffeeMiss, 'Way too strong 😵', 'Too strong']);
