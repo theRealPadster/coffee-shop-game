@@ -46,7 +46,7 @@ export interface TodayStats {
 export interface GameState {
   day: number;
   cash: number; // cents
-  hype: number; // 0-100
+  hype: number; // 0 = neutral, positive = good buzz (capped at 100), negative = bad reputation (uncapped, meter bottoms out at -100)
   stock: Record<Ingredient, number>;
   recipes: { hot: Recipe; iced: Recipe };
   activeType: DrinkType;
@@ -97,7 +97,7 @@ export function initialState(): GameState {
   return {
     day: 1,
     cash: 5000, // $50.00
-    hype: 50,
+    hype: 0,
     stock: { coffee: 20, sugar: 20, milk: 20, ice: 20, cups: 20 },
     recipes: defaultRecipes(),
     activeType: 'hot',

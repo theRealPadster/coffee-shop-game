@@ -31,6 +31,7 @@ export interface Customer {
   decided: boolean;
   hasBought: boolean;
   postSaleComplaint: string | null; // a recipe gripe voiced only after buying, as they walk off
+  remarked: boolean; // whether this passerby has already had a chance to badmouth the shop
 }
 
 let nextId = 1;
@@ -72,6 +73,7 @@ export function spawnCustomer(state: GameState, _canvasWidth: number, canvasHeig
     decided: false,
     hasBought: false,
     postSaleComplaint: null,
+    remarked: false,
   };
 }
 
@@ -187,12 +189,58 @@ export function decide(state: GameState, c: Customer): DecisionResult {
   let thought = 'Good value! ✨';
   let hype = 1;
   if (weatherFit > 0.5) thought = 'Hits the spot ☂️';
+  // A strong reputation is itself part of the draw — happy buyers often credit the buzz,
+  // and the praise gets louder the better the reputation.
+  const repRemark = goodRepRemark(state.hype);
+  if (repRemark && Math.random() < 0.6) thought = repRemark;
   if (totalMiss <= 1 && buyScore > 3) { thought = 'Best coffee in town! 🤩'; hype = 2; }
   return { buy: true, thought, hypeDelta: hype, complaintKey: '', isHappy: true };
+}
+
+// Positive reputation remarks, tiered by how strong the buzz is (checked high→low).
+const GOOD_REP_TIERS: Array<{ min: number; remarks: string[] }> = [
+  { min: 90, remarks: ['Best in the whole city! 👑', 'A legend — had to come 🌟', 'The hype is 100% real! 🤩'] },
+  { min: 80, remarks: ['Everyone raves about this spot 😍', 'Heard this place is incredible ✨', 'The buzz is unreal 🔥'] },
+  { min: 40, remarks: ['Heard good things ✨', 'So glad I finally stopped by 💛', 'Worth checking out ⭐'] },
+];
+
+// Returns a praise line matching the reputation tier, or null below the lowest tier.
+function goodRepRemark(hype: number): string | null {
+  for (const tier of GOOD_REP_TIERS) {
+    if (hype >= tier.min) return tier.remarks[Math.floor(Math.random() * tier.remarks.length)];
+  }
+  return null;
 }
 
 export function spawnRate(state: GameState): number {
   // Returns spawns per second
   const eff = weatherEffects(state.weather);
   return 0.6 * eff.demandMul * hypeStopMultiplier(state.hype);
+}
+
+// Negative reputation remarks, tiered by how bad it's gotten (checked worst→least-bad).
+const BAD_REP_TIERS: Array<{ max: number; remarks: string[] }> = [
+  { max: -90, remarks: ['Avoid this place at all costs ☠️', 'Worst dump in the city 🤮', 'Total scam, run! 💀'] },
+  { max: -80, remarks: ['Heard this place is a scam 💀', 'Heard they serve empty cups 😤', "I'd steer way clear 🙅"] },
+  { max: -40, remarks: ["Heard it's not great 😕", 'Eh, not worth it 🤷', 'Heard they water it down ☕💧'] },
+];
+
+// Returns the bad-rep remark pool for the current hype, or null above the lowest tier.
+function badRepRemarks(hype: number): string[] | null {
+  for (const tier of BAD_REP_TIERS) {
+    if (hype <= tier.max) return tier.remarks;
+  }
+  return null;
+}
+
+// A passerby's snide comment about a shop with a bad reputation, or null if the
+// reputation isn't bad enough (or they just don't bother). The worse the hype,
+// the harsher the line and the more likely they are to say it.
+export function walkByRemark(state: GameState): string | null {
+  const remarks = badRepRemarks(state.hype);
+  if (!remarks) return null;
+  // -40 → ~36% chance, -80 → ~73%, -100 and below → capped at 90%.
+  const chance = Math.min(0.9, -state.hype / 110);
+  if (Math.random() >= chance) return null;
+  return remarks[Math.floor(Math.random() * remarks.length)];
 }

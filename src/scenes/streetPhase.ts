@@ -1,7 +1,7 @@
 import { GameState, formatCents, freshStats, activeRecipe, activeCupPrice } from '../state';
 import { drawBackground, drawShop, drawMenuSign } from '../render';
 import { weatherEmoji } from '../weather';
-import { spawnCustomer, decide, spawnRate, Customer } from '../customers';
+import { spawnCustomer, decide, spawnRate, walkByRemark, Customer } from '../customers';
 import { applyHype } from '../hype';
 import { consumeRecipe, maxCups } from '../recipe';
 import { play } from '../audio';
@@ -183,6 +183,15 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
       for (const c of scene.customers) {
         if (c.phase === 'walking') {
           c.x += c.vx * dt;
+          // Bad-reputation passersby badmouth the shop as they pass the storefront.
+          if (!c.willStop && !c.remarked && c.x >= shopX - 30) {
+            c.remarked = true;
+            const remark = walkByRemark(state);
+            if (remark) {
+              c.thought = remark;
+              c.thoughtUntil = now + 2200;
+            }
+          }
           // When a willing customer reaches the queue entry point, try to claim a slot.
           if (c.willStop && !c.decided && c.x >= shopX - 20) {
             const freeSlot = scene.queue.findIndex(id => id === null);

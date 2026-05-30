@@ -481,15 +481,29 @@ input[type="range"] {
 }
 .hype-meter .label { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; }
 .hype-meter .bar {
+  position: relative;
   height: 10px;
   background: var(--hype-track);
   border-radius: 5px;
   overflow: hidden;
 }
+/* Neutral midpoint tick */
+.hype-meter .bar::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border);
+  transform: translateX(-0.5px);
+  z-index: 1;
+}
 .hype-meter .fill {
-  height: 100%;
-  background: linear-gradient(90deg, #c62828 0%, #f9a825 50%, #2e7d32 100%);
-  transition: width 0.4s ease;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transition: width 0.4s ease, left 0.4s ease, right 0.4s ease;
 }
 .hype-meter.pulse .fill { animation: pulse-fill 0.6s; }
 @keyframes pulse-fill {
