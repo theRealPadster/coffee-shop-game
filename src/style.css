@@ -329,6 +329,11 @@ button.secondary:hover:not(:disabled) { background: var(--secondary-hover); }
 }
 button.danger { background: var(--bad); }
 button.success { background: var(--good); }
+/* danger/success carry their own color, so they need their own hover — otherwise
+   the generic button:hover (higher specificity than .danger/.success) repaints
+   them with --accent-light. Lighten their own hue instead of jumping to accent. */
+button.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--bad) 82%, white); }
+button.success:hover:not(:disabled) { background: color-mix(in srgb, var(--good) 82%, white); }
 
 input[type="number"], input[type="text"], select {
   font-family: var(--font);
@@ -679,6 +684,9 @@ input[type="range"] {
   padding: 10px 20px;
   background: var(--good);
 }
+/* The id selector outranks the generic button:hover, so without this the button
+   gets no hover feedback at all. */
+#start-day-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--good) 82%, white); }
 
 /* ===== Hype Meter ===== */
 .hype-meter {
