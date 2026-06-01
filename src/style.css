@@ -181,8 +181,11 @@
 }
 
 :root[data-theme="nord"] {
-  /* Nord: #2e3440 polar night, #eceff4 snow, #88c0d0 frost, #a3be8c/#bf616a aurora */
-  --bg: #2e3440;
+  /* Nord: #2e3440 polar night, #eceff4 snow, #88c0d0 frost, #a3be8c/#bf616a aurora.
+     Nord is deliberately calm/low-contrast ("dimmed pastels"), so "pop" here means
+     depth (slightly darker bg + brighter nord3 card edge + stronger shadow) and
+     letting the warm/cool banners read as Aurora/Frost color, not grey. */
+  --bg: #2a2e39;
   --panel: #3b4252;
   --ink: #eceff4;
   --muted: #9aa3b5;
@@ -194,16 +197,16 @@
   --bad: #bf616a;
   --bad-soft: rgba(191, 97, 106, 0.22);
   --neutral: #4c566a;
-  --border: #434c5e;
-  --shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  --border: #4c566a;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
 
   --input-bg: #2b303b;
   --secondary-hover: #434c5e;
-  --warn-soft: rgba(235, 203, 139, 0.16);
-  --banner-hot-from: #41454f;
-  --banner-hot-to: #4d473f;
-  --banner-iced-from: #2f3b46;
-  --banner-iced-to: #38455a;
+  --warn-soft: rgba(136, 192, 208, 0.12);
+  --banner-hot-from: #574545;
+  --banner-hot-to: #614f43;
+  --banner-iced-from: #475872;
+  --banner-iced-to: #526878;
   --chip-mid-bg: rgba(255, 255, 255, 0.07);
   --hype-track: rgba(255, 255, 255, 0.10);
 }
