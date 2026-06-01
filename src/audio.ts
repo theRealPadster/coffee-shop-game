@@ -3,7 +3,7 @@
 
 import { loadMute, saveMute } from './save';
 
-type SoundName = 'coin' | 'walkby' | 'grumble' | 'bell' | 'cashier';
+type SoundName = 'coin' | 'walkby' | 'grumble' | 'bell' | 'cashier' | 'lowstock';
 
 let ctx: AudioContext | null = null;
 let muted = loadMute();
@@ -98,6 +98,11 @@ const SOUND_PLAYERS: Record<SoundName, () => void> = {
   cashier: () => {
     blip(660, 0.06, 'square', 0.12);
     setTimeout(() => blip(440, 0.08, 'square', 0.12), 40);
+  },
+  lowstock: () => {
+    // Gentle two-note descending "running low" alert
+    blip(784, 0.14, 'triangle', 0.16);
+    setTimeout(() => blip(587, 0.18, 'triangle', 0.16), 130);
   },
 };
 

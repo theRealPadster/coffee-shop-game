@@ -18,6 +18,15 @@ const DAY_DURATION_MS = 90 * 1000; // 90 seconds
 // Queue slots: x offsets from shopX where customers stand and wait
 const SLOT_OFFSETS = [10, 70, 130] as const;
 
+// Mid-day stock warning: cups-left at or below this (but above zero) is "low".
+type StockLevel = 'ok' | 'low' | 'out';
+const LOW_CUPS = 3;
+function stockStatus(state: GameState): { cupsLeft: number; level: StockLevel } {
+  const cupsLeft = maxCups(state.stock, activeRecipe(state));
+  const level: StockLevel = cupsLeft <= 0 ? 'out' : cupsLeft <= LOW_CUPS ? 'low' : 'ok';
+  return { cupsLeft, level };
+}
+
 interface SceneState {
   customers: Customer[];
   queue: Array<number | null>; // customer IDs occupying each slot, null = empty
@@ -29,6 +38,7 @@ interface SceneState {
   rafId: number | null;
   lastFrame: number | null;
   dayStartTime: number;
+  stockLevel: StockLevel;       // last-seen stock level, for one-shot warning sound
 }
 
 export function renderStreetPhase(root: HTMLElement, state: GameState, cb: StreetPhaseCallbacks): () => void {
@@ -105,6 +115,9 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
     rafId: null,
     lastFrame: null,
     dayStartTime: now0,
+    // Seed with the actual starting level so we don't fire the warning sound on
+    // frame 1 if the player happens to open the day already low on stock.
+    stockLevel: stockStatus(state).level,
   };
 
   // Cup price ± buttons
@@ -301,6 +314,18 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
     const renderNow = scene.paused && scene.pausedAt !== null ? scene.pausedAt : now;
     renderThoughtBubbles(wrap, scene.customers, viewW, viewH, renderNow);
 
+    // Low/out-of-stock warning: a bubble over the shop, plus a one-shot sound the
+    // first time we cross into "low". The HUD counter is recolored in updateHud.
+    const { level: stock } = stockStatus(state);
+    if (stock !== scene.stockLevel) {
+      if (stock === 'low') play('lowstock');
+      scene.stockLevel = stock;
+    }
+    const warnScaleX = viewW > 0 ? wrap.clientWidth / viewW : 1;
+    const warnScaleY = viewH > 0 ? wrap.clientHeight / viewH : 1;
+    // Anchor just above the awning (which rises ~18px above shopY) so the tail clears it.
+    renderShopWarning(wrap, stock, (shopX + 60) * warnScaleX, (shopY - 32) * warnScaleY);
+
     // Update HUD counters
     updateHud(root, state);
     renderHypeMeter(hudHost, state.hype);
@@ -315,8 +340,9 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
     scene.running = false;
     if (scene.rafId !== null) cancelAnimationFrame(scene.rafId);
     resizeObs.disconnect();
-    // Remove any leftover thought bubbles
+    // Remove any leftover thought bubbles and the shop warning
     wrap.querySelectorAll('.thought-bubble').forEach(b => b.remove());
+    wrap.querySelector('.shop-warning')?.remove();
   };
 }
 
@@ -392,11 +418,35 @@ function renderThoughtBubbles(wrap: HTMLElement, customers: Customer[], viewW: n
   }
 }
 
+// Single global warning bubble pinned above the shop. Kept separate from the
+// per-customer `.thought-bubble` elements so renderThoughtBubbles doesn't reap it.
+function renderShopWarning(wrap: HTMLElement, level: StockLevel, x: number, y: number): void {
+  let el = wrap.querySelector<HTMLElement>('.shop-warning');
+  if (level === 'ok') {
+    el?.remove();
+    return;
+  }
+  if (!el) {
+    el = document.createElement('div');
+    el.className = 'shop-warning';
+    wrap.appendChild(el);
+  }
+  el.textContent = level === 'out' ? '🚫 Sold out!' : '⚠️ Low on cups!';
+  el.classList.toggle('danger', level === 'out');
+  el.style.left = `${x}px`;
+  el.style.top = `${y}px`;
+}
+
 function updateHud(root: HTMLElement, state: GameState): void {
   const cashEl = root.querySelector('#header-cash');
   if (cashEl) cashEl.textContent = formatCents(state.cash);
   const cupsLeftEl = root.querySelector('#cups-left');
-  if (cupsLeftEl) cupsLeftEl.textContent = String(maxCups(state.stock, activeRecipe(state)));
+  if (cupsLeftEl) {
+    const { cupsLeft, level } = stockStatus(state);
+    cupsLeftEl.textContent = String(cupsLeft);
+    cupsLeftEl.classList.toggle('low', level === 'low');
+    cupsLeftEl.classList.toggle('out', level === 'out');
+  }
   const soldEl = root.querySelector('#sold-count');
   if (soldEl) soldEl.textContent = String(state.todayStats.sold);
   const wbEl = root.querySelector('#walkby-count');
