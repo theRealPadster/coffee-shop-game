@@ -125,6 +125,8 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+  /* It's a game — the whole UI lives inside the viewport, never scroll the page. */
+  overflow: hidden;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font);
@@ -133,10 +135,14 @@ html, body {
 
 #app {
   width: 100%;
-  min-height: 100vh;
+  height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
+
+/* Header is a fixed-height band; it must never shrink or get scrolled away. */
+#app > .app-header { flex-shrink: 0; }
 
 button {
   font-family: var(--font);
@@ -194,6 +200,11 @@ input[type="range"] {
   max-width: 768px;
   margin: 0 auto;
   width: 100%;
+  /* Fill the space below the header and scroll internally if the controls are
+     taller than the viewport, so the page itself never scrolls. */
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .shop-panel { margin-bottom: 16px; }
@@ -516,13 +527,14 @@ input[type="range"] {
   position: relative;
   width: 100%;
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
 .street-canvas-wrap {
   position: relative;
   flex: 1;
-  min-height: 400px;
+  min-height: 0;
   overflow: hidden;
 }
 .street-canvas-wrap canvas {
