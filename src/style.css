@@ -152,7 +152,7 @@
   --hype-track: rgba(255, 255, 255, 0.10);
 }
 
-:root[data-theme="catppuccin"] {
+:root[data-theme="catppuccin-mocha"] {
   /* Catppuccin Mocha: cozy pastels with color-rich accents. Use the layering
      (Crust/Mantle/Base/Surface) for depth — Mantle canvas under Surface0 panels,
      Crust inputs — and let the banners read as real pastels (maroon→peach hot,
@@ -181,6 +181,36 @@
   --banner-iced-to: #455f76;
   --chip-mid-bg: rgba(255, 255, 255, 0.08);
   --hype-track: rgba(255, 255, 255, 0.10);
+}
+
+:root[data-theme="catppuccin-latte"] {
+  /* Catppuccin Latte (light): #eff1f5 base, #4c4f69 text, #8839ef mauve, #40a02b
+     green. Light card (Base) on a soft grey canvas (Mantle) with Crust inset
+     inputs; muted on Subtext0 (not the low-contrast overlay tones). */
+  --bg: #e6e9ef;
+  --panel: #eff1f5;
+  --ink: #4c4f69;
+  --muted: #6c6f85;
+  --accent: #8839ef;
+  --accent-light: #9a5cf0;
+  --accent-ink: #ffffff;
+  --good: #40a02b;
+  --good-soft: #d4ebcd;
+  --bad: #d20f39;
+  --bad-soft: #f6cdd5;
+  --neutral: #9ca0b0;
+  --border: #ccd0da;
+  --shadow: 0 2px 6px rgba(76, 79, 105, 0.12);
+
+  --input-bg: #dce0e8;
+  --secondary-hover: #dce0e8;
+  --warn-soft: #f3e5c3;
+  --banner-hot-from: #fbe1d4;
+  --banner-hot-to: #f6dcc2;
+  --banner-iced-from: #dbe6fb;
+  --banner-iced-to: #cfe7f4;
+  --chip-mid-bg: rgba(76, 79, 105, 0.06);
+  --hype-track: rgba(76, 79, 105, 0.08);
 }
 
 :root[data-theme="nord"] {

@@ -5,7 +5,8 @@ export type ThemeId =
   | 'blossom'
   | 'seaside'
   | 'dracula'
-  | 'catppuccin'
+  | 'catppuccin-mocha'
+  | 'catppuccin-latte'
   | 'nord'
   | 'solarized'
   | 'solarized-dark';
@@ -22,7 +23,8 @@ export const THEMES: ThemeMeta[] = [
   { id: 'blossom', label: '🌸 Blossom' },
   { id: 'seaside', label: '🌊 Seaside' },
   { id: 'dracula', label: '🧛 Dracula' },
-  { id: 'catppuccin', label: '🐱 Catppuccin' },
+  { id: 'catppuccin-mocha', label: '🐱 Catppuccin Mocha' },
+  { id: 'catppuccin-latte', label: '🐈 Catppuccin Latte' },
   { id: 'nord', label: '❄️ Nord' },
   { id: 'solarized', label: '🌗 Solarized Light' },
   { id: 'solarized-dark', label: '🌑 Solarized Dark' },
