@@ -11,6 +11,7 @@
   --bad: #c62828;
   --bad-soft: #ffcdd2;
   --neutral: #9e9e9e;
+  --warn: #d97706; /* low-stock / caution accent (themes inherit this amber) */
   --border: #d8c5a3;
   --shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 
@@ -497,6 +498,9 @@ input[type="range"] {
 }
 .stat { display: flex; flex-direction: column; align-items: center; font-size: 12px; color: var(--muted); }
 .stat .v { font-size: 18px; font-weight: 600; color: var(--ink); }
+/* Mid-day cups-left warning: amber when low, red when sold out. */
+#cups-left.low { color: var(--warn); }
+#cups-left.out { color: var(--bad); }
 
 .ingredient-row {
   padding: 8px 4px;
@@ -816,6 +820,50 @@ input[type="range"] {
   from { transform: translate(-50%, -90%) scale(0.5); opacity: 0; }
   to   { transform: translate(-50%, -100%) scale(1); opacity: 1; }
 }
+
+/* Global low/out-of-stock warning bubble pinned above the shop. White bubble like
+   the thought bubbles, but with a colored border (amber = low, red = sold out). */
+.shop-warning {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  background: white;
+  color: #2b1d0e;
+  border: 2px solid var(--warn);
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: var(--shadow);
+  animation: pop-in 0.2s ease;
+  z-index: 2;
+}
+/* Tail = two stacked triangles: a colored one behind, a smaller white one in
+   front, so the bubble's border continues around the stem. */
+.shop-warning::before,
+.shop-warning::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 0; height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+}
+.shop-warning::before {
+  bottom: -9px;
+  transform: translateX(-50%);
+  border-top: 9px solid var(--warn);
+}
+.shop-warning::after {
+  bottom: -6px;
+  transform: translateX(-50%);
+  border-left-width: 7px;
+  border-right-width: 7px;
+  border-top: 7px solid white;
+}
+.shop-warning.danger { border-color: var(--bad); }
+.shop-warning.danger::before { border-top-color: var(--bad); }
 
 .game-clock {
   font-size: 20px;
