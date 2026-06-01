@@ -255,12 +255,20 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
     play('cashier');
     alert(ok ? 'Game saved.' : 'Save failed.');
   });
-  root.querySelector('#restore-game-btn')?.addEventListener('click', () => {
+  root.querySelector('#restore-game-btn')?.addEventListener('click', async () => {
     const restored = loadGame();
     if (!restored) {
       alert('No saved game found.');
       return;
     }
+    const ok = await confirmModal({
+      title: 'Restore saved game?',
+      message: 'This loads your last saved game and discards any progress since then. This cannot be undone.',
+      confirmLabel: '↩ Restore',
+      cancelLabel: 'Cancel',
+      danger: true,
+    });
+    if (!ok) return;
     cb.onRestore(restored);
   });
   root.querySelector('#reset-game-btn')?.addEventListener('click', async () => {
