@@ -75,9 +75,19 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
   const hudHost = root.querySelector<HTMLDivElement>('#hype-meter-host')!;
   renderHypeMeter(hudHost, state.hype);
 
+  // Logical (CSS-pixel) drawing dimensions. The canvas backing store is scaled
+  // up by devicePixelRatio for crispness, but all game geometry is computed in
+  // these logical units so it stays consistent across monitors and resizes.
+  let viewW = 0;
+  let viewH = 0;
   function resize(): void {
-    canvas.width = wrap.clientWidth;
-    canvas.height = wrap.clientHeight;
+    const dpr = window.devicePixelRatio || 1;
+    viewW = wrap.clientWidth;
+    viewH = wrap.clientHeight;
+    canvas.width = Math.round(viewW * dpr);
+    canvas.height = Math.round(viewH * dpr);
+    // Draw in logical pixels; the DPR transform maps them to the backing store.
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
   resize();
   const resizeObs = new ResizeObserver(resize);
@@ -165,8 +175,14 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
     if (clockEl) clockEl.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 
     // shopX/shopY are used by both the customer logic and the draw call
-    const shopX = canvas.width * 0.5 - 60;
-    const shopY = canvas.height * 0.6 - 110; // bottom of shop = top of sidewalk
+    const shopX = viewW * 0.5 - 60;
+    const shopY = viewH * 0.6 - 110; // bottom of shop = top of sidewalk
+
+    // Keep every customer pinned to the sidewalk relative to the *current*
+    // canvas height, so resizing (or moving to another monitor) doesn't leave
+    // already-spawned customers floating at a stale vertical position.
+    const groundY = viewH * 0.68;
+    for (const c of scene.customers) c.y = groundY;
 
     if (!scene.paused) {
       const dt = Math.min(0.1, (now - (scene.lastFrame ?? now)) / 1000);
@@ -176,7 +192,7 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
       const since = (now - scene.lastSpawn) / 1000;
       if (since >= 1 / sps) {
         scene.lastSpawn = now;
-        scene.customers.push(spawnCustomer(state, canvas.width, canvas.height));
+        scene.customers.push(spawnCustomer(state, viewW, viewH));
       }
 
       // Update customer state machine
@@ -203,7 +219,7 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
               // Queue full — let them walk by naturally; walk-off handler counts walkedBy.
               c.willStop = false;
             }
-          } else if (c.x > canvas.width + 60) {
+          } else if (c.x > viewW + 60) {
             if (!c.decided) {
               state.todayStats.walkedBy++;
               play('walkby');
@@ -255,14 +271,14 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
         }
       }
 
-      scene.customers = scene.customers.filter(c => c.x < canvas.width + 80);
+      scene.customers = scene.customers.filter(c => c.x < viewW + 80);
     }
 
     // Always update lastFrame so unpause doesn't cause a dt spike
     scene.lastFrame = now;
 
     // Draw
-    drawBackground(ctx, canvas.width, canvas.height, state.weather.condition, timeOfDay, elapsed);
+    drawBackground(ctx, viewW, viewH, state.weather.condition, timeOfDay, elapsed);
     drawShop(ctx, shopX, shopY, 120, 110);
 
     // Menu sandwich-board sign on the sidewalk to the right of the shop
@@ -283,7 +299,7 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
 
     // Freeze thought bubble expiry timestamps while paused
     const renderNow = scene.paused && scene.pausedAt !== null ? scene.pausedAt : now;
-    renderThoughtBubbles(wrap, scene.customers, canvas, renderNow);
+    renderThoughtBubbles(wrap, scene.customers, viewW, viewH, renderNow);
 
     // Update HUD counters
     updateHud(root, state);
@@ -345,7 +361,7 @@ function bumpComplaint(state: GameState, key: string): void {
   state.todayStats.complaints[key] = (state.todayStats.complaints[key] ?? 0) + 1;
 }
 
-function renderThoughtBubbles(wrap: HTMLElement, customers: Customer[], canvas: HTMLCanvasElement, now: number): void {
+function renderThoughtBubbles(wrap: HTMLElement, customers: Customer[], viewW: number, viewH: number, now: number): void {
   // Map of existing bubbles by customer id
   const existing = new Map<string, HTMLElement>();
   wrap.querySelectorAll<HTMLElement>('.thought-bubble').forEach(el => {
@@ -353,8 +369,9 @@ function renderThoughtBubbles(wrap: HTMLElement, customers: Customer[], canvas: 
   });
 
   const seen = new Set<string>();
-  const scaleX = wrap.clientWidth / canvas.width;
-  const scaleY = wrap.clientHeight / canvas.height;
+  // Customer coordinates are already in logical (CSS) pixels, matching the wrap.
+  const scaleX = viewW > 0 ? wrap.clientWidth / viewW : 1;
+  const scaleY = viewH > 0 ? wrap.clientHeight / viewH : 1;
   for (const c of customers) {
     if (!c.thought || now >= c.thoughtUntil) continue;
     const id = String(c.id);
