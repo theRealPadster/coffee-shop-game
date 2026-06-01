@@ -253,6 +253,29 @@ input[type="range"] {
   justify-content: center;
 }
 
+/* Intermediate width: the single row no longer fits without the center
+   section wrapping mid-content. Drop to two rows — left info and right
+   controls share the top row, the center stats sit centered below. */
+@media (max-width: 1200px) and (min-width: 769px) {
+  .app-header {
+    flex-wrap: wrap;
+  }
+  .app-header .hdr-left {
+    order: 1;
+    flex: 1;
+    justify-content: flex-start;
+  }
+  .app-header .hdr-right {
+    order: 2;
+    justify-content: flex-end;
+  }
+  .app-header .hdr-center {
+    order: 3;
+    flex: none;
+    width: 100%;
+  }
+}
+
 /* On narrow screens the three sections can't sit side-by-side without
    cramming, so stack left / center / right as three centered rows. */
 @media (max-width: 768px) {
