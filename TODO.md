@@ -28,7 +28,7 @@ Loose backlog. No commitments, no order — just stuff to consider next.
 - ~~**Price history sparkline.**~~ ✅ Done — a 5-day sparkline (`state.priceHistory`) now sits next to each ingredient's price chip, normalized to the band and colored by the last day's direction.
 - **Report card depth.** End-of-day card shows totals and top complaint. Could also show which customer types walked by without buying — useful signal for recipe tuning.
 - **Day-view stats.** Surface revenue-so-far (and maybe a conversion %) during the day, and/or a small daily summary in the buy phase. Keep it glanceable — the HUD already shows Sold / Walk-bys, so this should add signal without making the UI visually busy.
-- **Confirm on Reset.** Reset sits right next to Save/Restore and wipes the game with no confirmation — too easy to misclick. Add a confirm step (or an undo window).
+- ~~**Confirm on Reset.**~~ ✅ Done — Reset now opens a styled in-game confirm modal (`confirmModal` in `ui.ts`) instead of wiping the game silently; cancel/click-outside/Esc all dismiss it.
 
 ## Tech / polish
 

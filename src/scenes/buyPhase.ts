@@ -5,6 +5,7 @@ import { maxCups, bottleneck } from '../recipe';
 import { saveGame, loadGame, clearSave } from '../save';
 import { play } from '../audio';
 import { appHeaderHtml, renderHypeMeter, attachHeaderMute, attachHeaderTheme } from '../header';
+import { confirmModal } from '../ui';
 
 export interface BuyPhaseCallbacks {
   onStartDay: () => void;
@@ -262,8 +263,15 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
     }
     cb.onRestore(restored);
   });
-  root.querySelector('#reset-game-btn')?.addEventListener('click', () => {
-    if (!confirm('Reset your game? This cannot be undone.')) return;
+  root.querySelector('#reset-game-btn')?.addEventListener('click', async () => {
+    const ok = await confirmModal({
+      title: 'Reset game?',
+      message: 'This starts a brand-new game and erases your saved progress. This cannot be undone.',
+      confirmLabel: '⟲ Reset',
+      cancelLabel: 'Cancel',
+      danger: true,
+    });
+    if (!ok) return;
     clearSave();
     cb.onReset();
   });
