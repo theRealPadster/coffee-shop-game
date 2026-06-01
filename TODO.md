@@ -34,4 +34,4 @@ Loose backlog. No commitments, no order — just stuff to consider next.
 
 - **Vector art.** `render.ts` is already shaped to allow swapping `emojiSprite` for vector implementations without touching scene code. Worth doing once the gameplay is settled.
 - **Audio variety.** Single coin / bell / grumble samples; could use 2–3 variants of each to reduce repetition.
-- ~~**Common color themes.**~~ ✅ Mostly done — added Dracula, Catppuccin Mocha + Latte, Nord, and Solarized Light + Dark as `:root[data-theme="…"]` blocks with `THEMES` entries. Still open: **Gruvbox**.
+- ~~**Common color themes.**~~ ✅ Mostly done — added Dracula, Catppuccin Mocha + Latte, Nord, and Solarized Light + Dark as `:root[data-theme="…"]` blocks with `THEMES` entries. 
