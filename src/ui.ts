@@ -1,5 +1,70 @@
 // Small UI helpers shared across scenes.
 
+export interface ModalButton<T> {
+  label: string;
+  value: T;                                 // what the modal resolves to when clicked
+  style?: 'accent' | 'secondary' | 'danger' | 'success'; // 'accent' is the default button color
+  primary?: boolean;                        // focused on open and triggered by Enter
+}
+
+export interface ModalOptions<T> {
+  title: string;
+  message: string;
+  buttons: ModalButton<T>[];
+  dismissValue: T;                          // resolved on Esc or click outside the dialog
+}
+
+/**
+ * Generic styled dialog matching the game's modal aesthetic. The buttons and
+ * the value each resolves to are fully caller-defined; confirmModal/alertModal
+ * are thin wrappers over this.
+ */
+export function modal<T>(opts: ModalOptions<T>): Promise<T> {
+  return new Promise(resolve => {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+
+    const buttonsHtml = opts.buttons
+      // 'accent' (the default) is the base button color, so it needs no modifier class.
+      .map((b, i) => `<button class="${b.style && b.style !== 'accent' ? b.style : ''}" data-idx="${i}">${b.label}</button>`)
+      .join('');
+    backdrop.innerHTML = `
+      <div class="modal" role="alertdialog" aria-modal="true">
+        <h2>${opts.title}</h2>
+        <p class="modal-message">${opts.message}</p>
+        <div class="actions">${buttonsHtml}</div>
+      </div>
+    `;
+
+    function close(result: T): void {
+      window.removeEventListener('keydown', onKey);
+      backdrop.remove();
+      resolve(result);
+    }
+    function onKey(e: KeyboardEvent): void {
+      if (e.key === 'Escape') {
+        close(opts.dismissValue);
+      } else if (e.key === 'Enter') {
+        const primary = opts.buttons.find(b => b.primary) ?? opts.buttons[opts.buttons.length - 1];
+        if (primary) close(primary.value);
+      }
+    }
+
+    backdrop.querySelectorAll<HTMLButtonElement>('[data-idx]').forEach(el => {
+      el.addEventListener('click', () => close(opts.buttons[Number(el.dataset.idx)].value));
+    });
+    // Click outside the dialog dismisses.
+    backdrop.addEventListener('click', e => {
+      if (e.target === backdrop) close(opts.dismissValue);
+    });
+    window.addEventListener('keydown', onKey);
+
+    document.body.appendChild(backdrop);
+    const idx = Math.max(0, opts.buttons.findIndex(b => b.primary));
+    backdrop.querySelectorAll<HTMLButtonElement>('[data-idx]')[idx]?.focus();
+  });
+}
+
 export interface ConfirmOptions {
   title: string;
   message: string;
@@ -8,42 +73,31 @@ export interface ConfirmOptions {
   danger?: boolean; // style the confirm button as destructive
 }
 
-// A styled in-game confirmation dialog matching the game's modal aesthetic.
-// Resolves true if the user confirms, false if they cancel or dismiss.
+// A confirmation dialog. Resolves true if confirmed, false if cancelled/dismissed.
 export function confirmModal(opts: ConfirmOptions): Promise<boolean> {
-  return new Promise(resolve => {
-    const backdrop = document.createElement('div');
-    backdrop.className = 'modal-backdrop';
-    backdrop.innerHTML = `
-      <div class="modal" role="alertdialog" aria-modal="true">
-        <h2>${opts.title}</h2>
-        <p class="modal-message">${opts.message}</p>
-        <div class="actions">
-          <button class="secondary" data-action="cancel">${opts.cancelLabel ?? 'Cancel'}</button>
-          <button class="${opts.danger ? 'danger' : 'success'}" data-action="confirm">${opts.confirmLabel ?? 'Confirm'}</button>
-        </div>
-      </div>
-    `;
+  return modal<boolean>({
+    title: opts.title,
+    message: opts.message,
+    dismissValue: false,
+    buttons: [
+      { label: opts.cancelLabel ?? 'Cancel', value: false, style: 'secondary' },
+      { label: opts.confirmLabel ?? 'Confirm', value: true, style: opts.danger ? 'danger' : 'success', primary: true },
+    ],
+  });
+}
 
-    function close(result: boolean): void {
-      window.removeEventListener('keydown', onKey);
-      backdrop.remove();
-      resolve(result);
-    }
-    function onKey(e: KeyboardEvent): void {
-      if (e.key === 'Escape') close(false);
-      else if (e.key === 'Enter') close(true);
-    }
+export interface AlertOptions {
+  title: string;
+  message: string;
+  okLabel?: string;
+}
 
-    backdrop.querySelector('[data-action="confirm"]')?.addEventListener('click', () => close(true));
-    backdrop.querySelector('[data-action="cancel"]')?.addEventListener('click', () => close(false));
-    // Click outside the dialog cancels.
-    backdrop.addEventListener('click', e => {
-      if (e.target === backdrop) close(false);
-    });
-    window.addEventListener('keydown', onKey);
-
-    document.body.appendChild(backdrop);
-    backdrop.querySelector<HTMLButtonElement>('[data-action="confirm"]')?.focus();
+// An informational dialog with a single dismiss button. Resolves once dismissed.
+export function alertModal(opts: AlertOptions): Promise<void> {
+  return modal<void>({
+    title: opts.title,
+    message: opts.message,
+    dismissValue: undefined,
+    buttons: [{ label: opts.okLabel ?? 'OK', value: undefined, style: 'accent', primary: true }],
   });
 }

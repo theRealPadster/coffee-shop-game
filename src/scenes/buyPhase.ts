@@ -5,7 +5,7 @@ import { maxCups, bottleneck } from '../recipe';
 import { saveGame, loadGame, clearSave } from '../save';
 import { play } from '../audio';
 import { appHeaderHtml, renderHypeMeter, attachHeaderMute, attachHeaderTheme } from '../header';
-import { confirmModal } from '../ui';
+import { confirmModal, alertModal } from '../ui';
 
 export interface BuyPhaseCallbacks {
   onStartDay: () => void;
@@ -253,12 +253,14 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
   root.querySelector('#save-game-btn')?.addEventListener('click', () => {
     const ok = saveGame(state);
     play('cashier');
-    alert(ok ? 'Game saved.' : 'Save failed.');
+    alertModal(ok
+      ? { title: 'Game saved', message: 'Your progress has been saved to this browser.' }
+      : { title: 'Save failed', message: 'Your game could not be saved. Your browser may be blocking storage.' });
   });
   root.querySelector('#restore-game-btn')?.addEventListener('click', async () => {
     const restored = loadGame();
     if (!restored) {
-      alert('No saved game found.');
+      await alertModal({ title: 'No saved game', message: 'There is no saved game to restore yet.' });
       return;
     }
     const ok = await confirmModal({
