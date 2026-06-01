@@ -153,8 +153,11 @@
 }
 
 :root[data-theme="catppuccin"] {
-  /* Catppuccin Mocha: #1e1e2e base, #cdd6f4 text, #cba6f7 mauve, #a6e3a1 green */
-  --bg: #1e1e2e;
+  /* Catppuccin Mocha: cozy pastels with color-rich accents. Use the layering
+     (Crust/Mantle/Base/Surface) for depth — Mantle canvas under Surface0 panels,
+     Crust inputs — and let the banners read as real pastels (maroon→peach hot,
+     blue→sapphire iced). */
+  --bg: #181825;
   --panel: #313244;
   --ink: #cdd6f4;
   --muted: #a6adc8;
@@ -167,15 +170,15 @@
   --bad-soft: rgba(243, 139, 168, 0.20);
   --neutral: #6c7086;
   --border: #45475a;
-  --shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
 
-  --input-bg: #181825;
+  --input-bg: #11111b;
   --secondary-hover: #45475a;
-  --warn-soft: rgba(249, 226, 175, 0.16);
-  --banner-hot-from: #45353f;
-  --banner-hot-to: #533f48;
-  --banner-iced-from: #2a3548;
-  --banner-iced-to: #34435c;
+  --warn-soft: rgba(203, 166, 247, 0.13);
+  --banner-hot-from: #6d5565;
+  --banner-hot-to: #715b59;
+  --banner-iced-from: #4b597b;
+  --banner-iced-to: #455f76;
   --chip-mid-bg: rgba(255, 255, 255, 0.08);
   --hype-track: rgba(255, 255, 255, 0.10);
 }
