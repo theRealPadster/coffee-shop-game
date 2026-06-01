@@ -121,13 +121,15 @@
 }
 
 :root[data-theme="dracula"] {
-  /* Dracula: #282a36 bg, #f8f8f2 fg, #bd93f9 purple, #ff79c6 pink, #50fa7b green */
-  --bg: #282a36;
+  /* Dracula: #282a36 bg, #f8f8f2 fg, #bd93f9 purple, #ff79c6 pink, #50fa7b green.
+     Use the darker bg (#21222c) under #343746 panels for elevation, and lean on
+     the signature pink for hover so it's not monochromatic purple. */
+  --bg: #21222c;
   --panel: #343746;
   --ink: #f8f8f2;
   --muted: #8b93b8;
   --accent: #bd93f9;
-  --accent-light: #d6b6fc;
+  --accent-light: #ff79c6;
   --accent-ink: #282a36;
   --good: #50fa7b;
   --good-soft: rgba(80, 250, 123, 0.18);
@@ -139,11 +141,13 @@
 
   --input-bg: #21222c;
   --secondary-hover: #44475a;
-  --warn-soft: rgba(241, 250, 140, 0.16);
-  --banner-hot-from: #3d3343;
-  --banner-hot-to: #4a3b52;
-  --banner-iced-from: #243a44;
-  --banner-iced-to: #2f5562;
+  /* Alpha yellow goes olive over the dark bg; use a clean purple highlight and
+     real Dracula hues (purple→pink hot, cyan iced) so the tints read as color. */
+  --warn-soft: rgba(189, 147, 249, 0.13);
+  --banner-hot-from: #4d4265;
+  --banner-hot-to: #5f3a57;
+  --banner-iced-from: #3b525e;
+  --banner-iced-to: #415e6b;
   --chip-mid-bg: rgba(255, 255, 255, 0.08);
   --hype-track: rgba(255, 255, 255, 0.10);
 }
