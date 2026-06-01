@@ -257,11 +257,14 @@
 
   --input-bg: #002730;
   --secondary-hover: #0e4a5a;
-  --warn-soft: rgba(181, 137, 0, 0.20);
-  --banner-hot-from: #103a3c;
-  --banner-hot-to: #16443c;
-  --banner-iced-from: #07333f;
-  --banner-iced-to: #0c4252;
+  /* Warm/cool tints over the teal base03/base02 surfaces. Alpha-blended yellow
+     turns olive over teal, so use solid warm amber (a dark tint of Solarized
+     yellow) for warnings and the hot banner; keep iced on a clean blue. */
+  --warn-soft: #46371f;
+  --banner-hot-from: #3c352a;
+  --banner-hot-to: #302a22;
+  --banner-iced-from: #0a3a4d;
+  --banner-iced-to: #103f57;
   --chip-mid-bg: rgba(255, 255, 255, 0.06);
   --hype-track: rgba(255, 255, 255, 0.09);
 }
@@ -603,6 +606,14 @@ input[type="range"] {
   color: var(--ink);
   border-radius: 0;
   padding: 4px 10px;
+}
+/* Inactive toggle buttons are styled like secondary buttons, so hover like one
+   too — otherwise they fall through to the generic accent-light button hover,
+   which leaves --ink text on an --accent-light background (unreadable on every
+   dark theme). */
+.type-toggle button:not(.active):hover:not(:disabled) {
+  background: var(--secondary-hover);
+  color: var(--ink);
 }
 .type-toggle button.active {
   background: var(--accent);
