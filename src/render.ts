@@ -16,6 +16,9 @@ export function emojiSprite(emoji: string, size = 36, mirror = false): Sprite {
       ctx.font = `${size}px serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
+      // Color emoji ignore the fill color but honor its alpha, so an inherited
+      // semi-transparent fillStyle would dim the glyph. Force full opacity.
+      ctx.fillStyle = '#000';
       if (mirror) {
         ctx.translate(x, y);
         ctx.scale(-1, 1);
