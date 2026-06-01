@@ -15,6 +15,7 @@
   --shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 
   /* Theme-tunable accents */
+  --accent-ink: #ffffff; /* text/icon color on top of --accent (buttons, badges) */
   --input-bg: #ffffff;
   --secondary-hover: #f0e4cc;
   --warn-soft: #fff2cc;
@@ -119,6 +120,195 @@
   --hype-track: rgba(255, 255, 255, 0.10);
 }
 
+:root[data-theme="dracula"] {
+  /* Dracula: #282a36 bg, #f8f8f2 fg, #bd93f9 purple, #ff79c6 pink, #50fa7b green.
+     Use the darker bg (#21222c) under #343746 panels for elevation, and lean on
+     the signature pink for hover so it's not monochromatic purple. */
+  --bg: #21222c;
+  --panel: #343746;
+  --ink: #f8f8f2;
+  --muted: #8b93b8;
+  --accent: #bd93f9;
+  --accent-light: #ff79c6;
+  --accent-ink: #282a36;
+  --good: #50fa7b;
+  --good-soft: rgba(80, 250, 123, 0.18);
+  --bad: #ff5555;
+  --bad-soft: rgba(255, 85, 85, 0.20);
+  --neutral: #6272a4;
+  --border: #44475a;
+  --shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+
+  --input-bg: #21222c;
+  --secondary-hover: #44475a;
+  /* Alpha yellow goes olive over the dark bg; use a clean purple highlight and
+     real Dracula hues (purple→pink hot, cyan iced) so the tints read as color. */
+  --warn-soft: rgba(189, 147, 249, 0.13);
+  --banner-hot-from: #4d4265;
+  --banner-hot-to: #5f3a57;
+  --banner-iced-from: #3b525e;
+  --banner-iced-to: #415e6b;
+  --chip-mid-bg: rgba(255, 255, 255, 0.08);
+  --hype-track: rgba(255, 255, 255, 0.10);
+}
+
+:root[data-theme="catppuccin-mocha"] {
+  /* Catppuccin Mocha: cozy pastels with color-rich accents. Use the layering
+     (Crust/Mantle/Base/Surface) for depth — Mantle canvas under Surface0 panels,
+     Crust inputs — and let the banners read as real pastels (maroon→peach hot,
+     blue→sapphire iced). */
+  --bg: #181825;
+  --panel: #313244;
+  --ink: #cdd6f4;
+  --muted: #a6adc8;
+  --accent: #cba6f7;
+  --accent-light: #ddbdf9;
+  --accent-ink: #1e1e2e;
+  --good: #a6e3a1;
+  --good-soft: rgba(166, 227, 161, 0.18);
+  --bad: #f38ba8;
+  --bad-soft: rgba(243, 139, 168, 0.20);
+  --neutral: #6c7086;
+  --border: #45475a;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+
+  --input-bg: #11111b;
+  --secondary-hover: #45475a;
+  --warn-soft: rgba(203, 166, 247, 0.13);
+  --banner-hot-from: #6d5565;
+  --banner-hot-to: #715b59;
+  --banner-iced-from: #4b597b;
+  --banner-iced-to: #455f76;
+  --chip-mid-bg: rgba(255, 255, 255, 0.08);
+  --hype-track: rgba(255, 255, 255, 0.10);
+}
+
+:root[data-theme="catppuccin-latte"] {
+  /* Catppuccin Latte (light): #eff1f5 base, #4c4f69 text, #8839ef mauve, #40a02b
+     green. Light card (Base) on a soft grey canvas (Mantle) with Crust inset
+     inputs; muted on Subtext0 (not the low-contrast overlay tones). */
+  --bg: #e6e9ef;
+  --panel: #eff1f5;
+  --ink: #4c4f69;
+  --muted: #6c6f85;
+  --accent: #8839ef;
+  --accent-light: #9a5cf0;
+  --accent-ink: #ffffff;
+  --good: #40a02b;
+  --good-soft: #d4ebcd;
+  --bad: #d20f39;
+  --bad-soft: #f6cdd5;
+  --neutral: #9ca0b0;
+  --border: #ccd0da;
+  --shadow: 0 2px 6px rgba(76, 79, 105, 0.12);
+
+  --input-bg: #dce0e8;
+  --secondary-hover: #dce0e8;
+  --warn-soft: #f3e5c3;
+  --banner-hot-from: #fbe1d4;
+  --banner-hot-to: #f6dcc2;
+  --banner-iced-from: #dbe6fb;
+  --banner-iced-to: #cfe7f4;
+  --chip-mid-bg: rgba(76, 79, 105, 0.06);
+  --hype-track: rgba(76, 79, 105, 0.08);
+}
+
+:root[data-theme="nord"] {
+  /* Nord: #2e3440 polar night, #eceff4 snow, #88c0d0 frost, #a3be8c/#bf616a aurora.
+     Nord is deliberately calm/low-contrast ("dimmed pastels"), so "pop" here means
+     depth (slightly darker bg + brighter nord3 card edge + stronger shadow) and
+     letting the warm/cool banners read as Aurora/Frost color, not grey. */
+  --bg: #2a2e39;
+  --panel: #3b4252;
+  --ink: #eceff4;
+  --muted: #9aa3b5;
+  --accent: #88c0d0;
+  --accent-light: #a3d0dd;
+  --accent-ink: #2e3440;
+  --good: #a3be8c;
+  --good-soft: rgba(163, 190, 140, 0.18);
+  --bad: #bf616a;
+  --bad-soft: rgba(191, 97, 106, 0.22);
+  --neutral: #4c566a;
+  --border: #4c566a;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+
+  --input-bg: #2b303b;
+  --secondary-hover: #434c5e;
+  --warn-soft: rgba(136, 192, 208, 0.12);
+  --banner-hot-from: #574545;
+  --banner-hot-to: #614f43;
+  --banner-iced-from: #475872;
+  --banner-iced-to: #526878;
+  --chip-mid-bg: rgba(255, 255, 255, 0.07);
+  --hype-track: rgba(255, 255, 255, 0.10);
+}
+
+:root[data-theme="solarized"] {
+  /* Solarized Light (canonical usage): base3 #fdf6e3 background, base2 #eee8d5
+     highlighted surface, base01 #586e75 emphasized body text, base00 #657b83
+     secondary text (NOT base1 — base1 is the low-contrast comment tone and
+     fails WCAG AA on base3), blue #268bd2 accent. */
+  --bg: #fdf6e3;
+  --panel: #eee8d5;
+  --ink: #586e75;
+  --muted: #657b83;
+  --accent: #268bd2;
+  --accent-light: #4ca3e0;
+  --accent-ink: #fdf6e3;
+  --good: #859900;
+  --good-soft: #dbe0bb;
+  --bad: #dc322f;
+  --bad-soft: #f7cfce;
+  --neutral: #93a1a1;
+  --border: #cdbf9c;
+  --shadow: 0 2px 6px rgba(88, 110, 117, 0.12);
+
+  --input-bg: #fdf6e3;
+  --secondary-hover: #e3dcc7;
+  --warn-soft: #f3e6b8;
+  --banner-hot-from: #faecd0;
+  --banner-hot-to: #f3ddb0;
+  --banner-iced-from: #d6ecf5;
+  --banner-iced-to: #bfe0f0;
+  --chip-mid-bg: rgba(0, 43, 54, 0.06);
+  --hype-track: rgba(0, 43, 54, 0.08);
+}
+
+:root[data-theme="solarized-dark"] {
+  /* Solarized Dark (canonical usage): base03 #002b36 background, base02 #073642
+     highlighted surface, base1 #93a1a1 emphasized text, base0 #839496 secondary
+     text (NOT base01 — base01 is the low-contrast comment tone and fails WCAG AA
+     on base03), blue #268bd2 accent with light text. */
+  --bg: #002b36;
+  --panel: #073642;
+  --ink: #93a1a1;
+  --muted: #839496;
+  --accent: #268bd2;
+  --accent-light: #4ca3e0;
+  --accent-ink: #fdf6e3;
+  --good: #859900;
+  --good-soft: rgba(133, 153, 0, 0.22);
+  --bad: #dc322f;
+  --bad-soft: rgba(220, 50, 47, 0.22);
+  --neutral: #586e75;
+  --border: #0f4d5e;
+  --shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+
+  --input-bg: #002730;
+  --secondary-hover: #0e4a5a;
+  /* Warm/cool tints over the teal base03/base02 surfaces. Alpha-blended yellow
+     turns olive over teal, so use solid warm amber (a dark tint of Solarized
+     yellow) for warnings and the hot banner; keep iced on a clean blue. */
+  --warn-soft: #46371f;
+  --banner-hot-from: #3c352a;
+  --banner-hot-to: #302a22;
+  --banner-iced-from: #0a3a4d;
+  --banner-iced-to: #103f57;
+  --chip-mid-bg: rgba(255, 255, 255, 0.06);
+  --hype-track: rgba(255, 255, 255, 0.09);
+}
+
 * { box-sizing: border-box; }
 
 html, body {
@@ -148,7 +338,7 @@ button {
   font-family: var(--font);
   font-size: 14px;
   background: var(--accent);
-  color: white;
+  color: var(--accent-ink);
   border: none;
   border-radius: 6px;
   padding: 6px 12px;
@@ -179,6 +369,11 @@ button.secondary:hover:not(:disabled) { background: var(--secondary-hover); }
 }
 button.danger { background: var(--bad); }
 button.success { background: var(--good); }
+/* danger/success carry their own color, so they need their own hover — otherwise
+   the generic button:hover (higher specificity than .danger/.success) repaints
+   them with --accent-light. Lighten their own hue instead of jumping to accent. */
+button.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--bad) 82%, white); }
+button.success:hover:not(:disabled) { background: color-mix(in srgb, var(--good) 82%, white); }
 
 input[type="number"], input[type="text"], select {
   font-family: var(--font);
@@ -457,9 +652,17 @@ input[type="range"] {
   border-radius: 0;
   padding: 4px 10px;
 }
+/* Inactive toggle buttons are styled like secondary buttons, so hover like one
+   too — otherwise they fall through to the generic accent-light button hover,
+   which leaves --ink text on an --accent-light background (unreadable on every
+   dark theme). */
+.type-toggle button:not(.active):hover:not(:disabled) {
+  background: var(--secondary-hover);
+  color: var(--ink);
+}
 .type-toggle button.active {
   background: var(--accent);
-  color: white;
+  color: var(--accent-ink);
 }
 .serving-banner.iced .type-toggle button.active {
   background: #0277bd;
@@ -521,6 +724,9 @@ input[type="range"] {
   padding: 10px 20px;
   background: var(--good);
 }
+/* The id selector outranks the generic button:hover, so without this the button
+   gets no hover feedback at all. */
+#start-day-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--good) 82%, white); }
 
 /* ===== Hype Meter ===== */
 .hype-meter {
@@ -639,7 +845,7 @@ input[type="range"] {
 .app-header .recipe-badge {
   padding: 4px 8px;
   background: var(--accent);
-  color: white;
+  color: var(--accent-ink);
   border-radius: 4px;
   font-size: 12px;
   font-weight: 600;
