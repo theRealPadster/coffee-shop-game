@@ -206,12 +206,13 @@
 
 :root[data-theme="solarized"] {
   /* Solarized Light (canonical usage): base3 #fdf6e3 background, base2 #eee8d5
-     highlighted surface, base00 #657b83 body / base01 #586e75 emphasized text,
-     base1 #93a1a1 secondary, blue #268bd2 accent. */
+     highlighted surface, base01 #586e75 emphasized body text, base00 #657b83
+     secondary text (NOT base1 — base1 is the low-contrast comment tone and
+     fails WCAG AA on base3), blue #268bd2 accent. */
   --bg: #fdf6e3;
   --panel: #eee8d5;
   --ink: #586e75;
-  --muted: #93a1a1;
+  --muted: #657b83;
   --accent: #268bd2;
   --accent-light: #4ca3e0;
   --accent-ink: #fdf6e3;
@@ -220,7 +221,7 @@
   --bad: #dc322f;
   --bad-soft: #f7cfce;
   --neutral: #93a1a1;
-  --border: #ddd2b6;
+  --border: #cdbf9c;
   --shadow: 0 2px 6px rgba(88, 110, 117, 0.12);
 
   --input-bg: #fdf6e3;
@@ -236,12 +237,13 @@
 
 :root[data-theme="solarized-dark"] {
   /* Solarized Dark (canonical usage): base03 #002b36 background, base02 #073642
-     highlighted surface, base0 #839496 body / base1 #93a1a1 emphasized text,
-     base01 #586e75 secondary, blue #268bd2 accent with light text. */
+     highlighted surface, base1 #93a1a1 emphasized text, base0 #839496 secondary
+     text (NOT base01 — base01 is the low-contrast comment tone and fails WCAG AA
+     on base03), blue #268bd2 accent with light text. */
   --bg: #002b36;
   --panel: #073642;
   --ink: #93a1a1;
-  --muted: #586e75;
+  --muted: #839496;
   --accent: #268bd2;
   --accent-light: #4ca3e0;
   --accent-ink: #fdf6e3;
