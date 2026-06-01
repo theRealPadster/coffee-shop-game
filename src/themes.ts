@@ -1,4 +1,14 @@
-export type ThemeId = 'classic' | 'sunset' | 'dark' | 'blossom' | 'seaside';
+export type ThemeId =
+  | 'classic'
+  | 'sunset'
+  | 'dark'
+  | 'blossom'
+  | 'seaside'
+  | 'dracula'
+  | 'catppuccin'
+  | 'nord'
+  | 'solarized'
+  | 'solarized-dark';
 
 export interface ThemeMeta {
   id: ThemeId;
@@ -11,6 +21,11 @@ export const THEMES: ThemeMeta[] = [
   { id: 'dark', label: '🌙 Dark' },
   { id: 'blossom', label: '🌸 Blossom' },
   { id: 'seaside', label: '🌊 Seaside' },
+  { id: 'dracula', label: '🧛 Dracula' },
+  { id: 'catppuccin', label: '🐱 Catppuccin' },
+  { id: 'nord', label: '❄️ Nord' },
+  { id: 'solarized', label: '🌗 Solarized Light' },
+  { id: 'solarized-dark', label: '🌑 Solarized Dark' },
 ];
 
 const KEY = 'coffee-shop-theme';
