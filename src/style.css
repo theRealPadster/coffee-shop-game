@@ -689,6 +689,32 @@ input[type="range"] {
 .weather-widget .icon { font-size: 32px; }
 .weather-widget .temp { font-size: 20px; font-weight: 600; }
 .weather-widget .cond { color: rgba(43, 29, 14, 0.7); text-transform: capitalize; }
+.weather-widget .forecast {
+  margin-left: auto;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.weather-widget .forecast-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(43, 29, 14, 0.6);
+}
+.weather-widget .forecast-line { font-size: 14px; font-weight: 600; }
+
+.spoil-warn {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.15);
+  border-radius: 4px;
+  padding: 1px 5px;
+  white-space: nowrap;
+}
 
 .cups-producible {
   margin-top: 10px;
@@ -929,6 +955,8 @@ input[type="range"] {
   border-bottom: 1px dashed var(--border);
 }
 .modal .row:last-child { border-bottom: none; }
+.modal .row.spoiled span,
+.modal .row.spoiled strong { color: #b45309; }
 .modal .modal-message {
   margin: 0;
   color: var(--ink);
