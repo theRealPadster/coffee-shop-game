@@ -1,6 +1,10 @@
 # Coffee Shop Game
 
+[![Play now](https://img.shields.io/badge/▶_Play_now-coffee--shop--game-6f4e37?style=for-the-badge)](https://therealpadster.github.io/coffee-shop-game/)
+
 A lemonade-stand-style coffee shop game where you run a sidewalk coffee stand. Each day has a **buy phase** (market prices, ingredient stocking, recipe tuning) and a **street phase** (pedestrians walk by, some stop, some buy).
+
+**▶ [Play it in your browser](https://therealpadster.github.io/coffee-shop-game/)** — no install required. The live site auto-deploys from `main` via GitHub Actions.
 
 ## Run it
 
