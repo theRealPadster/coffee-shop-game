@@ -5,11 +5,15 @@ import { spawnCustomer, decide, spawnRate, walkByRemark, Customer } from '../cus
 import { applyHype } from '../hype';
 import { consumeRecipe, maxCups } from '../recipe';
 import { play } from '../audio';
-import { appHeaderHtml, renderHypeMeter, attachHeaderMute, attachHeaderTheme } from '../header';
+import { appHeaderHtml, renderHypeMeter, attachHeaderMenu } from '../header';
+import { openPauseMenu } from '../pauseMenu';
+import { setMenuOpener } from '../menuOpener';
 
 export interface StreetPhaseCallbacks {
   onCloseShop: () => void;
   onStateChange: () => void;
+  onRestore: (state: GameState) => void;
+  onReset: () => void;
 }
 
 // Real-time length of one game day (8:00 → 20:00)
@@ -66,12 +70,11 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
       </div>
       <span class="cup-price-label">Cup price</span>
     </div>
-    <button id="pause-btn" class="secondary">⏸</button>
     <button id="close-shop-btn" class="danger">Close Shop</button>
   `;
 
   root.innerHTML = `
-    ${appHeaderHtml(state, { center: headerCenter, rightExtra: headerRight })}
+    ${appHeaderHtml(state, { variant: 'street', center: headerCenter, rightExtra: headerRight })}
     <div class="street-phase">
       <div class="street-canvas-wrap">
         <canvas id="street-canvas"></canvas>
@@ -134,26 +137,37 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
     cb.onStateChange();
   });
 
-  // Pause / resume
-  root.querySelector('#pause-btn')?.addEventListener('click', () => {
-    const btn = root.querySelector<HTMLButtonElement>('#pause-btn');
-    if (scene.paused) {
-      if (scene.pausedAt !== null) {
-        scene.totalPausedMs += performance.now() - scene.pausedAt;
-        scene.pausedAt = null;
-      }
-      scene.paused = false;
-      scene.lastFrame = null; // avoid a dt spike on first resumed frame
-      if (btn) btn.textContent = '⏸';
-    } else {
-      scene.pausedAt = performance.now();
-      scene.paused = true;
-      if (btn) btn.textContent = '▶';
+  // Pause helpers — opening the pause menu freezes the in-game clock and
+  // pedestrian motion; closing it resumes from the same point via the existing
+  // pausedAt / totalPausedMs accumulator.
+  function pauseSceneClock(): void {
+    if (scene.paused) return;
+    scene.pausedAt = performance.now();
+    scene.paused = true;
+  }
+  function resumeSceneClock(): void {
+    if (!scene.paused) return;
+    if (scene.pausedAt !== null) {
+      scene.totalPausedMs += performance.now() - scene.pausedAt;
+      scene.pausedAt = null;
     }
-  });
+    scene.paused = false;
+    scene.lastFrame = null; // avoid a dt spike on first resumed frame
+  }
+  async function onOpenMenu(): Promise<void> {
+    pauseSceneClock();
+    try {
+      await openPauseMenu({ state, onRestore: cb.onRestore, onReset: cb.onReset });
+    } finally {
+      // Only resume if the scene is still running; onRestore/onReset tear it down.
+      if (scene.running) resumeSceneClock();
+    }
+  }
 
-  attachHeaderMute(root, state);
-  attachHeaderTheme(root);
+  attachHeaderMenu(root, () => { void onOpenMenu(); });
+
+  // Route the global Esc key through the same clock-pause flow as the button.
+  setMenuOpener(() => { void onOpenMenu(); });
 
   root.querySelector('#close-shop-btn')?.addEventListener('click', () => {
     if (scene.running) closeShop();
@@ -340,6 +354,7 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
     scene.running = false;
     if (scene.rafId !== null) cancelAnimationFrame(scene.rafId);
     resizeObs.disconnect();
+    setMenuOpener(null);
     // Remove any leftover thought bubbles and the shop warning
     wrap.querySelectorAll('.thought-bubble').forEach(b => b.remove());
     wrap.querySelector('.shop-warning')?.remove();

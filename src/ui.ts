@@ -1,5 +1,75 @@
 // Small UI helpers shared across scenes.
 
+// -----------------------------------------------------------------------------
+// Shared modal shell
+// -----------------------------------------------------------------------------
+
+interface ModalShellOptions {
+  closeOnEsc: boolean;
+  closeOnBackdrop: boolean;
+}
+
+interface ModalShell {
+  dialog: HTMLElement;             // the .modal element to populate
+  close: () => void;               // idempotent: removes listeners + backdrop, fires onClose
+  onClose: (cb: () => void) => void;
+  onKey: (cb: (e: KeyboardEvent) => void) => void; // extra keydown subscribers (e.g. Enter)
+}
+
+/**
+ * Internal: backdrop + dialog scaffolding shared by every modal-shaped UI.
+ * Owns the lifecycle (mount, dismiss listeners, unmount) so callers only have
+ * to populate the dialog and decide what dismissal means.
+ */
+function createModalShell(opts: ModalShellOptions): ModalShell {
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  const dialog = document.createElement('div');
+  dialog.className = 'modal';
+  dialog.setAttribute('role', 'dialog');
+  dialog.setAttribute('aria-modal', 'true');
+  backdrop.appendChild(dialog);
+
+  const closeCbs: Array<() => void> = [];
+  const keyCbs: Array<(e: KeyboardEvent) => void> = [];
+  let closed = false;
+
+  function close(): void {
+    if (closed) return;
+    closed = true;
+    window.removeEventListener('keydown', onKey);
+    backdrop.remove();
+    for (const cb of closeCbs) cb();
+  }
+
+  function onKey(e: KeyboardEvent): void {
+    if (opts.closeOnEsc && e.key === 'Escape') {
+      close();
+      return;
+    }
+    for (const cb of keyCbs) cb(e);
+  }
+
+  if (opts.closeOnBackdrop) {
+    backdrop.addEventListener('click', e => {
+      if (e.target === backdrop) close();
+    });
+  }
+  window.addEventListener('keydown', onKey);
+  document.body.appendChild(backdrop);
+
+  return {
+    dialog,
+    close,
+    onClose: cb => { closeCbs.push(cb); },
+    onKey: cb => { keyCbs.push(cb); },
+  };
+}
+
+// -----------------------------------------------------------------------------
+// modal(): "ask a question, resolve to a value"
+// -----------------------------------------------------------------------------
+
 export interface ModalButton<T> {
   label: string;
   value: T;                                 // what the modal resolves to when clicked
@@ -21,49 +91,94 @@ export interface ModalOptions<T> {
  */
 export function modal<T>(opts: ModalOptions<T>): Promise<T> {
   return new Promise(resolve => {
-    const backdrop = document.createElement('div');
-    backdrop.className = 'modal-backdrop';
+    const shell = createModalShell({ closeOnEsc: true, closeOnBackdrop: true });
+    let result: T = opts.dismissValue;
 
     const buttonsHtml = opts.buttons
       // 'accent' (the default) is the base button color, so it needs no modifier class.
       .map((b, i) => `<button class="${b.style && b.style !== 'accent' ? b.style : ''}" data-idx="${i}">${b.label}</button>`)
       .join('');
-    backdrop.innerHTML = `
-      <div class="modal" role="alertdialog" aria-modal="true">
-        <h2>${opts.title}</h2>
-        <p class="modal-message">${opts.message}</p>
-        <div class="actions">${buttonsHtml}</div>
-      </div>
+    shell.dialog.innerHTML = `
+      <h2>${opts.title}</h2>
+      <p class="modal-message">${opts.message}</p>
+      <div class="actions">${buttonsHtml}</div>
     `;
 
-    function close(result: T): void {
-      window.removeEventListener('keydown', onKey);
-      backdrop.remove();
-      resolve(result);
-    }
-    function onKey(e: KeyboardEvent): void {
-      if (e.key === 'Escape') {
-        close(opts.dismissValue);
-      } else if (e.key === 'Enter') {
+    shell.dialog.querySelectorAll<HTMLButtonElement>('[data-idx]').forEach(el => {
+      el.addEventListener('click', () => {
+        result = opts.buttons[Number(el.dataset.idx)].value;
+        shell.close();
+      });
+    });
+
+    shell.onKey(e => {
+      if (e.key === 'Enter') {
         const primary = opts.buttons.find(b => b.primary) ?? opts.buttons[opts.buttons.length - 1];
-        if (primary) close(primary.value);
+        if (primary) {
+          result = primary.value;
+          shell.close();
+        }
       }
-    }
-
-    backdrop.querySelectorAll<HTMLButtonElement>('[data-idx]').forEach(el => {
-      el.addEventListener('click', () => close(opts.buttons[Number(el.dataset.idx)].value));
     });
-    // Click outside the dialog dismisses.
-    backdrop.addEventListener('click', e => {
-      if (e.target === backdrop) close(opts.dismissValue);
-    });
-    window.addEventListener('keydown', onKey);
 
-    document.body.appendChild(backdrop);
+    shell.onClose(() => resolve(result));
+
     const idx = Math.max(0, opts.buttons.findIndex(b => b.primary));
-    backdrop.querySelectorAll<HTMLButtonElement>('[data-idx]')[idx]?.focus();
+    shell.dialog.querySelectorAll<HTMLButtonElement>('[data-idx]')[idx]?.focus();
   });
 }
+
+// -----------------------------------------------------------------------------
+// paneModal(): "show a pane of live controls until dismissed"
+// -----------------------------------------------------------------------------
+
+export interface PaneModalOptions {
+  title: string;
+  body: (host: HTMLElement, close: () => void) => void;
+  className?: string;        // extra class on .modal, e.g. 'pause-pane'
+  closeButton?: boolean;     // shows the ✕ in the top-right; default true
+  closeOnBackdrop?: boolean; // default true
+  closeOnEsc?: boolean;      // default true
+}
+
+/**
+ * A modal whose body is built imperatively by the caller — for pause menus,
+ * settings panes, main menus, etc. Shares the backdrop/dismiss plumbing with
+ * modal() via createModalShell but otherwise has no notion of buttons or a
+ * return value; the body wires its own controls.
+ */
+export function paneModal(opts: PaneModalOptions): Promise<void> {
+  return new Promise(resolve => {
+    const shell = createModalShell({
+      closeOnEsc: opts.closeOnEsc ?? true,
+      closeOnBackdrop: opts.closeOnBackdrop ?? true,
+    });
+    shell.dialog.classList.add('pane');
+    if (opts.className) shell.dialog.classList.add(opts.className);
+
+    const showClose = opts.closeButton ?? true;
+    shell.dialog.innerHTML = `
+      <div class="modal__title-row">
+        <h2>${opts.title}</h2>
+        ${showClose ? '<button class="modal__close-btn" aria-label="Close" title="Close">✕</button>' : ''}
+      </div>
+      <div class="modal__body"></div>
+    `;
+    if (showClose) {
+      shell.dialog.querySelector<HTMLButtonElement>('.modal__close-btn')
+        ?.addEventListener('click', () => shell.close());
+    }
+
+    const host = shell.dialog.querySelector<HTMLElement>('.modal__body')!;
+    opts.body(host, shell.close);
+
+    shell.onClose(() => resolve());
+  });
+}
+
+// -----------------------------------------------------------------------------
+// confirmModal / alertModal — thin wrappers over modal()
+// -----------------------------------------------------------------------------
 
 export interface ConfirmOptions {
   title: string;

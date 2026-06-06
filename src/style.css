@@ -473,7 +473,9 @@ input[type="range"] {
 }
 
 /* On narrow screens the three sections can't sit side-by-side without
-   cramming, so stack left / center / right as three centered rows. */
+   cramming, so stack left / center / right as three centered rows. The street
+   header carries enough content (stats, clock, HUD, Close Shop) that stacking
+   keeps it readable. */
 @media (max-width: 768px) {
   .app-header {
     flex-direction: column;
@@ -487,6 +489,46 @@ input[type="range"] {
     width: 100%;
   }
 }
+
+/* The buy header has nothing in its center section, so it never needs the
+   two-row / column treatments the shared rules above apply below 1200px — those
+   only add height (an empty center row still contributes the 16px flex row-gap).
+   Override the whole sub-1200px range with an explicit 2-column grid: left info
+   in column 1, the pause button in column 2. The center is dropped entirely so
+   it can't force stray breaks, and the header stays a single row at the same
+   height as the full-width layout. The hype meter still wraps below the day/cash
+   inside the left section if the screen gets narrow enough. */
+@media (max-width: 1200px) {
+  .app-header--buy {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 8px;
+  }
+  .app-header--buy .hdr-left {
+    grid-column: 1;
+    width: auto;
+    justify-content: flex-start;
+  }
+  .app-header--buy .hdr-right {
+    grid-column: 2;
+    width: auto;
+    justify-content: flex-end;
+  }
+  .app-header--buy .hdr-center {
+    display: none;
+  }
+}
+/* Pause icon is an inline SVG (the ⏸ glyph's font metrics rendered it low).
+   Flex-center it and drop the inline baseline gap so it sits dead center. */
+#header-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+#header-menu-btn svg { display: block; }
 .app-header .day-title {
   font-size: 16px;
   font-weight: 700;
@@ -606,6 +648,15 @@ input[type="range"] {
 .serving-banner.iced {
   background: linear-gradient(135deg, var(--banner-iced-from), var(--banner-iced-to));
 }
+/* Label on the left, the Hot/Iced toggle on the right — putting the toggle here
+   (rather than after the flex:1 name input) keeps it from being shoved against
+   the far edge with dead space beside it. */
+.serving-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
 .serving-label {
   font-size: 11px;
   text-transform: uppercase;
@@ -723,13 +774,12 @@ input[type="range"] {
 
 .day-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 8px;
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--border);
 }
-.save-controls { display: flex; gap: 4px; }
 
 #start-day-btn {
   font-size: 16px;
@@ -947,4 +997,67 @@ input[type="range"] {
   justify-content: flex-end;
   gap: 8px;
   margin-top: 16px;
+}
+
+/* ===== Pane modal (settings panes, pause menu, future main menu) ===== */
+.modal.pane .modal__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.modal.pane .modal__title-row h2 { margin: 0; }
+.modal__close-btn {
+  background: transparent;
+  color: var(--muted);
+  /* Transparent border keeps layout stable; the hover state below borrows
+     button.secondary's look so it stays visible across themes. */
+  border: 1px solid transparent;
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+/* :not(:disabled) raises specificity above the generic button:hover rule,
+   which otherwise repaints this with --accent-light (same trick as .secondary). */
+.modal__close-btn:hover:not(:disabled) {
+  background: var(--secondary-hover);
+  color: var(--ink);
+  border-color: var(--border);
+}
+.modal.pane .modal__body { color: var(--ink); }
+
+/* Pause menu body */
+.pause-pane { min-width: 360px; }
+.pause-pane .modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+.pause-pane .pause-section h3 {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.pause-pane .pause-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+}
+.pause-pane .pause-row label {
+  color: var(--ink);
+  font-weight: 500;
+}
+.pause-pane .pause-row .theme-select { min-width: 180px; }
+.pause-pane .game-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
