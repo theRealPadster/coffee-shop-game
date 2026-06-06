@@ -68,18 +68,20 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
   const typeIcon = r.type === 'hot' ? '☕' : '🧊';
 
   root.innerHTML = `
-    ${appHeaderHtml(state)}
+    ${appHeaderHtml(state, { variant: 'buy' })}
     <div class="buy-phase">
       <div class="panel shop-panel">
         <div class="serving-banner ${r.type}">
-          <div class="serving-label">Serving Today</div>
-          <div class="serving-main">
-            <span class="serving-icon">${typeIcon}</span>
-            <input id="recipe-name-input" type="text" value="${escapeAttr(r.name)}" />
+          <div class="serving-top">
+            <div class="serving-label">Serving Today</div>
             <div class="type-toggle" role="group">
               <button data-type="hot" class="${r.type === 'hot' ? 'active' : ''}">Hot ☕</button>
               <button data-type="iced" class="${r.type === 'iced' ? 'active' : ''}">Iced 🧊</button>
             </div>
+          </div>
+          <div class="serving-main">
+            <span class="serving-icon">${typeIcon}</span>
+            <input id="recipe-name-input" type="text" value="${escapeAttr(r.name)}" />
           </div>
           <div class="serving-price-row">
             <label for="cup-price-input">Selling for</label>

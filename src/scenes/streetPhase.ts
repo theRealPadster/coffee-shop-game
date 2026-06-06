@@ -74,7 +74,7 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
   `;
 
   root.innerHTML = `
-    ${appHeaderHtml(state, { center: headerCenter, rightExtra: headerRight })}
+    ${appHeaderHtml(state, { variant: 'street', center: headerCenter, rightExtra: headerRight })}
     <div class="street-phase">
       <div class="street-canvas-wrap">
         <canvas id="street-canvas"></canvas>

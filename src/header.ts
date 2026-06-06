@@ -1,13 +1,14 @@
 import { GameState, formatCents } from './state';
 
 export interface HeaderOpts {
+  variant: 'buy' | 'street';
   center?: string;
   rightExtra?: string;
 }
 
-export function appHeaderHtml(state: GameState, opts: HeaderOpts = {}): string {
+export function appHeaderHtml(state: GameState, opts: HeaderOpts): string {
   return `
-    <div class="app-header">
+    <div class="app-header app-header--${opts.variant}">
       <div class="hdr-left">
         <span class="day-title">☕ Day ${state.day}</span>
         <div class="stat"><span class="v" id="header-cash">${formatCents(state.cash)}</span><span>Cash</span></div>

@@ -473,7 +473,9 @@ input[type="range"] {
 }
 
 /* On narrow screens the three sections can't sit side-by-side without
-   cramming, so stack left / center / right as three centered rows. */
+   cramming, so stack left / center / right as three centered rows. The street
+   header carries enough content (stats, clock, HUD, Close Shop) that stacking
+   keeps it readable. */
 @media (max-width: 768px) {
   .app-header {
     flex-direction: column;
@@ -485,6 +487,37 @@ input[type="range"] {
   .app-header .hdr-right {
     justify-content: center;
     width: 100%;
+  }
+}
+
+/* The buy header has nothing in its center section, so it never needs the
+   two-row / column treatments the shared rules above apply below 1200px — those
+   only add height (an empty center row still contributes the 16px flex row-gap).
+   Override the whole sub-1200px range with an explicit 2-column grid: left info
+   in column 1, the pause button in column 2. The center is dropped entirely so
+   it can't force stray breaks, and the header stays a single row at the same
+   height as the full-width layout. The hype meter still wraps below the day/cash
+   inside the left section if the screen gets narrow enough. */
+@media (max-width: 1200px) {
+  .app-header--buy {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 8px;
+  }
+  .app-header--buy .hdr-left {
+    grid-column: 1;
+    width: auto;
+    justify-content: flex-start;
+  }
+  .app-header--buy .hdr-right {
+    grid-column: 2;
+    width: auto;
+    justify-content: flex-end;
+  }
+  .app-header--buy .hdr-center {
+    display: none;
   }
 }
 /* Pause icon is an inline SVG (the ⏸ glyph's font metrics rendered it low).
@@ -614,6 +647,15 @@ input[type="range"] {
 }
 .serving-banner.iced {
   background: linear-gradient(135deg, var(--banner-iced-from), var(--banner-iced-to));
+}
+/* Label on the left, the Hot/Iced toggle on the right — putting the toggle here
+   (rather than after the flex:1 name input) keeps it from being shoved against
+   the far edge with dead space beside it. */
+.serving-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 .serving-label {
   font-size: 11px;
