@@ -609,6 +609,16 @@ input[type="range"] {
   font-variant-numeric: tabular-nums;
 }
 
+/* On narrow screens the fixed 130px name/stock columns leave a big empty gap to
+   the right of short names. Shrink them (kept equal so the slider and the price
+   below it stay aligned) so the slider and buy controls get the reclaimed room. */
+@media (max-width: 768px) {
+  .ingredient-row .name,
+  .ingredient-row .stock {
+    width: 80px;
+  }
+}
+
 .price-chip {
   display: inline-flex;
   align-items: center;
