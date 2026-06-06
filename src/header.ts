@@ -16,7 +16,12 @@ export function appHeaderHtml(state: GameState, opts: HeaderOpts = {}): string {
       <div class="hdr-center">${opts.center ?? ''}</div>
       <div class="hdr-right">
         ${opts.rightExtra ?? ''}
-        <button id="header-menu-btn" class="secondary" title="Menu (Esc)" aria-label="Open menu">⏸</button>
+        <button id="header-menu-btn" class="secondary" title="Menu (Esc)" aria-label="Open menu">
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
+            <rect x="3" y="2" width="3.5" height="12" rx="1.25" fill="currentColor"/>
+            <rect x="9.5" y="2" width="3.5" height="12" rx="1.25" fill="currentColor"/>
+          </svg>
+        </button>
       </div>
     </div>
   `;

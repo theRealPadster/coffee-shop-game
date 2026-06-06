@@ -487,6 +487,15 @@ input[type="range"] {
     width: 100%;
   }
 }
+/* Pause icon is an inline SVG (the ⏸ glyph's font metrics rendered it low).
+   Flex-center it and drop the inline baseline gap so it sits dead center. */
+#header-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+#header-menu-btn svg { display: block; }
 .app-header .day-title {
   font-size: 16px;
   font-weight: 700;
