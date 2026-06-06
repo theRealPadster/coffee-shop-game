@@ -1,6 +1,4 @@
 import { GameState, formatCents } from './state';
-import { isMuted, setMuted } from './audio';
-import { THEMES, ThemeId, getTheme, setTheme } from './themes';
 
 export interface HeaderOpts {
   center?: string;
@@ -8,10 +6,6 @@ export interface HeaderOpts {
 }
 
 export function appHeaderHtml(state: GameState, opts: HeaderOpts = {}): string {
-  const currentTheme = getTheme();
-  const themeOptions = THEMES.map(
-    t => `<option value="${t.id}" ${t.id === currentTheme ? 'selected' : ''}>${t.label}</option>`
-  ).join('');
   return `
     <div class="app-header">
       <div class="hdr-left">
@@ -22,8 +16,7 @@ export function appHeaderHtml(state: GameState, opts: HeaderOpts = {}): string {
       <div class="hdr-center">${opts.center ?? ''}</div>
       <div class="hdr-right">
         ${opts.rightExtra ?? ''}
-        <select id="header-theme-select" class="theme-select" title="Theme">${themeOptions}</select>
-        <button id="header-mute-btn" class="secondary" title="Toggle sound">${isMuted() ? '🔇' : '🔊'}</button>
+        <button id="header-menu-btn" class="secondary" title="Menu (Esc)" aria-label="Open menu">⏸</button>
       </div>
     </div>
   `;
@@ -49,18 +42,6 @@ export function renderHypeMeter(host: HTMLElement, hype: number): void {
   `;
 }
 
-export function attachHeaderMute(root: HTMLElement, state: GameState): void {
-  root.querySelector('#header-mute-btn')?.addEventListener('click', () => {
-    setMuted(!isMuted());
-    state.muted = isMuted();
-    const btn = root.querySelector('#header-mute-btn');
-    if (btn) btn.textContent = isMuted() ? '🔇' : '🔊';
-  });
-}
-
-export function attachHeaderTheme(root: HTMLElement): void {
-  const sel = root.querySelector<HTMLSelectElement>('#header-theme-select');
-  sel?.addEventListener('change', () => {
-    setTheme(sel.value as ThemeId);
-  });
+export function attachHeaderMenu(root: HTMLElement, onOpen: () => void): void {
+  root.querySelector('#header-menu-btn')?.addEventListener('click', onOpen);
 }

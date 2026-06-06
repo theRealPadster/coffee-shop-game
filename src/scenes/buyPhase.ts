@@ -2,10 +2,9 @@ import { GameState, INGREDIENTS, INGREDIENT_META, PRICE_BANDS, formatCents, Ingr
 import { classifyPrice, PriceLevel } from '../economy';
 import { weatherEmoji } from '../weather';
 import { maxCups, bottleneck } from '../recipe';
-import { saveGame, loadGame, clearSave } from '../save';
 import { play } from '../audio';
-import { appHeaderHtml, renderHypeMeter, attachHeaderMute, attachHeaderTheme } from '../header';
-import { confirmModal, alertModal } from '../ui';
+import { appHeaderHtml, renderHypeMeter, attachHeaderMenu } from '../header';
+import { openPauseMenu } from '../pauseMenu';
 
 export interface BuyPhaseCallbacks {
   onStartDay: () => void;
@@ -109,11 +108,6 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
           </div>
         </div>
         <div class="day-footer">
-          <div class="save-controls">
-            <button id="save-game-btn" class="secondary" title="Save game">💾 Save</button>
-            <button id="restore-game-btn" class="secondary" title="Restore saved game">↩ Restore</button>
-            <button id="reset-game-btn" class="danger" title="Reset to a new game">⟲ Reset</button>
-          </div>
           <button id="start-day-btn">Start Day ▶</button>
         </div>
       </div>
@@ -124,8 +118,9 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
   if (hypeHost) {
     renderHypeMeter(hypeHost, state.hype);
   }
-  attachHeaderMute(root, state);
-  attachHeaderTheme(root);
+  attachHeaderMenu(root, () => {
+    void openPauseMenu({ state, onRestore: cb.onRestore, onReset: cb.onReset });
+  });
   attachBuyPhaseEvents(root, state, cb);
 }
 
@@ -247,43 +242,6 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
       cb.onStateChange();
       rerender();
     });
-  });
-
-  // Save/Restore/Reset
-  root.querySelector('#save-game-btn')?.addEventListener('click', () => {
-    const ok = saveGame(state);
-    play('cashier');
-    alertModal(ok
-      ? { title: 'Game saved', message: 'Your progress has been saved to this browser.' }
-      : { title: 'Save failed', message: 'Your game could not be saved. Your browser may be blocking storage.' });
-  });
-  root.querySelector('#restore-game-btn')?.addEventListener('click', async () => {
-    const restored = loadGame();
-    if (!restored) {
-      await alertModal({ title: 'No saved game', message: 'There is no saved game to restore yet.' });
-      return;
-    }
-    const ok = await confirmModal({
-      title: 'Restore saved game?',
-      message: 'This loads your last saved game and discards any progress since then. This cannot be undone.',
-      confirmLabel: '↩ Restore',
-      cancelLabel: 'Cancel',
-      danger: true,
-    });
-    if (!ok) return;
-    cb.onRestore(restored);
-  });
-  root.querySelector('#reset-game-btn')?.addEventListener('click', async () => {
-    const ok = await confirmModal({
-      title: 'Reset game?',
-      message: 'This starts a brand-new game and erases your saved progress. This cannot be undone.',
-      confirmLabel: '⟲ Reset',
-      cancelLabel: 'Cancel',
-      danger: true,
-    });
-    if (!ok) return;
-    clearSave();
-    cb.onReset();
   });
 
   // Start day

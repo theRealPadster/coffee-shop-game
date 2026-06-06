@@ -715,13 +715,12 @@ input[type="range"] {
 
 .day-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 8px;
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--border);
 }
-.save-controls { display: flex; gap: 4px; }
 
 #start-day-btn {
   font-size: 16px;
@@ -939,4 +938,59 @@ input[type="range"] {
   justify-content: flex-end;
   gap: 8px;
   margin-top: 16px;
+}
+
+/* ===== Pane modal (settings panes, pause menu, future main menu) ===== */
+.modal.pane .modal__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.modal.pane .modal__title-row h2 { margin: 0; }
+.modal__close-btn {
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.modal__close-btn:hover { background: var(--secondary-hover); color: var(--ink); }
+.modal.pane .modal__body { color: var(--ink); }
+
+/* Pause menu body */
+.pause-pane { min-width: 360px; }
+.pause-pane .modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+.pause-pane .pause-section h3 {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.pause-pane .pause-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+}
+.pause-pane .pause-row label {
+  color: var(--ink);
+  font-weight: 500;
+}
+.pause-pane .pause-row .theme-select { min-width: 180px; }
+.pause-pane .game-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
