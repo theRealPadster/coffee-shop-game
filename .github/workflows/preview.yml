@@ -1,0 +1,76 @@
+name: Deploy branch preview
+
+# Builds any non-main branch and publishes it to
+# `gh-pages:branches/<sanitized-name>/`, so it's reachable at
+#   https://<owner>.github.io/<repo>/branches/<sanitized-name>/
+# Sanitization: slashes flattened to dashes, lowercased
+# (e.g. `feat/pause-menu` → `feat-pause-menu`).
+#
+# If the branch has an open PR, the preview URL is posted as a sticky comment
+# on the PR (one comment that gets edited in place, not a fresh one per push).
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - gh-pages
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: pages-deploy-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: meta
+        run: |
+          SANITIZED=$(printf '%s' "${GITHUB_REF_NAME}" | sed 's|/|-|g' | tr '[:upper:]' '[:lower:]')
+          REPO_NAME="${GITHUB_REPOSITORY##*/}"
+          OWNER="${GITHUB_REPOSITORY_OWNER}"
+          {
+            echo "name=$SANITIZED"
+            echo "dest=branches/$SANITIZED"
+            echo "url=https://${OWNER}.github.io/${REPO_NAME}/branches/${SANITIZED}/"
+          } >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Publish to gh-pages preview directory
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          destination_dir: ${{ steps.meta.outputs.dest }}
+          keep_files: true
+          commit_message: "deploy(preview): ${{ github.ref_name }} → ${{ steps.meta.outputs.dest }} @ ${{ github.sha }}"
+
+      - name: Find open PR for this branch
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR=$(gh pr list --head "${GITHUB_REF_NAME}" --state open --json number --jq '.[0].number' 2>/dev/null || true)
+          echo "number=${PR:-}" >> "$GITHUB_OUTPUT"
+
+      - name: Comment preview URL on PR
+        if: steps.pr.outputs.number != ''
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          number: ${{ steps.pr.outputs.number }}
+          header: preview-url
+          message: |
+            🎮 **Preview deploy** for `${{ github.ref_name }}`
+
+            ▶ ${{ steps.meta.outputs.url }}
+
+            <sub>Updated for commit ${{ github.sha }}. The link refreshes on every push to this branch and is removed automatically when the branch is deleted.</sub>
