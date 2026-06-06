@@ -585,7 +585,9 @@ input[type="range"] {
 .ingredient-row .price strong { font-weight: 600; }
 .ingredient-row .controls {
   display: grid;
-  grid-template-columns: auto auto auto;
+  /* Equal-width columns so "Buy 5" stretches to match "Buy 10" / "Buy 20"
+     instead of each column shrinking to its own (narrower) content. */
+  grid-template-columns: repeat(3, 1fr);
   column-gap: 4px;
   row-gap: 2px;
   align-items: center;
@@ -594,6 +596,7 @@ input[type="range"] {
 .ingredient-row .controls button {
   padding: 3px 8px;
   font-size: 12px;
+  white-space: nowrap;
 }
 .ingredient-row .controls .buy-cost {
   font-size: 10px;
