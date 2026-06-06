@@ -451,8 +451,11 @@ input[type="range"] {
 
 /* Intermediate width: the single row no longer fits without the center
    section wrapping mid-content. Drop to two rows — left info and right
-   controls share the top row, the center stats sit centered below. */
-@media (max-width: 1200px) and (min-width: 769px) {
+   controls share the top row, the center stats sit centered below. The buy
+   header overrides this range with its own grid, so this effectively governs
+   the street header — which now fits on one row down to ~880px since the recipe
+   badge and weather chip were removed from it. */
+@media (max-width: 880px) and (min-width: 769px) {
   .app-header {
     flex-wrap: wrap;
   }
@@ -532,10 +535,6 @@ input[type="range"] {
 .app-header .day-title {
   font-size: 16px;
   font-weight: 700;
-  color: var(--ink);
-}
-.app-header .weather-chip {
-  font-size: 14px;
   color: var(--ink);
 }
 .stat { display: flex; flex-direction: column; align-items: center; font-size: 12px; color: var(--muted); }
@@ -961,15 +960,27 @@ input[type="range"] {
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
-.app-header .recipe-badge {
-  padding: 4px 8px;
-  background: var(--accent);
-  color: var(--accent-ink);
-  border-radius: 4px;
-  font-size: 12px;
+/* Weather chip overlaid on the top-left of the game scene (moved out of the
+   header to declutter it). Styled like the thought bubbles — white chip, dark
+   ink — so it reads as part of the world. Non-interactive. */
+.weather-overlay {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #2b1d0e;
+  border-radius: 14px;
+  font-size: 13px;
   font-weight: 600;
+  box-shadow: var(--shadow);
+  pointer-events: none;
+  z-index: 1;
 }
-.app-header .recipe-badge.iced { background: #0277bd; }
+.weather-overlay .temp { font-variant-numeric: tabular-nums; }
 
 /* ===== Modal ===== */
 .modal-backdrop {
