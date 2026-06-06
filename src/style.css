@@ -621,6 +621,10 @@ input[type="range"] {
 .serving-icon { font-size: 24px; }
 .serving-main input {
   flex: 1;
+  /* Without this, the input refuses to shrink below its content width on
+     narrow viewports and pushes the type-toggle past the panel's right edge,
+     where overflow:hidden on the toggle clips the second button. */
+  min-width: 0;
   font-size: 18px;
   font-weight: 700;
   background: transparent;
@@ -649,6 +653,10 @@ input[type="range"] {
   border: 1px solid var(--border);
   border-radius: 6px;
   overflow: hidden;
+  /* Pair with min-width:0 on the sibling input — together they keep the
+     toggle's two buttons fully visible on narrow viewports instead of the
+     toggle shrinking and overflow:hidden clipping the second button. */
+  flex-shrink: 0;
 }
 .type-toggle button {
   background: var(--panel);
