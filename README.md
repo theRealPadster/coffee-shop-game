@@ -6,6 +6,8 @@ A lemonade-stand-style coffee shop game where you run a sidewalk coffee stand. E
 
 **▶ [Play it in your browser](https://therealpadster.github.io/coffee-shop-game/)** — no install required. The live site auto-deploys from `main` via GitHub Actions.
 
+**Branch previews:** any non-`main` branch builds to `https://therealpadster.github.io/coffee-shop-game/branches/<branch-name>/` (slashes flatten to dashes, e.g. `feat/pause-menu` → `branches/feat-pause-menu/`). Open PRs get the preview URL posted as a sticky comment. Previews are removed when the branch is deleted.
+
 ## Run it
 
 ```bash
