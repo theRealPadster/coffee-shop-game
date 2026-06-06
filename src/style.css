@@ -952,14 +952,22 @@ input[type="range"] {
 .modal__close-btn {
   background: transparent;
   color: var(--muted);
-  border: none;
+  /* Transparent border keeps layout stable; the hover state below borrows
+     button.secondary's look so it stays visible across themes. */
+  border: 1px solid transparent;
   font-size: 18px;
   line-height: 1;
   padding: 4px 8px;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 6px;
 }
-.modal__close-btn:hover { background: var(--secondary-hover); color: var(--ink); }
+/* :not(:disabled) raises specificity above the generic button:hover rule,
+   which otherwise repaints this with --accent-light (same trick as .secondary). */
+.modal__close-btn:hover:not(:disabled) {
+  background: var(--secondary-hover);
+  color: var(--ink);
+  border-color: var(--border);
+}
 .modal.pane .modal__body { color: var(--ink); }
 
 /* Pause menu body */
