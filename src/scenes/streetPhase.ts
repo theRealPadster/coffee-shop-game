@@ -63,12 +63,12 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
 
   const headerRight = `
     <div class="cup-price-hud">
-      <span class="cup-price-label">Cup price</span>
       <div class="cup-price-controls">
         <button id="cup-price-minus" class="secondary">−</button>
         <span id="cup-price-display">${formatCents(activeCupPrice(state))}</span>
         <button id="cup-price-plus" class="secondary">+</button>
       </div>
+      <span class="cup-price-label">Cup price</span>
     </div>
     <button id="close-shop-btn" class="danger">Close Shop</button>
   `;
