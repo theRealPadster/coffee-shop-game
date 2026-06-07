@@ -992,12 +992,12 @@ input[type="range"] {
   pointer-events: auto;
   transition: width 0.18s ease;
 }
-/* Buy phase: inset to line up with the hype meter — matching the 16px top/left
-   padding the row gives its in-flow content. (Same collapsed width as street;
-   both pills are just emoji + temp.) */
+/* Buy phase: inset to line up with the hype meter — matching the row's
+   --chip-inset padding (absolute children aren't inset by padding). (Same
+   collapsed width as street; both pills are just emoji + temp.) */
 .weather-chip--buy {
-  top: 16px;
-  left: 16px;
+  top: var(--chip-inset);
+  left: var(--chip-inset);
 }
 .weather-chip.is-open { width: var(--chip-w-open); z-index: 10; }
 
@@ -1049,8 +1049,11 @@ input[type="range"] {
 .weather-fx li strong { font-weight: 600; }
 
 /* Status row: weather chip (absolute, left) and hype meter (in flow, right) as a
-   consistent strip across the top of both phases. */
+   consistent strip across the top of both phases. The shared --chip-inset keeps
+   the chips in the exact same spot in buy and street so they don't shift when
+   switching phases. */
 .status-row {
+  --chip-inset: 16px;
   position: relative;
   display: flex;
   align-items: flex-start;
@@ -1059,19 +1062,19 @@ input[type="range"] {
 }
 /* Buy phase: a full-width row (spanning the screen, not just the centered
    content column). z-index lifts it (and the expanding chip) above .buy-content.
-   The 16px top padding plus the 16px top padding on .buy-content give the
-   collapsed chips equal breathing room above and below. */
+   The inset padding (matched by the buy weather chip's top/left) positions the
+   in-flow hype meter to match the street overlay. */
 .status-row--buy {
-  padding: 16px 16px 0;
+  padding: var(--chip-inset) var(--chip-inset) 0;
   z-index: 5;
 }
 /* Street phase: overlaid across the top of the canvas. The row is
    non-interactive, but the weather chip re-enables pointer events on itself. */
 .status-row--overlay {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  right: 10px;
+  top: var(--chip-inset);
+  left: var(--chip-inset);
+  right: var(--chip-inset);
   pointer-events: none;
   z-index: 1;
 }
