@@ -74,7 +74,10 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
     <div class="street-phase">
       <div class="street-canvas-wrap">
         <canvas id="street-canvas"></canvas>
-        <div class="weather-chip weather-overlay"><span class="wx-emoji">${weatherEmoji(state.weather.condition)}</span> <span class="temp">${state.weather.tempC}°C</span></div>
+        <div class="status-row status-row--overlay">
+          <div class="weather-chip"><span class="wx-emoji">${weatherEmoji(state.weather.condition)}</span> <span class="temp">${state.weather.tempC}°C</span></div>
+          <div id="hype-meter-host"></div>
+        </div>
       </div>
     </div>
   `;

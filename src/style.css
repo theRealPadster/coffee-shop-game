@@ -791,8 +791,20 @@ input[type="range"] {
   flex-direction: column;
   gap: 4px;
   min-width: 140px;
+  /* Themed chip surface to match the weather chip and the rest of the UI. */
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 5px 10px;
+  border-radius: 14px;
+  box-shadow: var(--shadow);
 }
-.hype-meter .label { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; }
+.hype-meter .label {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
 .hype-meter .bar {
   position: relative;
   height: 10px;
@@ -943,15 +955,17 @@ input[type="range"] {
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
-/* Weather chip — same top-left spot in both phases. Styled like the thought
-   bubbles (white chip, dark ink). A future hover/click can expand it. */
+/* Weather chip — same top-left spot in both phases. A themed surface (panel +
+   border) so it matches the rest of the UI and reads over the canvas/beige in
+   every theme. A future hover/click can expand it. */
 .weather-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  background: rgba(255, 255, 255, 0.85);
-  color: #2b1d0e;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--border);
   border-radius: 14px;
   font-size: 13px;
   font-weight: 600;
@@ -962,26 +976,32 @@ input[type="range"] {
 .weather-chip--buy .cond {
   font-weight: 400;
   text-transform: capitalize;
-  color: rgba(43, 29, 14, 0.65);
+  color: var(--muted);
 }
 
-/* Street phase: the chip floats over the canvas, non-interactive (for now). */
-.weather-overlay {
+/* Status row: weather chip on the left, hype meter on the right. Used in both
+   phases for a consistent strip across the top. */
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+/* Buy phase: a full-width row (spanning the screen, not just the centered
+   content column) that takes up vertical space, so it never overlaps the
+   panels. Chips anchored near the screen's edges. The 16px top padding here and
+   the 16px top padding on .buy-content give equal breathing room above/below. */
+.status-row--buy {
+  padding: 16px 16px 0;
+}
+/* Street phase: overlaid across the top of the canvas, non-interactive. */
+.status-row--overlay {
   position: absolute;
   top: 10px;
   left: 10px;
+  right: 10px;
   pointer-events: none;
   z-index: 1;
-}
-
-/* Buy phase: the chip sits in a full-width row (spanning the screen, not just
-   the centered content column) that takes up vertical space, so it never
-   overlaps the panels. Chip anchored near the screen's left edge. The 16px top
-   padding here and the 16px top padding on .buy-content give equal breathing
-   room above and below the chip. */
-.weather-row {
-  display: flex;
-  padding: 16px 16px 0;
 }
 
 /* ===== Modal ===== */

@@ -70,12 +70,13 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
   root.innerHTML = `
     ${appHeaderHtml(state, { variant: 'buy' })}
     <div class="buy-phase">
-      <div class="weather-row">
+      <div class="status-row status-row--buy">
         <div class="weather-chip weather-chip--buy">
           <span class="wx-emoji">${weatherEmoji(state.weather.condition)}</span>
           <span class="temp">${state.weather.tempC}°C</span>
           <span class="cond">${state.weather.condition}</span>
         </div>
+        <div id="hype-meter-host"></div>
       </div>
       <div class="buy-content">
       <div class="panel shop-panel">
