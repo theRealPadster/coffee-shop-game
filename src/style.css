@@ -391,7 +391,19 @@ input[type="range"] {
 }
 
 /* ===== Buy Phase ===== */
+/* Non-scrolling, full-width positioning context so the weather chip can be
+   pinned to the top-left corner (same as the street canvas wrap). The actual
+   content scrolls inside .buy-scroll. */
 .buy-phase {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.buy-scroll {
   padding: 16px;
   max-width: 768px;
   margin: 0 auto;
@@ -743,24 +755,6 @@ input[type="range"] {
   background: #0277bd;
 }
 
-.weather-widget {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px;
-  background: linear-gradient(135deg, #b3e5fc, #fff9c4);
-  border-radius: 6px;
-  margin-bottom: 8px;
-  color: #2b1d0e;
-}
-.weather-widget.sunny { background: linear-gradient(135deg, #fff59d, #ffe082); }
-.weather-widget.cloudy { background: linear-gradient(135deg, #cfd8dc, #eceff1); }
-.weather-widget.rainy { background: linear-gradient(135deg, #b3e5fc, #90caf9); }
-.weather-widget.snowy { background: linear-gradient(135deg, #e1f5fe, #ffffff); }
-.weather-widget .icon { font-size: 32px; }
-.weather-widget .temp { font-size: 20px; font-weight: 600; }
-.weather-widget .cond { color: rgba(43, 29, 14, 0.7); text-transform: capitalize; }
-
 .cups-producible {
   margin-top: 10px;
   padding: 8px;
@@ -788,9 +782,7 @@ input[type="range"] {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
+  margin-top: 16px;
 }
 
 #start-day-btn {
@@ -960,9 +952,10 @@ input[type="range"] {
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
-/* Weather chip overlaid on the top-left of the game scene (moved out of the
-   header to declutter it). Styled like the thought bubbles — white chip, dark
-   ink — so it reads as part of the world. Non-interactive. */
+/* Weather chip pinned to the top-left corner — used in both phases for a
+   consistent spot: overlaid on the game scene (street) and on the buy phase.
+   Styled like the thought bubbles — white chip, dark ink. Non-interactive for
+   now; a future hover/click can expand it to show more detail. */
 .weather-overlay {
   position: absolute;
   top: 10px;
@@ -981,6 +974,12 @@ input[type="range"] {
   z-index: 1;
 }
 .weather-overlay .temp { font-variant-numeric: tabular-nums; }
+/* The buy phase has more room, so its chip also shows the condition name. */
+.weather-overlay--buy .cond {
+  font-weight: 400;
+  text-transform: capitalize;
+  color: rgba(43, 29, 14, 0.65);
+}
 
 /* ===== Modal ===== */
 .modal-backdrop {
