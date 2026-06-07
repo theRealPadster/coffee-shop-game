@@ -452,14 +452,39 @@ input[type="range"] {
   justify-content: center;
 }
 
-/* On narrow screens the three sections can't sit side-by-side without
-   cramming, so stack left / center / right as three centered rows. The street
-   header carries enough content (stats, clock, HUD, Close Shop) that stacking
-   keeps it readable. Above this width the single row fits — the recipe badge,
-   weather chip, and hype meter were all moved out of the header, so it no
-   longer needs an intermediate two-row layout. (The buy header uses its own
-   grid below 1200px, so this only governs the street header.) */
+/* On narrow screens the single row no longer fits, so drop to two rows while
+   keeping the desktop alignment: Day/Cash stay left and the controls stay right
+   on the top row, and the center stats wrap underneath on a second row, also
+   left-aligned (not centered) so it reads consistently with desktop. Above this
+   width the single row fits — the recipe badge, weather chip, and hype meter
+   were all moved out of the header. (The buy header uses its own grid below
+   1200px, so this only governs the street header.) */
 @media (max-width: 768px) {
+  .app-header {
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+  .app-header .hdr-left {
+    order: 1;
+    flex: 1;
+    justify-content: flex-start;
+  }
+  .app-header .hdr-right {
+    order: 2;
+    justify-content: flex-end;
+  }
+  .app-header .hdr-center {
+    order: 3;
+    flex: none;
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* Very narrow (phones): even the top row's left info + right controls can't
+   share a line, so fall back to a centered three-row stack (left / center /
+   right in DOM order). */
+@media (max-width: 480px) {
   .app-header {
     flex-direction: column;
     align-items: stretch;
@@ -468,8 +493,10 @@ input[type="range"] {
   .app-header .hdr-left,
   .app-header .hdr-center,
   .app-header .hdr-right {
-    justify-content: center;
+    order: 0;
+    flex: none;
     width: 100%;
+    justify-content: center;
   }
 }
 
