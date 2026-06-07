@@ -53,15 +53,20 @@ export interface WeatherEffects {
 }
 
 export function weatherEffects(w: Weather): WeatherEffects {
-  // Hot weather: more cold-drink craving, hot coffee penalized.
-  // Cold/rainy: hot drinks shine.
+  // hotDrinkAppeal drives `pickWants` via pHot = 0.5 + appeal * 0.4, so an
+  // appeal of 0 means a 50/50 hot-vs-iced split. 18-22°C is genuinely mild
+  // coffee weather where most people are happy either way — keep it at 0 so
+  // we don't accidentally tank hype with "Wanted an iced today" thoughts on
+  // sweater-weather days. The iced preference only kicks in at 23°C+ where
+  // it actually feels warm.
   const t = w.tempC;
   let hotDrinkAppeal: number;
-  if (t >= 25) hotDrinkAppeal = -0.8;
-  else if (t >= 18) hotDrinkAppeal = -0.2;
-  else if (t >= 10) hotDrinkAppeal = 0.3;
-  else if (t >= 0) hotDrinkAppeal = 0.7;
-  else hotDrinkAppeal = 1.0;
+  if (t >= 28) hotDrinkAppeal = -0.8;       // hot day → strong iced demand
+  else if (t >= 23) hotDrinkAppeal = -0.4;  // warm → moderate iced lean
+  else if (t >= 18) hotDrinkAppeal = 0;     // mild → neutral, 50/50
+  else if (t >= 10) hotDrinkAppeal = 0.3;   // cool → prefer hot
+  else if (t >= 0) hotDrinkAppeal = 0.7;    // cold → strong hot demand
+  else hotDrinkAppeal = 1.0;                // freezing → almost everyone wants hot
 
   // Rainy adds to "want a hot drink"
   if (w.condition === 'rainy') hotDrinkAppeal = Math.min(1, hotDrinkAppeal + 0.3);
