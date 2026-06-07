@@ -992,11 +992,10 @@ input[type="range"] {
   pointer-events: auto;
   transition: width 0.18s ease;
 }
-/* Buy phase: roomier (also shows the condition), and inset to line up with the
-   hype meter — matching the 16px top/left padding the row gives its in-flow
-   content. */
+/* Buy phase: inset to line up with the hype meter — matching the 16px top/left
+   padding the row gives its in-flow content. (Same collapsed width as street;
+   both pills are just emoji + temp.) */
 .weather-chip--buy {
-  --chip-w: 9rem;
   top: 16px;
   left: 16px;
 }
@@ -1010,11 +1009,6 @@ input[type="range"] {
   white-space: nowrap;
 }
 .weather-chip__head .temp { font-variant-numeric: tabular-nums; }
-.weather-chip__head .cond {
-  font-weight: 400;
-  text-transform: capitalize;
-  color: var(--muted);
-}
 
 /* Height reveal: grid-template-rows 0fr -> 1fr animates the body to its natural
    (auto) height without hardcoding a value. */

@@ -61,9 +61,9 @@ export function weatherChipHtml(
   const w = state.weather;
 
   const variantClass = variant === 'buy' ? ' weather-chip--buy' : '';
-  // Buy phase has room for the condition name in the collapsed pill; street keeps
-  // the pill minimal (the body shows the condition once expanded either way).
-  const headCond = variant === 'buy' ? `<span class="cond">${w.condition}</span>` : '';
+  // Both phases keep the collapsed pill to emoji + temp (the emoji already
+  // conveys the condition); the condition name appears once, as the body title,
+  // when expanded — so it's never shown twice.
 
   const rows = weatherInsights(w)
     .map((r) => `<li><span>${r.label}</span><strong>${tier === 'precise' ? r.precise : r.vibe}</strong></li>`)
@@ -74,7 +74,6 @@ export function weatherChipHtml(
       <div class="weather-chip__head" data-expand-trigger title="Today's weather">
         <span class="wx-emoji">${weatherEmoji(w.condition)}</span>
         <span class="temp">${w.tempC}°C</span>
-        ${headCond}
       </div>
       <div class="weather-chip__body">
         <div class="weather-chip__body-inner">
