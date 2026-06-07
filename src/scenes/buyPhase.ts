@@ -70,12 +70,14 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
   root.innerHTML = `
     ${appHeaderHtml(state, { variant: 'buy' })}
     <div class="buy-phase">
-      <div class="weather-overlay weather-overlay--buy">
-        <span class="wx-emoji">${weatherEmoji(state.weather.condition)}</span>
-        <span class="temp">${state.weather.tempC}°C</span>
-        <span class="cond">${state.weather.condition}</span>
+      <div class="weather-row">
+        <div class="weather-chip weather-chip--buy">
+          <span class="wx-emoji">${weatherEmoji(state.weather.condition)}</span>
+          <span class="temp">${state.weather.tempC}°C</span>
+          <span class="cond">${state.weather.condition}</span>
+        </div>
       </div>
-      <div class="buy-scroll">
+      <div class="buy-content">
       <div class="panel shop-panel">
         <div class="serving-banner ${r.type}">
           <div class="serving-top">
@@ -106,9 +108,9 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
         </div>
       </div>
 
-        <div class="day-footer">
-          <button id="start-day-btn">Start Day ▶</button>
-        </div>
+      <div class="day-footer">
+        <button id="start-day-btn">Start Day ▶</button>
+      </div>
       </div>
     </div>
   `;
