@@ -1,10 +1,11 @@
 import { GameState, INGREDIENTS, INGREDIENT_META, PRICE_BANDS, formatCents, Ingredient, DrinkType, activeRecipe, activeCupPrice } from '../state';
 import { classifyPrice, PriceLevel } from '../economy';
-import { weatherEmoji } from '../weather';
 import { maxCups, bottleneck } from '../recipe';
 import { play } from '../audio';
 import { appHeaderHtml, renderHypeMeter, attachHeaderMenu } from '../header';
 import { openPauseMenu } from '../pauseMenu';
+import { weatherChipHtml } from '../chips/weatherChip';
+import { makeExpandableChip } from '../chips/expandableChip';
 
 export interface BuyPhaseCallbacks {
   onStartDay: () => void;
@@ -71,11 +72,7 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
     ${appHeaderHtml(state, { variant: 'buy' })}
     <div class="buy-phase">
       <div class="status-row status-row--buy">
-        <div class="weather-chip weather-chip--buy">
-          <span class="wx-emoji">${weatherEmoji(state.weather.condition)}</span>
-          <span class="temp">${state.weather.tempC}°C</span>
-          <span class="cond">${state.weather.condition}</span>
-        </div>
+        ${weatherChipHtml(state, 'buy')}
         <div id="hype-meter-host"></div>
       </div>
       <div class="buy-content">
@@ -120,6 +117,8 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
   if (hypeHost) {
     renderHypeMeter(hypeHost, state.hype);
   }
+  const weatherChip = root.querySelector<HTMLElement>('.weather-chip');
+  if (weatherChip) makeExpandableChip(weatherChip);
   attachHeaderMenu(root, () => {
     void openPauseMenu({ state, onRestore: cb.onRestore, onReset: cb.onReset });
   });

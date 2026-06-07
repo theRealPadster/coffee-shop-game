@@ -962,48 +962,119 @@ input[type="range"] {
 /* Weather chip — same top-left spot in both phases. A themed surface (panel +
    border) so it matches the rest of the UI and reads over the canvas/beige in
    every theme. A future hover/click can expand it. */
+/* Weather chip — a pill that expands in place into an info card (see
+   chips/expandableChip.ts). Themed panel surface. It's absolutely positioned in
+   the status row so it can grow over the content/scene without reflowing; the
+   in-flow hype meter on the right reserves the row's collapsed height. */
 .weather-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  --chip-w: 6rem;        /* collapsed width (street: emoji + temp) */
+  --chip-w-open: 14rem;  /* expanded card width */
+  /* top/left default to 0: in the street phase the overlay row is itself inset
+     from the canvas, so the chip sits at its corner. The buy phase insets the
+     chip directly (the row's padding doesn't inset absolutely-positioned
+     children). */
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  width: var(--chip-w);
+  overflow: hidden;
   background: var(--panel);
   color: var(--ink);
   border: 1px solid var(--border);
   border-radius: 14px;
+  box-shadow: var(--shadow);
   font-size: 13px;
   font-weight: 600;
-  box-shadow: var(--shadow);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: width 0.18s ease;
 }
-.weather-chip .temp { font-variant-numeric: tabular-nums; }
-/* The buy phase has more room, so its chip also shows the condition name. */
-.weather-chip--buy .cond {
-  font-weight: 400;
-  text-transform: capitalize;
-  color: var(--muted);
+/* Buy phase: inset to line up with the hype meter — matching the row's
+   --chip-inset padding (absolute children aren't inset by padding). (Same
+   collapsed width as street; both pills are just emoji + temp.) */
+.weather-chip--buy {
+  top: var(--chip-inset);
+  left: var(--chip-inset);
 }
+.weather-chip.is-open { width: var(--chip-w-open); z-index: 10; }
 
-/* Status row: weather chip on the left, hype meter on the right. Used in both
-   phases for a consistent strip across the top. */
-.status-row {
+.weather-chip__head {
   display: flex;
   align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+.weather-chip__head .temp { font-variant-numeric: tabular-nums; }
+
+/* Height reveal: grid-template-rows 0fr -> 1fr animates the body to its natural
+   (auto) height without hardcoding a value. */
+.weather-chip__body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.18s ease;
+}
+.weather-chip.is-open .weather-chip__body { grid-template-rows: 1fr; }
+.weather-chip__body-inner {
+  overflow: hidden;
+  min-height: 0;
+  cursor: default;
+}
+.weather-chip__cond {
+  text-transform: capitalize;
+  font-weight: 700;
+  padding: 8px 10px 4px;
+  border-top: 1px solid var(--border);
+}
+.weather-fx {
+  list-style: none;
+  margin: 0;
+  padding: 0 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 400;
+}
+.weather-fx li {
+  display: flex;
   justify-content: space-between;
+  gap: 12px;
+  white-space: nowrap;
+}
+.weather-fx li span { color: var(--muted); }
+.weather-fx li strong { font-weight: 600; }
+
+/* Status row: weather chip (absolute, left) and hype meter (in flow, right) as a
+   consistent strip across the top of both phases. The shared --chip-inset keeps
+   the chips in the exact same spot in buy and street so they don't shift when
+   switching phases. */
+.status-row {
+  --chip-inset: 16px;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
   gap: 12px;
 }
 /* Buy phase: a full-width row (spanning the screen, not just the centered
-   content column) that takes up vertical space, so it never overlaps the
-   panels. Chips anchored near the screen's edges. The 16px top padding here and
-   the 16px top padding on .buy-content give equal breathing room above/below. */
+   content column). z-index lifts it (and the expanding chip) above .buy-content.
+   The inset padding (matched by the buy weather chip's top/left) positions the
+   in-flow hype meter to match the street overlay. */
 .status-row--buy {
-  padding: 16px 16px 0;
+  padding: var(--chip-inset) var(--chip-inset) 0;
+  z-index: 5;
 }
-/* Street phase: overlaid across the top of the canvas, non-interactive. */
+/* Street phase: overlaid across the top of the canvas. The row is
+   non-interactive, but the weather chip re-enables pointer events on itself. */
 .status-row--overlay {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  right: 10px;
+  top: var(--chip-inset);
+  left: var(--chip-inset);
+  right: var(--chip-inset);
   pointer-events: none;
   z-index: 1;
 }
