@@ -452,36 +452,13 @@ input[type="range"] {
   justify-content: center;
 }
 
-/* Intermediate width: the single row no longer fits without the center
-   section wrapping mid-content. Drop to two rows — left info and right
-   controls share the top row, the center stats sit centered below. The buy
-   header overrides this range with its own grid, so this effectively governs
-   the street header — which now fits on one row down to ~880px since the recipe
-   badge and weather chip were removed from it. */
-@media (max-width: 880px) and (min-width: 769px) {
-  .app-header {
-    flex-wrap: wrap;
-  }
-  .app-header .hdr-left {
-    order: 1;
-    flex: 1;
-    justify-content: flex-start;
-  }
-  .app-header .hdr-right {
-    order: 2;
-    justify-content: flex-end;
-  }
-  .app-header .hdr-center {
-    order: 3;
-    flex: none;
-    width: 100%;
-  }
-}
-
 /* On narrow screens the three sections can't sit side-by-side without
    cramming, so stack left / center / right as three centered rows. The street
    header carries enough content (stats, clock, HUD, Close Shop) that stacking
-   keeps it readable. */
+   keeps it readable. Above this width the single row fits — the recipe badge,
+   weather chip, and hype meter were all moved out of the header, so it no
+   longer needs an intermediate two-row layout. (The buy header uses its own
+   grid below 1200px, so this only governs the street header.) */
 @media (max-width: 768px) {
   .app-header {
     flex-direction: column;
