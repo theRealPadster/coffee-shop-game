@@ -8,6 +8,8 @@ import { play } from '../audio';
 import { appHeaderHtml, renderHypeMeter, attachHeaderMenu } from '../header';
 import { openPauseMenu } from '../pauseMenu';
 import { setMenuOpener } from '../menuOpener';
+import { weatherChipHtml } from '../chips/weatherChip';
+import { makeExpandableChip } from '../chips/expandableChip';
 
 export interface StreetPhaseCallbacks {
   onCloseShop: () => void;
@@ -75,7 +77,7 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
       <div class="street-canvas-wrap">
         <canvas id="street-canvas"></canvas>
         <div class="status-row status-row--overlay">
-          <div class="weather-chip"><span class="wx-emoji">${weatherEmoji(state.weather.condition)}</span> <span class="temp">${state.weather.tempC}°C</span></div>
+          ${weatherChipHtml(state, 'street')}
           <div id="hype-meter-host"></div>
         </div>
       </div>
@@ -87,6 +89,8 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
   const ctx = canvas.getContext('2d')!;
   const hudHost = root.querySelector<HTMLDivElement>('#hype-meter-host')!;
   renderHypeMeter(hudHost, state.hype);
+  const weatherChip = root.querySelector<HTMLElement>('.weather-chip');
+  if (weatherChip) makeExpandableChip(weatherChip);
 
   // Logical (CSS-pixel) drawing dimensions. The canvas backing store is scaled
   // up by devicePixelRatio for crispness, but all game geometry is computed in
