@@ -391,16 +391,19 @@ input[type="range"] {
 }
 
 /* ===== Buy Phase ===== */
+/* Full width so the weather row can span the whole screen; the panels are
+   centered by the inner .buy-content. Scrolls internally so the page itself
+   never scrolls. */
 .buy-phase {
-  padding: 16px;
-  max-width: 768px;
-  margin: 0 auto;
   width: 100%;
-  /* Fill the space below the header and scroll internally if the controls are
-     taller than the viewport, so the page itself never scrolls. */
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+}
+.buy-content {
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 16px;
 }
 
 .shop-panel { margin-bottom: 16px; }
@@ -449,12 +452,17 @@ input[type="range"] {
   justify-content: center;
 }
 
-/* Intermediate width: the single row no longer fits without the center
-   section wrapping mid-content. Drop to two rows — left info and right
-   controls share the top row, the center stats sit centered below. */
-@media (max-width: 1200px) and (min-width: 769px) {
+/* On narrow screens the single row no longer fits, so drop to two rows while
+   keeping the desktop alignment: Day/Cash stay left and the controls stay right
+   on the top row, and the center stats wrap underneath on a second row, also
+   left-aligned (not centered) so it reads consistently with desktop. Above this
+   width the single row fits — the recipe badge, weather chip, and hype meter
+   were all moved out of the header. (The buy header uses its own grid below
+   1200px, so this only governs the street header.) */
+@media (max-width: 768px) {
   .app-header {
     flex-wrap: wrap;
+    gap: 8px 16px;
   }
   .app-header .hdr-left {
     order: 1;
@@ -469,14 +477,14 @@ input[type="range"] {
     order: 3;
     flex: none;
     width: 100%;
+    justify-content: flex-start;
   }
 }
 
-/* On narrow screens the three sections can't sit side-by-side without
-   cramming, so stack left / center / right as three centered rows. The street
-   header carries enough content (stats, clock, HUD, Close Shop) that stacking
-   keeps it readable. */
-@media (max-width: 768px) {
+/* Very narrow (phones): even the top row's left info + right controls can't
+   share a line, so fall back to a centered three-row stack (left / center /
+   right in DOM order). */
+@media (max-width: 480px) {
   .app-header {
     flex-direction: column;
     align-items: stretch;
@@ -485,8 +493,10 @@ input[type="range"] {
   .app-header .hdr-left,
   .app-header .hdr-center,
   .app-header .hdr-right {
-    justify-content: center;
+    order: 0;
+    flex: none;
     width: 100%;
+    justify-content: center;
   }
 }
 
@@ -532,10 +542,6 @@ input[type="range"] {
 .app-header .day-title {
   font-size: 16px;
   font-weight: 700;
-  color: var(--ink);
-}
-.app-header .weather-chip {
-  font-size: 14px;
   color: var(--ink);
 }
 .stat { display: flex; flex-direction: column; align-items: center; font-size: 12px; color: var(--muted); }
@@ -585,7 +591,9 @@ input[type="range"] {
 .ingredient-row .price strong { font-weight: 600; }
 .ingredient-row .controls {
   display: grid;
-  grid-template-columns: auto auto auto;
+  /* Equal-width columns so "Buy 5" stretches to match "Buy 10" / "Buy 20"
+     instead of each column shrinking to its own (narrower) content. */
+  grid-template-columns: repeat(3, 1fr);
   column-gap: 4px;
   row-gap: 2px;
   align-items: center;
@@ -594,6 +602,7 @@ input[type="range"] {
 .ingredient-row .controls button {
   padding: 3px 8px;
   font-size: 12px;
+  white-space: nowrap;
 }
 .ingredient-row .controls .buy-cost {
   font-size: 10px;
@@ -604,6 +613,16 @@ input[type="range"] {
 }
 .ingredient-row .price {
   font-variant-numeric: tabular-nums;
+}
+
+/* On narrow screens the fixed 130px name/stock columns leave a big empty gap to
+   the right of short names. Shrink them (kept equal so the slider and the price
+   below it stay aligned) so the slider and buy controls get the reclaimed room. */
+@media (max-width: 768px) {
+  .ingredient-row .name,
+  .ingredient-row .stock {
+    width: 80px;
+  }
 }
 
 .price-chip {
@@ -731,24 +750,6 @@ input[type="range"] {
   background: #0277bd;
 }
 
-.weather-widget {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px;
-  background: linear-gradient(135deg, #b3e5fc, #fff9c4);
-  border-radius: 6px;
-  margin-bottom: 8px;
-  color: #2b1d0e;
-}
-.weather-widget.sunny { background: linear-gradient(135deg, #fff59d, #ffe082); }
-.weather-widget.cloudy { background: linear-gradient(135deg, #cfd8dc, #eceff1); }
-.weather-widget.rainy { background: linear-gradient(135deg, #b3e5fc, #90caf9); }
-.weather-widget.snowy { background: linear-gradient(135deg, #e1f5fe, #ffffff); }
-.weather-widget .icon { font-size: 32px; }
-.weather-widget .temp { font-size: 20px; font-weight: 600; }
-.weather-widget .cond { color: rgba(43, 29, 14, 0.7); text-transform: capitalize; }
-
 .cups-producible {
   margin-top: 10px;
   padding: 8px;
@@ -776,9 +777,7 @@ input[type="range"] {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
+  margin-top: 16px;
 }
 
 #start-day-btn {
@@ -796,8 +795,20 @@ input[type="range"] {
   flex-direction: column;
   gap: 4px;
   min-width: 140px;
+  /* Themed chip surface to match the weather chip and the rest of the UI. */
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 5px 10px;
+  border-radius: 14px;
+  box-shadow: var(--shadow);
 }
-.hype-meter .label { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; }
+.hype-meter .label {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
 .hype-meter .bar {
   position: relative;
   height: 10px;
@@ -948,15 +959,54 @@ input[type="range"] {
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
-.app-header .recipe-badge {
-  padding: 4px 8px;
-  background: var(--accent);
-  color: var(--accent-ink);
-  border-radius: 4px;
-  font-size: 12px;
+/* Weather chip — same top-left spot in both phases. A themed surface (panel +
+   border) so it matches the rest of the UI and reads over the canvas/beige in
+   every theme. A future hover/click can expand it. */
+.weather-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  font-size: 13px;
   font-weight: 600;
+  box-shadow: var(--shadow);
 }
-.app-header .recipe-badge.iced { background: #0277bd; }
+.weather-chip .temp { font-variant-numeric: tabular-nums; }
+/* The buy phase has more room, so its chip also shows the condition name. */
+.weather-chip--buy .cond {
+  font-weight: 400;
+  text-transform: capitalize;
+  color: var(--muted);
+}
+
+/* Status row: weather chip on the left, hype meter on the right. Used in both
+   phases for a consistent strip across the top. */
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+/* Buy phase: a full-width row (spanning the screen, not just the centered
+   content column) that takes up vertical space, so it never overlaps the
+   panels. Chips anchored near the screen's edges. The 16px top padding here and
+   the 16px top padding on .buy-content give equal breathing room above/below. */
+.status-row--buy {
+  padding: 16px 16px 0;
+}
+/* Street phase: overlaid across the top of the canvas, non-interactive. */
+.status-row--overlay {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  pointer-events: none;
+  z-index: 1;
+}
 
 /* ===== Modal ===== */
 .modal-backdrop {

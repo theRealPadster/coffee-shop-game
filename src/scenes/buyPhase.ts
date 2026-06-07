@@ -70,6 +70,15 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
   root.innerHTML = `
     ${appHeaderHtml(state, { variant: 'buy' })}
     <div class="buy-phase">
+      <div class="status-row status-row--buy">
+        <div class="weather-chip weather-chip--buy">
+          <span class="wx-emoji">${weatherEmoji(state.weather.condition)}</span>
+          <span class="temp">${state.weather.tempC}°C</span>
+          <span class="cond">${state.weather.condition}</span>
+        </div>
+        <div id="hype-meter-host"></div>
+      </div>
+      <div class="buy-content">
       <div class="panel shop-panel">
         <div class="serving-banner ${r.type}">
           <div class="serving-top">
@@ -100,18 +109,9 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
         </div>
       </div>
 
-      <div class="panel today-panel">
-        <h2>Today</h2>
-        <div class="weather-widget ${state.weather.condition}">
-          <span class="icon">${weatherEmoji(state.weather.condition)}</span>
-          <div>
-            <div class="temp">${state.weather.tempC}°C</div>
-            <div class="cond">${state.weather.condition}</div>
-          </div>
-        </div>
-        <div class="day-footer">
-          <button id="start-day-btn">Start Day ▶</button>
-        </div>
+      <div class="day-footer">
+        <button id="start-day-btn">Start Day ▶</button>
+      </div>
       </div>
     </div>
   `;

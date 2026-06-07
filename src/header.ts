@@ -12,7 +12,6 @@ export function appHeaderHtml(state: GameState, opts: HeaderOpts): string {
       <div class="hdr-left">
         <span class="day-title">☕ Day ${state.day}</span>
         <div class="stat"><span class="v" id="header-cash">${formatCents(state.cash)}</span><span>Cash</span></div>
-        <div id="hype-meter-host"></div>
       </div>
       <div class="hdr-center">${opts.center ?? ''}</div>
       <div class="hdr-right">

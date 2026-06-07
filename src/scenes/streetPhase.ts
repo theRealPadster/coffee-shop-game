@@ -51,14 +51,10 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
 
   const todayRecipe = activeRecipe(state);
   const headerCenter = `
-    <div class="recipe-badge ${todayRecipe.type === 'iced' ? 'iced' : ''}">
-      ${todayRecipe.type === 'hot' ? '☕' : '🧊'} ${todayRecipe.name}
-    </div>
     <div class="stat"><span class="v" id="cups-left">${maxCups(state.stock, todayRecipe)}</span><span>Cups left</span></div>
     <div class="stat"><span class="v" id="sold-count">0</span><span>Sold</span></div>
     <div class="stat"><span class="v" id="walkby-count">0</span><span>Walk-bys</span></div>
     <div class="game-clock" id="game-clock">08:00</div>
-    <span class="weather-chip">${weatherEmoji(state.weather.condition)} ${state.weather.tempC}°C</span>
   `;
 
   const headerRight = `
@@ -78,6 +74,10 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
     <div class="street-phase">
       <div class="street-canvas-wrap">
         <canvas id="street-canvas"></canvas>
+        <div class="status-row status-row--overlay">
+          <div class="weather-chip"><span class="wx-emoji">${weatherEmoji(state.weather.condition)}</span> <span class="temp">${state.weather.tempC}°C</span></div>
+          <div id="hype-meter-host"></div>
+        </div>
       </div>
     </div>
   `;
