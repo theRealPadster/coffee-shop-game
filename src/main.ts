@@ -8,6 +8,7 @@ import { decayHype } from './hype';
 import { loadAndApplyTheme } from './themes';
 import { openPauseMenu } from './pauseMenu';
 import { getMenuOpener } from './menuOpener';
+import { initOrientationPrompt } from './orientationPrompt';
 
 let state: GameState = initialState();
 const root = document.getElementById('app')!;
@@ -75,4 +76,5 @@ window.addEventListener('keydown', (e) => {
 });
 
 loadAndApplyTheme();
+initOrientationPrompt();
 renderCurrent();
