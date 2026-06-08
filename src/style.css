@@ -439,6 +439,20 @@ input[type="range"] {
   background: var(--panel);
   border-bottom: 1px solid var(--border);
 }
+
+/* In portrait fullscreen on notched phones, the device's camera cutout overlaps
+   the top of the app-header. env(safe-area-inset-top) reports the cutout height
+   (paired with viewport-fit=cover on the viewport meta to make it non-zero); we
+   add it as extra top padding so the header content (day, cash, hype) clears
+   the notch while the header's background still fills the area behind it.
+   Scoped to portrait because side notches in landscape don't intrude on this
+   game's layout. env() is 0 on non-notched devices and outside fullscreen, so
+   nothing changes there. */
+@media (orientation: portrait) {
+  .app-header {
+    padding-top: calc(8px + env(safe-area-inset-top, 0px));
+  }
+}
 .app-header .hdr-left,
 .app-header .hdr-center,
 .app-header .hdr-right {
