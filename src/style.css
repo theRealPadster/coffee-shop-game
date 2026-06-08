@@ -439,20 +439,6 @@ input[type="range"] {
   background: var(--panel);
   border-bottom: 1px solid var(--border);
 }
-
-/* In portrait fullscreen on notched phones, the device's camera cutout overlaps
-   the top of the app-header. env(safe-area-inset-top) reports the cutout height
-   (paired with viewport-fit=cover on the viewport meta to make it non-zero); we
-   add it as extra top padding so the header content (day, cash, hype) clears
-   the notch while the header's background still fills the area behind it.
-   Scoped to portrait because side notches in landscape don't intrude on this
-   game's layout. env() is 0 on non-notched devices and outside fullscreen, so
-   nothing changes there. */
-@media (orientation: portrait) {
-  .app-header {
-    padding-top: calc(8px + env(safe-area-inset-top, 0px));
-  }
-}
 .app-header .hdr-left,
 .app-header .hdr-center,
 .app-header .hdr-right {
@@ -511,6 +497,16 @@ input[type="range"] {
     flex: none;
     width: 100%;
     justify-content: center;
+  }
+  /* Push Day to the far left and Cash to the far right on the top row, so a
+     phone's center-mounted notch (iPhone notch / Dynamic Island, centered
+     Android punch-hole) sits in the empty middle without overlapping content.
+     This lets us skip the env(safe-area-inset-top) padding hack — corners stay
+     visible on every phone we care about (iPhone XR's ~210px wide notch on a
+     414px screen still leaves ~100px of safe corner on each side; Dynamic
+     Island and Android punch-holes are smaller). */
+  .app-header .hdr-left {
+    justify-content: space-between;
   }
 }
 
