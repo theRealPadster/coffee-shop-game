@@ -1,12 +1,12 @@
 import { GameState, INGREDIENTS, INGREDIENT_META, PRICE_BANDS, formatCents, Ingredient, DrinkType, activeRecipe, activeCupPrice } from '../state';
-import { classifyPrice, PriceLevel } from '../economy';
-import { weatherEmoji } from '../weather';
+import { classifyPrice, PriceLevel, BULK_TIERS, bulkCost } from '../economy';
 import { spoilageFraction, SPOILAGE } from '../spoilage';
 import { maxCups, bottleneck } from '../recipe';
-import { saveGame, loadGame, clearSave } from '../save';
 import { play } from '../audio';
-import { appHeaderHtml, renderHypeMeter, attachHeaderMute, attachHeaderTheme } from '../header';
-import { confirmModal, alertModal } from '../ui';
+import { appHeaderHtml, renderHypeMeter, attachHeaderMenu } from '../header';
+import { openPauseMenu } from '../pauseMenu';
+import { weatherChipHtml } from '../chips/weatherChip';
+import { makeExpandableChip } from '../chips/expandableChip';
 
 export interface BuyPhaseCallbacks {
   onStartDay: () => void;
@@ -70,18 +70,25 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
   const typeIcon = r.type === 'hot' ? '☕' : '🧊';
 
   root.innerHTML = `
-    ${appHeaderHtml(state)}
+    ${appHeaderHtml(state, { variant: 'buy' })}
     <div class="buy-phase">
+      <div class="status-row status-row--buy">
+        ${weatherChipHtml(state, 'buy')}
+        <div id="hype-meter-host"></div>
+      </div>
+      <div class="buy-content">
       <div class="panel shop-panel">
         <div class="serving-banner ${r.type}">
-          <div class="serving-label">Serving Today</div>
-          <div class="serving-main">
-            <span class="serving-icon">${typeIcon}</span>
-            <input id="recipe-name-input" type="text" value="${escapeAttr(r.name)}" />
+          <div class="serving-top">
+            <div class="serving-label">Serving Today</div>
             <div class="type-toggle" role="group">
               <button data-type="hot" class="${r.type === 'hot' ? 'active' : ''}">Hot ☕</button>
               <button data-type="iced" class="${r.type === 'iced' ? 'active' : ''}">Iced 🧊</button>
             </div>
+          </div>
+          <div class="serving-main">
+            <span class="serving-icon">${typeIcon}</span>
+            <input id="recipe-name-input" type="text" value="${escapeAttr(r.name)}" />
           </div>
           <div class="serving-price-row">
             <label for="cup-price-input">Selling for</label>
@@ -100,27 +107,9 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
         </div>
       </div>
 
-      <div class="panel today-panel">
-        <h2>Today</h2>
-        <div class="weather-widget ${state.weather.condition}">
-          <span class="icon">${weatherEmoji(state.weather.condition)}</span>
-          <div>
-            <div class="temp">${state.weather.tempC}°C</div>
-            <div class="cond">${state.weather.condition}</div>
-          </div>
-          <div class="forecast">
-            <span class="forecast-label">Tomorrow</span>
-            <span class="forecast-line">${weatherEmoji(state.tomorrowWeather.condition)} ${state.tomorrowWeather.tempC}°C</span>
-          </div>
-        </div>
-        <div class="day-footer">
-          <div class="save-controls">
-            <button id="save-game-btn" class="secondary" title="Save game">💾 Save</button>
-            <button id="restore-game-btn" class="secondary" title="Restore saved game">↩ Restore</button>
-            <button id="reset-game-btn" class="danger" title="Reset to a new game">⟲ Reset</button>
-          </div>
-          <button id="start-day-btn">Start Day ▶</button>
-        </div>
+      <div class="day-footer">
+        <button id="start-day-btn">Start Day ▶</button>
+      </div>
       </div>
     </div>
   `;
@@ -129,8 +118,11 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
   if (hypeHost) {
     renderHypeMeter(hypeHost, state.hype);
   }
-  attachHeaderMute(root, state);
-  attachHeaderTheme(root);
+  const weatherChip = root.querySelector<HTMLElement>('.weather-chip');
+  if (weatherChip) makeExpandableChip(weatherChip);
+  attachHeaderMenu(root, () => {
+    void openPauseMenu({ state, onRestore: cb.onRestore, onReset: cb.onReset });
+  });
   attachBuyPhaseEvents(root, state, cb);
 }
 
@@ -169,12 +161,8 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
         <div class="stock"><strong>${stock}</strong> <span class="stock-unit">in stock</span>${spoilWarn}</div>
         <div class="price"><strong>${formatCents(price)}</strong> <span class="price-unit">each</span> ${priceChip(level)}${priceSparkline(state.priceHistory[ing], PRICE_BANDS[ing])}</div>
         <div class="controls">
-          <button class="buy-btn" data-buy="${ing}" data-qty="5" ${state.cash < price * 5 ? 'disabled' : ''}>Buy 5</button>
-          <button class="buy-btn" data-buy="${ing}" data-qty="10" ${state.cash < price * 10 ? 'disabled' : ''}>Buy 10</button>
-          <button class="buy-btn" data-buy="${ing}" data-qty="20" ${state.cash < price * 20 ? 'disabled' : ''}>Buy 20</button>
-          <span class="buy-cost">${formatCents(price * 5)}</span>
-          <span class="buy-cost">${formatCents(price * 10)}</span>
-          <span class="buy-cost">${formatCents(price * 20)}</span>
+          ${BULK_TIERS.map(({ qty }) => `<button class="buy-btn" data-buy="${ing}" data-qty="${qty}" ${state.cash < bulkCost(price, qty) ? 'disabled' : ''}>Buy ${qty}</button>`).join('')}
+          ${BULK_TIERS.map(({ qty }) => `<span class="buy-cost">${formatCents(bulkCost(price, qty))}</span>`).join('')}
         </div>
       </div>
     </div>
@@ -260,43 +248,6 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
     });
   });
 
-  // Save/Restore/Reset
-  root.querySelector('#save-game-btn')?.addEventListener('click', () => {
-    const ok = saveGame(state);
-    play('cashier');
-    alertModal(ok
-      ? { title: 'Game saved', message: 'Your progress has been saved to this browser.' }
-      : { title: 'Save failed', message: 'Your game could not be saved. Your browser may be blocking storage.' });
-  });
-  root.querySelector('#restore-game-btn')?.addEventListener('click', async () => {
-    const restored = loadGame();
-    if (!restored) {
-      await alertModal({ title: 'No saved game', message: 'There is no saved game to restore yet.' });
-      return;
-    }
-    const ok = await confirmModal({
-      title: 'Restore saved game?',
-      message: 'This loads your last saved game and discards any progress since then. This cannot be undone.',
-      confirmLabel: '↩ Restore',
-      cancelLabel: 'Cancel',
-      danger: true,
-    });
-    if (!ok) return;
-    cb.onRestore(restored);
-  });
-  root.querySelector('#reset-game-btn')?.addEventListener('click', async () => {
-    const ok = await confirmModal({
-      title: 'Reset game?',
-      message: 'This starts a brand-new game and erases your saved progress. This cannot be undone.',
-      confirmLabel: '⟲ Reset',
-      cancelLabel: 'Cancel',
-      danger: true,
-    });
-    if (!ok) return;
-    clearSave();
-    cb.onReset();
-  });
-
   // Start day
   root.querySelector('#start-day-btn')?.addEventListener('click', () => {
     if (maxCups(state.stock, activeRecipe(state)) <= 0) {
@@ -310,15 +261,11 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
 function attemptTrade(state: GameState, ing: Ingredient, qty: number): void {
   if (qty <= 0) return;
   const price = state.prices[ing];
-  const cost = price * qty;
-  if (state.cash < cost) {
-    const affordable = Math.floor(state.cash / price);
-    if (affordable <= 0) return;
-    state.cash -= price * affordable;
-    state.stock[ing] += affordable;
-  } else {
-    state.cash -= cost;
-    state.stock[ing] += qty;
-  }
+  const cost = bulkCost(price, qty);
+  // No partial buys — you either afford the whole bundle or nothing happens
+  // (the Buy buttons are disabled in this case, so this is also a guard).
+  if (state.cash < cost) return;
+  state.cash -= cost;
+  state.stock[ing] += qty;
   play('cashier');
 }

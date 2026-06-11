@@ -1,0 +1,41 @@
+name: Clean up branch preview
+
+# When a non-main branch is deleted, remove its preview directory from
+# `gh-pages:branches/<sanitized-name>/` so old previews don't accumulate.
+
+on:
+  delete:
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: github.event.ref_type == 'branch' && github.event.ref != 'main' && github.event.ref != 'gh-pages'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 1
+      - id: meta
+        run: |
+          SANITIZED=$(printf '%s' "${{ github.event.ref }}" | sed 's|/|-|g' | tr '[:upper:]' '[:lower:]')
+          echo "name=$SANITIZED" >> "$GITHUB_OUTPUT"
+      - name: Remove preview directory
+        run: |
+          DIR="branches/${{ steps.meta.outputs.name }}"
+          if [ -d "$DIR" ]; then
+            rm -rf "$DIR"
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            if git diff --cached --quiet; then
+              echo "Directory was empty / nothing to commit."
+            else
+              git commit -m "cleanup(preview): remove ${{ github.event.ref }} (${DIR})"
+              git push origin gh-pages
+            fi
+          else
+            echo "No preview at $DIR — nothing to clean up."
+          fi

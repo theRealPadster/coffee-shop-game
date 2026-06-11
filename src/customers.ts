@@ -136,15 +136,28 @@ export function decide(state: GameState, c: Customer): DecisionResult {
   const buyScore = baseInterest + priceFitScore + typeFit + weatherFit;
   const buy = buyScore > 0;
 
-  // Observable objections — the only reasons a non-buyer can cite.
+  // Observable objections — the only reasons a non-buyer can cite. The fourth
+  // tuple entry is the hype delta; the first is the priority used to pick the
+  // dominant complaint when several apply.
+  //
+  // Hype rule: only complaints the player can act on cost hype.
+  //  - "Too expensive" → player sets cup price, so −1.
+  //  - "Wrong for weather" → player chose the wrong drink for the day, so −1.
+  //  - "Wrong drink type" → just an individual coin-flip preference (some folks
+  //    want hot, some want iced); the player can't influence that, so 0.
+  //
+  // When weather actively disagrees with the served drink the weather thought
+  // wins the tie-break over the generic wrong-type thought — otherwise low
+  // flexibility would let typeFit (magnitude up to 3.6) drown out weatherFit
+  // (max 1.5), masking the only actionable signal.
   const observable: Array<[number, string, string, number]> = [];
   if (priceFit < 0) observable.push([Math.abs(priceFitScore), 'Too expensive 💸', 'Too expensive', -1]);
   if (typeFit < -1) {
     const t = wantsHot ? 'Wanted a hot one ☕🙅' : 'Wanted an iced today 🧊🙅';
-    observable.push([Math.abs(typeFit), t, 'Wrong drink type', -1]);
+    observable.push([Math.abs(typeFit), t, 'Wrong drink type', 0]);
   }
   if (weatherFit < -0.5) {
-    observable.push([Math.abs(weatherFit), drinkIsHot ? 'Too hot for hot coffee 🥵' : "Brrr, no iced today 🥶", 'Wrong for weather', 0]);
+    observable.push([Math.abs(weatherFit) + 10, drinkIsHot ? 'Too hot for hot coffee 🥵' : "Brrr, no iced today 🥶", 'Wrong for weather', -1]);
   }
 
   if (!buy) {
