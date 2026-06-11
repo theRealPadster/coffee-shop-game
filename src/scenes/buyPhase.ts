@@ -1,5 +1,5 @@
 import { GameState, INGREDIENTS, INGREDIENT_META, PRICE_BANDS, formatCents, Ingredient, DrinkType, activeRecipe, activeCupPrice } from '../state';
-import { classifyPrice, PriceLevel } from '../economy';
+import { classifyPrice, PriceLevel, BULK_TIERS, bulkCost } from '../economy';
 import { maxCups, bottleneck } from '../recipe';
 import { play } from '../audio';
 import { appHeaderHtml, renderHypeMeter, attachHeaderMenu } from '../header';
@@ -154,12 +154,8 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
         <div class="stock"><strong>${stock}</strong> <span class="stock-unit">in stock</span></div>
         <div class="price"><strong>${formatCents(price)}</strong> <span class="price-unit">each</span> ${priceChip(level)}${priceSparkline(state.priceHistory[ing], PRICE_BANDS[ing])}</div>
         <div class="controls">
-          <button class="buy-btn" data-buy="${ing}" data-qty="5" ${state.cash < price * 5 ? 'disabled' : ''}>Buy 5</button>
-          <button class="buy-btn" data-buy="${ing}" data-qty="10" ${state.cash < price * 10 ? 'disabled' : ''}>Buy 10</button>
-          <button class="buy-btn" data-buy="${ing}" data-qty="20" ${state.cash < price * 20 ? 'disabled' : ''}>Buy 20</button>
-          <span class="buy-cost">${formatCents(price * 5)}</span>
-          <span class="buy-cost">${formatCents(price * 10)}</span>
-          <span class="buy-cost">${formatCents(price * 20)}</span>
+          ${BULK_TIERS.map(({ qty }) => `<button class="buy-btn" data-buy="${ing}" data-qty="${qty}" ${state.cash < bulkCost(price, qty) ? 'disabled' : ''}>Buy ${qty}</button>`).join('')}
+          ${BULK_TIERS.map(({ qty }) => `<span class="buy-cost">${formatCents(bulkCost(price, qty))}</span>`).join('')}
         </div>
       </div>
     </div>
@@ -258,15 +254,11 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
 function attemptTrade(state: GameState, ing: Ingredient, qty: number): void {
   if (qty <= 0) return;
   const price = state.prices[ing];
-  const cost = price * qty;
-  if (state.cash < cost) {
-    const affordable = Math.floor(state.cash / price);
-    if (affordable <= 0) return;
-    state.cash -= price * affordable;
-    state.stock[ing] += affordable;
-  } else {
-    state.cash -= cost;
-    state.stock[ing] += qty;
-  }
+  const cost = bulkCost(price, qty);
+  // No partial buys — you either afford the whole bundle or nothing happens
+  // (the Buy buttons are disabled in this case, so this is also a guard).
+  if (state.cash < cost) return;
+  state.cash -= cost;
+  state.stock[ing] += qty;
   play('cashier');
 }

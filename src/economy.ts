@@ -30,6 +30,31 @@ export function rollPrices(prev: Record<Ingredient, number>): Record<Ingredient,
   return next;
 }
 
+/**
+ * Bulk-buy tiers offered in the buy phase. Larger commitments earn a lower
+ * per-unit price, rewarding stocking ahead when the price chevrons say cheap.
+ * The quantities here drive the Buy buttons, so adding a tier adds a button.
+ */
+export const BULK_TIERS: { qty: number; discount: number }[] = [
+  { qty: 5, discount: 0 },
+  { qty: 10, discount: 0.05 },
+  { qty: 20, discount: 0.1 },
+];
+
+/** Fractional per-unit discount for buying `qty` units (0 = no discount). */
+export function bulkDiscount(qty: number): number {
+  let d = 0;
+  for (const tier of BULK_TIERS) {
+    if (qty >= tier.qty) d = tier.discount;
+  }
+  return d;
+}
+
+/** Total cost in integer cents to buy `qty` units at `unitPrice`, bulk discount applied. */
+export function bulkCost(unitPrice: number, qty: number): number {
+  return Math.round(unitPrice * qty * (1 - bulkDiscount(qty)));
+}
+
 // How many days of price history to keep for the sparkline.
 export const PRICE_HISTORY_LEN = 5;
 

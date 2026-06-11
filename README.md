@@ -21,7 +21,7 @@ The production build is a single `index.html` you can open directly in a browser
 
 ## How to play
 
-- **Buy phase:** Watch each ingredient's price chip (▼▼ bargain → ▲▲ expensive) and 5-day sparkline — stock up when prices are low. Tune your recipe sliders. The 🔻 badge marks your current bottleneck. Set your cup price.
+- **Buy phase:** Watch each ingredient's price chip (▼▼ bargain → ▲▲ expensive) and 5-day sparkline — stock up when prices are low, and buy in bulk (Buy 10/20) for a per-unit discount. Tune your recipe sliders. The 🔻 badge marks your current bottleneck. Set your cup price.
 - **Hot vs Iced toggle:** Each side has its own recipe and cup price (`state.recipes.hot`, `state.recipes.iced`). The Hot/Iced toggle in the "Serving Today" banner swaps between them — plan based on the forecast, not on the fly.
 - **Start Day** to open the shop. Pedestrians walk by; some stop, look, and react with thought bubbles. Watch the **Hype meter** rise/fall. Adjust the cup price mid-day if it's too high or too low. Tap the weather chip to expand it for a deeper read on the day.
 - **Close Shop** when you want to end the day. You'll get a report card with revenue, walk-bys, top complaint, hype delta, and tomorrow's forecast.
@@ -33,7 +33,7 @@ The production build is a single `index.html` you can open directly in a browser
 src/
   main.ts                # bootstrap + scene switching + global Esc handler
   state.ts               # game state types + initial state
-  economy.ts             # price random walk + chevron classification
+  economy.ts             # price random walk + chevron classification + bulk-buy tiers
   weather.ts             # forecast generation + weather effects
   recipe.ts              # cups-producible/bottleneck math
   customers.ts           # spawn + decision logic + thought picking
