@@ -621,6 +621,10 @@ input[type="range"] {
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
+.ingredient-row .controls .buy-save {
+  color: var(--good);
+  font-weight: 600;
+}
 .ingredient-row .price {
   font-variant-numeric: tabular-nums;
 }
