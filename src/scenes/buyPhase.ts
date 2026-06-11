@@ -155,10 +155,7 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
         <div class="price"><strong>${formatCents(price)}</strong> <span class="price-unit">each</span> ${priceChip(level)}${priceSparkline(state.priceHistory[ing], PRICE_BANDS[ing])}</div>
         <div class="controls">
           ${BULK_TIERS.map(({ qty }) => `<button class="buy-btn" data-buy="${ing}" data-qty="${qty}" ${state.cash < bulkCost(price, qty) ? 'disabled' : ''}>Buy ${qty}</button>`).join('')}
-          ${BULK_TIERS.map(({ qty, discount }) => {
-            const save = discount > 0 ? ` <span class="buy-save">−${Math.round(discount * 100)}%</span>` : '';
-            return `<span class="buy-cost">${formatCents(bulkCost(price, qty))}${save}</span>`;
-          }).join('')}
+          ${BULK_TIERS.map(({ qty }) => `<span class="buy-cost">${formatCents(bulkCost(price, qty))}</span>`).join('')}
         </div>
       </div>
     </div>
