@@ -10,28 +10,14 @@
       <stop offset="65%"  stop-color="#f4e9d8"/>
       <stop offset="100%" stop-color="#d9b88c"/>
     </linearGradient>
-    <!-- Porcelain saucer top: nearly white with the faintest cream tint, so
-         the saucer reads as ceramic instead of wood. Subtle radial fade to
-         a slightly cooler edge for some surface variation. -->
-    <radialGradient id="saucerTop" cx="50%" cy="50%" r="65%">
-      <stop offset="0%"   stop-color="#fffaf0"/>
-      <stop offset="70%"  stop-color="#f7eddb"/>
-      <stop offset="100%" stop-color="#e8d5b7"/>
-    </radialGradient>
   </defs>
 
   <!-- Brown rounded background. Color matches the default theme accent (#7b3f00). -->
   <rect width="512" height="512" rx="96" fill="#7b3f00"/>
 
-  <!-- Saucer in three layers, lightened from the previous wood-toned design.
-       Back-to-front: a dark band peeks out below as the visible thickness of
-       the disc; the porcelain top surface sits on top with a soft radial
-       fade; a faint inset oval shows the well where the cup sits. -->
-  <ellipse cx="256" cy="450" rx="200" ry="18" fill="#3a2418"/>
-  <ellipse cx="256" cy="440" rx="200" ry="22"
-           fill="url(#saucerTop)" stroke="#5a3a1b" stroke-width="6"/>
-  <ellipse cx="256" cy="436" rx="134" ry="14"
-           fill="#d9bf99" opacity="0.45"/>
+  <!-- A faint soft-edge ellipse under the cup to ground it so the mug
+       doesn't look like it's floating in the brown void. -->
+  <ellipse cx="256" cy="442" rx="142" ry="10" fill="#3a2418" opacity="0.35"/>
 
   <!-- Handle: the C-curve shape from earlier versions, but drawn as a filled
        horseshoe so it can take the same gradient fill and outline weight as
