@@ -14,45 +14,45 @@
   <!-- Brown rounded background. Color matches the default theme accent (#7b3f00). -->
   <rect width="512" height="512" rx="96" fill="#7b3f00"/>
 
-  <!-- Two-tone saucer for a hint of depth. Top tan stripe sits on a dark
-       brown shadow band. -->
-  <ellipse cx="256" cy="420" rx="184" ry="20" fill="#5a3a1b"/>
-  <ellipse cx="256" cy="414" rx="184" ry="14" fill="#d9b88c"/>
+  <!-- Two-tone saucer drawn before cup so the cup's front-of-base arc sits
+       visibly on top of the saucer's tan band. -->
+  <ellipse cx="256" cy="438" rx="186" ry="22" fill="#5a3a1b"/>
+  <ellipse cx="256" cy="432" rx="186" ry="14" fill="#d9b88c"/>
 
-  <!-- Handle. Drawn before the cup so the body covers its inside edge. -->
-  <path d="M 360 246 Q 444 246 444 304 Q 444 362 360 362"
+  <!-- Handle. Drawn before the cup body so the body covers its inside edge. -->
+  <path d="M 358 246 Q 442 246 442 304 Q 442 362 358 362"
         fill="none" stroke="#fffaf0" stroke-width="34" stroke-linecap="round"/>
-  <path d="M 360 246 Q 444 246 444 304 Q 444 362 360 362"
+  <path d="M 358 246 Q 442 246 442 304 Q 442 362 358 362"
         fill="none" stroke="#5a3a1b" stroke-width="6"/>
 
-  <!-- Cup body, with gradient fill. Straight vertical sides with large
-       curved bottom corners (radius ~36) so the mug reads as a cylinder
-       sitting on the saucer rather than a rectangle with subtly rounded
-       corners. -->
-  <path d="M 148 210
-           L 368 210
-           L 368 378
-           Q 368 414 332 414
-           L 184 414
-           Q 148 414 148 378
+  <!-- Cup body: a cylinder seen at a slight downward angle, so the front of
+       the rim AND the front of the base both show as arcs of the same
+       ellipse (same rx/ry). Top arc is dipping toward the viewer (front of
+       the open rim); bottom arc dips the same way (front of the base). The
+       coffee surface ellipse drawn next sits flush with the top arc. -->
+  <path d="M 158 200
+           A 100 14 0 0 1 358 200
+           L 358 420
+           A 100 14 0 0 1 158 420
            Z"
         fill="url(#cup)" stroke="#5a3a1b" stroke-width="8" stroke-linejoin="round"/>
 
-  <!-- Coffee surface. Dark espresso (#3a2418) so it reads as a liquid
-       against both the cream cup and the orange-brown background. -->
-  <ellipse cx="258" cy="210" rx="100" ry="14"
+  <!-- Coffee surface: full rim ellipse, dark espresso so it contrasts with
+       both the cream cup and the orange-brown background. Drawn AFTER the
+       cup body so the cup body's front-of-rim arc tucks under the coffee. -->
+  <ellipse cx="258" cy="200" rx="100" ry="14"
            fill="#3a2418" stroke="#5a3a1b" stroke-width="4"/>
 
-  <!-- Small crema highlight on the upper-left of the coffee surface. Warm
-       russet so it reads as reflected light, not foam. -->
-  <ellipse cx="232" cy="207" rx="34" ry="4" fill="#a96a3f" opacity="0.55"/>
+  <!-- Small crema highlight on the upper-left of the coffee surface for a
+       hint of reflected light. -->
+  <ellipse cx="232" cy="197" rx="34" ry="4" fill="#a96a3f" opacity="0.55"/>
 
   <!-- Three steam wisps. stroke-linecap=round plus the same wavy path style
        across all three for a clear "hot drink" silhouette at any size. -->
-  <path d="M 214 168 Q 238 140 214 112 Q 190 84 214 56"
+  <path d="M 214 158 Q 238 130 214 102 Q 190 74 214 46"
         fill="none" stroke="#fffaf0" stroke-width="13" stroke-linecap="round" opacity="0.92"/>
-  <path d="M 258 178 Q 282 150 258 122 Q 234 94 258 66"
+  <path d="M 258 168 Q 282 140 258 112 Q 234 84 258 56"
         fill="none" stroke="#fffaf0" stroke-width="13" stroke-linecap="round" opacity="0.92"/>
-  <path d="M 302 168 Q 326 140 302 112 Q 278 84 302 56"
+  <path d="M 302 158 Q 326 130 302 102 Q 278 74 302 46"
         fill="none" stroke="#fffaf0" stroke-width="13" stroke-linecap="round" opacity="0.92"/>
 </svg>
