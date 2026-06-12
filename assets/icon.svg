@@ -1,9 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Coffee Shop">
   <title>Coffee Shop</title>
   <defs>
-    <!-- Left-to-right cream-to-tan gradient on the cup body, suggests a
-         curved surface and gives the mug some dimension without going
-         full glossy. -->
+    <!-- Left-to-right cream-to-tan gradient on the cup body and handle, so
+         the right side of the mug falls into a soft shadow like a cylinder
+         under directional light. Applied to BOTH the cup and the handle so
+         the handle reads as the same piece of ceramic. -->
     <linearGradient id="cup" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%"   stop-color="#fffaf0"/>
       <stop offset="65%"  stop-color="#f4e9d8"/>
@@ -14,38 +15,48 @@
   <!-- Brown rounded background. Color matches the default theme accent (#7b3f00). -->
   <rect width="512" height="512" rx="96" fill="#7b3f00"/>
 
-  <!-- Two-tone saucer drawn before cup so the cup's front-of-base arc sits
-       visibly on top of the saucer's tan band. -->
-  <ellipse cx="256" cy="438" rx="186" ry="22" fill="#5a3a1b"/>
-  <ellipse cx="256" cy="432" rx="186" ry="14" fill="#d9b88c"/>
+  <!-- Saucer in three layers to suggest a real disc with thickness, not a
+       flat coin. Back-to-front: a darker shadow ellipse for the saucer's
+       bottom edge (visible as a crescent below the top surface), the top
+       surface itself with the cup outline weight, and a slightly darker
+       concentric oval for the center well where the cup sits. -->
+  <ellipse cx="256" cy="448" rx="200" ry="20" fill="#5a3a1b"/>
+  <ellipse cx="256" cy="440" rx="200" ry="20"
+           fill="#d9b88c" stroke="#5a3a1b" stroke-width="6"/>
+  <ellipse cx="256" cy="438" rx="132" ry="14" fill="#c19c6b" opacity="0.55"/>
 
-  <!-- Handle. Drawn before the cup body so the body covers its inside edge. -->
-  <path d="M 358 246 Q 442 246 442 304 Q 442 362 358 362"
-        fill="none" stroke="#fffaf0" stroke-width="34" stroke-linecap="round"/>
-  <path d="M 358 246 Q 442 246 442 304 Q 442 362 358 362"
-        fill="none" stroke="#5a3a1b" stroke-width="6"/>
+  <!-- Handle. Drawn BEFORE the cup body so the cup's left edge of the
+       handle ellipse is covered by the body, making the handle look like
+       it's attached to (and behind) the cup wall rather than floating to
+       the right of it. Filled with the same gradient and outlined with
+       the same stroke weight as the cup. The inner ellipse is filled with
+       the background brown so it reads as a real handle hole, and has its
+       own outline so the inside edge of the ring is clearly drawn. -->
+  <ellipse cx="408" cy="310" rx="50" ry="62"
+           fill="url(#cup)" stroke="#5a3a1b" stroke-width="8"/>
+  <ellipse cx="408" cy="310" rx="26" ry="38"
+           fill="#7b3f00" stroke="#5a3a1b" stroke-width="6"/>
 
-  <!-- Cup body: a cylinder seen at a slight downward angle, so the front of
-       the rim AND the front of the base both show as arcs of the same
-       ellipse (same rx/ry). Top arc is dipping toward the viewer (front of
-       the open rim); bottom arc dips the same way (front of the base). The
-       coffee surface ellipse drawn next sits flush with the top arc. -->
-  <path d="M 158 200
-           A 100 14 0 0 1 358 200
-           L 358 420
-           A 100 14 0 0 1 158 420
+  <!-- Cup body: cylinder seen at a slight downward angle so the front of
+       the rim AND the front of the base both show as the same ellipse
+       curve (same rx/ry as the rim ellipse below). Wider than v4 — rim
+       rx=110 (was 100) — so the mug doesn't read as a tall narrow tumbler. -->
+  <path d="M 148 200
+           A 110 16 0 0 1 368 200
+           L 368 420
+           A 110 16 0 0 1 148 420
            Z"
         fill="url(#cup)" stroke="#5a3a1b" stroke-width="8" stroke-linejoin="round"/>
 
   <!-- Coffee surface: full rim ellipse, dark espresso so it contrasts with
        both the cream cup and the orange-brown background. Drawn AFTER the
-       cup body so the cup body's front-of-rim arc tucks under the coffee. -->
-  <ellipse cx="258" cy="200" rx="100" ry="14"
+       cup body so the body's front-of-rim arc tucks under the coffee. -->
+  <ellipse cx="258" cy="200" rx="110" ry="16"
            fill="#3a2418" stroke="#5a3a1b" stroke-width="4"/>
 
   <!-- Small crema highlight on the upper-left of the coffee surface for a
        hint of reflected light. -->
-  <ellipse cx="232" cy="197" rx="34" ry="4" fill="#a96a3f" opacity="0.55"/>
+  <ellipse cx="232" cy="197" rx="36" ry="4" fill="#a96a3f" opacity="0.55"/>
 
   <!-- Three steam wisps. stroke-linecap=round plus the same wavy path style
        across all three for a clear "hot drink" silhouette at any size. -->
