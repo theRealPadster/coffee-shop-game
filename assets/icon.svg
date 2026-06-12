@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Coffee Shop">
+  <title>Coffee Shop</title>
+  <!-- Brown rounded background. Color matches the default theme accent (#7b3f00). -->
+  <rect width="512" height="512" rx="96" fill="#7b3f00"/>
+
+  <!-- Saucer: subtle dark band under the cup, suggests depth without
+       competing with the cup silhouette at small sizes. -->
+  <ellipse cx="256" cy="412" rx="174" ry="14" fill="#5a3a1b"/>
+
+  <!-- Handle: drawn first so the cup body covers its inside edge cleanly. -->
+  <path d="M 360 246 Q 444 246 444 304 Q 444 362 360 362"
+        fill="none" stroke="#fffaf0" stroke-width="34" stroke-linecap="round"/>
+  <path d="M 360 246 Q 444 246 444 304 Q 444 362 360 362"
+        fill="none" stroke="#5a3a1b" stroke-width="8"/>
+
+  <!-- Cup body: cream rounded rectangle. Slightly narrower than the saucer. -->
+  <rect x="148" y="206" width="220" height="208" rx="14"
+        fill="#fffaf0" stroke="#5a3a1b" stroke-width="8"/>
+
+  <!-- Cup rim line and coffee surface, both centered on x=258 to read as an
+       elliptical opening. -->
+  <ellipse cx="258" cy="210" rx="106" ry="16"
+           fill="#7b3f00" stroke="#5a3a1b" stroke-width="6"/>
+
+  <!-- Three steam wisps. stroke-linecap=round plus the same wavy path style
+       across all three for a clear "hot drink" silhouette at any size. -->
+  <path d="M 214 168 Q 238 140 214 112 Q 190 84 214 56"
+        fill="none" stroke="#fffaf0" stroke-width="13" stroke-linecap="round" opacity="0.92"/>
+  <path d="M 258 178 Q 282 150 258 122 Q 234 94 258 66"
+        fill="none" stroke="#fffaf0" stroke-width="13" stroke-linecap="round" opacity="0.92"/>
+  <path d="M 302 168 Q 326 140 302 112 Q 278 84 302 56"
+        fill="none" stroke="#fffaf0" stroke-width="13" stroke-linecap="round" opacity="0.92"/>
+</svg>

@@ -17,7 +17,16 @@ npm run build        # type-checks, then produces dist/index.html (single self-c
 npm run preview      # serve the production build for a final check
 ```
 
-The production build is a single `index.html` you can open directly in a browser — no server needed.
+The production build's `dist/index.html` is a single self-contained file you can open directly in a browser — no server needed. PWA install (manifest + icons) ships as a few small sibling files in `dist/`; they're optional, but the deployed site uses them to enable "Add to Home Screen".
+
+## Install it (mobile)
+
+On a phone the game can be installed to the home screen and launched without browser chrome — same idea as a native app, no app-store install:
+
+- **iPhone Safari:** open the share menu → **Add to Home Screen**. Required because iPhone Safari doesn't expose the Fullscreen API; this is the Apple-blessed path to a fullscreen experience.
+- **Android Chrome:** open the menu → **Add to Home Screen** (or **Install app** if the prompt offers it).
+
+The home-screen icon launches the game in `display: fullscreen` mode and persists across sessions.
 
 ## How to play
 
@@ -56,6 +65,18 @@ src/
   scenes/
     buyPhase.ts          # DOM-rendered prep screen
     streetPhase.ts       # canvas + HUD scene + report card modal
+public/
+  manifest.webmanifest   # PWA install metadata (name, icons, display mode)
+  icon-192.png           # Android/Chrome PWA icon
+  icon-512.png           # Android/Chrome PWA icon + splash
+  apple-touch-icon.png   # iOS home-screen icon (180×180)
+assets/
+  icon.svg               # source SVG for the home-screen icons (outside public/
+                         # so it doesn't ship; regenerate PNGs with
+                         # `node scripts/render-icons.mjs` after editing)
+scripts/
+  render-icons.mjs       # one-off SVG → PNG renderer (uses @resvg/resvg-js
+                         # via `npm install --no-save`)
 ```
 
 The `Sprite`/`render` abstraction is designed to be swapped from emoji to vector art later without changing scene code.
