@@ -10,37 +10,47 @@
       <stop offset="65%"  stop-color="#f4e9d8"/>
       <stop offset="100%" stop-color="#d9b88c"/>
     </linearGradient>
+    <!-- Porcelain saucer top: nearly white with the faintest cream tint, so
+         the saucer reads as ceramic instead of wood. Subtle radial fade to
+         a slightly cooler edge for some surface variation. -->
+    <radialGradient id="saucerTop" cx="50%" cy="50%" r="65%">
+      <stop offset="0%"   stop-color="#fffaf0"/>
+      <stop offset="70%"  stop-color="#f7eddb"/>
+      <stop offset="100%" stop-color="#e8d5b7"/>
+    </radialGradient>
   </defs>
 
   <!-- Brown rounded background. Color matches the default theme accent (#7b3f00). -->
   <rect width="512" height="512" rx="96" fill="#7b3f00"/>
 
-  <!-- Saucer in three layers to suggest a real disc with thickness, not a
-       flat coin. Back-to-front: a darker shadow ellipse for the saucer's
-       bottom edge (visible as a crescent below the top surface), the top
-       surface itself with the cup outline weight, and a slightly darker
-       concentric oval for the center well where the cup sits. -->
-  <ellipse cx="256" cy="448" rx="200" ry="20" fill="#5a3a1b"/>
-  <ellipse cx="256" cy="440" rx="200" ry="20"
-           fill="#d9b88c" stroke="#5a3a1b" stroke-width="6"/>
-  <ellipse cx="256" cy="438" rx="132" ry="14" fill="#c19c6b" opacity="0.55"/>
+  <!-- Saucer in three layers, lightened from the previous wood-toned design.
+       Back-to-front: a dark band peeks out below as the visible thickness of
+       the disc; the porcelain top surface sits on top with a soft radial
+       fade; a faint inset oval shows the well where the cup sits. -->
+  <ellipse cx="256" cy="450" rx="200" ry="18" fill="#3a2418"/>
+  <ellipse cx="256" cy="440" rx="200" ry="22"
+           fill="url(#saucerTop)" stroke="#5a3a1b" stroke-width="6"/>
+  <ellipse cx="256" cy="436" rx="134" ry="14"
+           fill="#d9bf99" opacity="0.45"/>
 
-  <!-- Handle. Drawn BEFORE the cup body so the cup's left edge of the
-       handle ellipse is covered by the body, making the handle look like
-       it's attached to (and behind) the cup wall rather than floating to
-       the right of it. Filled with the same gradient and outlined with
-       the same stroke weight as the cup. The inner ellipse is filled with
-       the background brown so it reads as a real handle hole, and has its
-       own outline so the inside edge of the ring is clearly drawn. -->
-  <ellipse cx="408" cy="310" rx="50" ry="62"
-           fill="url(#cup)" stroke="#5a3a1b" stroke-width="8"/>
-  <ellipse cx="408" cy="310" rx="26" ry="38"
-           fill="#7b3f00" stroke="#5a3a1b" stroke-width="6"/>
+  <!-- Handle: the C-curve shape from earlier versions, but drawn as a filled
+       horseshoe so it can take the same gradient fill and outline weight as
+       the cup body (matching the v5 styling). Layered before the cup body
+       so the body's right edge covers the handle's flat attachment, making
+       the handle look attached rather than floating. The flat ends extend
+       a few pixels into the cup so the attachment is reliably hidden. -->
+  <path d="M 360 229
+           Q 469 229 469 304
+           Q 469 379 360 379
+           L 360 345
+           Q 435 345 435 304
+           Q 435 263 360 263
+           Z"
+        fill="url(#cup)" stroke="#5a3a1b" stroke-width="8" stroke-linejoin="round"/>
 
   <!-- Cup body: cylinder seen at a slight downward angle so the front of
        the rim AND the front of the base both show as the same ellipse
-       curve (same rx/ry as the rim ellipse below). Wider than v4 — rim
-       rx=110 (was 100) — so the mug doesn't read as a tall narrow tumbler. -->
+       curve. Wider than v4 (rim rx=110) so the mug doesn't read narrow. -->
   <path d="M 148 200
            A 110 16 0 0 1 368 200
            L 368 420
