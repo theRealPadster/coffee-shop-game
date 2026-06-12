@@ -10,14 +10,26 @@
       <stop offset="65%"  stop-color="#f4e9d8"/>
       <stop offset="100%" stop-color="#d9b88c"/>
     </linearGradient>
+    <!-- Contact shadow: darkest at the cup-floor contact line, fading to
+         transparent at the edge. Holds the dark value for the first 50%
+         so the shadow reads as solid right under the cup, then fades. -->
+    <radialGradient id="shadow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#1a1410" stop-opacity="0.5"/>
+      <stop offset="55%"  stop-color="#1a1410" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#1a1410" stop-opacity="0"/>
+    </radialGradient>
   </defs>
 
   <!-- Brown rounded background. Color matches the default theme accent (#7b3f00). -->
   <rect width="512" height="512" rx="96" fill="#7b3f00"/>
 
-  <!-- A faint soft-edge ellipse under the cup to ground it so the mug
-       doesn't look like it's floating in the brown void. -->
-  <ellipse cx="256" cy="442" rx="142" ry="10" fill="#3a2418" opacity="0.35"/>
+  <!-- Contact shadow under the cup. Positioned so the gradient's darkest
+       center (cy=438) sits right at the cup-floor contact line — the top
+       half is hidden behind the cup body, the visible bottom half emerges
+       from directly beneath the cup with no offset. Aspect ratio (rx:ry ≈
+       7.3:1) matches the cup's base ellipse (110:16 ≈ 6.9:1) so the
+       shadow's visible curve mirrors the cup's bottom arc. -->
+  <ellipse cx="258" cy="438" rx="132" ry="18" fill="url(#shadow)"/>
 
   <!-- Handle: the C-curve shape from earlier versions, but drawn as a filled
        horseshoe so it can take the same gradient fill and outline weight as
