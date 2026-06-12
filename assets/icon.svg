@@ -1,26 +1,51 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Coffee Shop">
   <title>Coffee Shop</title>
+  <defs>
+    <!-- Left-to-right cream-to-tan gradient on the cup body, suggests a
+         curved surface and gives the mug some dimension without going
+         full glossy. -->
+    <linearGradient id="cup" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#fffaf0"/>
+      <stop offset="65%"  stop-color="#f4e9d8"/>
+      <stop offset="100%" stop-color="#d9b88c"/>
+    </linearGradient>
+  </defs>
+
   <!-- Brown rounded background. Color matches the default theme accent (#7b3f00). -->
   <rect width="512" height="512" rx="96" fill="#7b3f00"/>
 
-  <!-- Saucer: subtle dark band under the cup, suggests depth without
-       competing with the cup silhouette at small sizes. -->
-  <ellipse cx="256" cy="412" rx="174" ry="14" fill="#5a3a1b"/>
+  <!-- Two-tone saucer for a hint of depth. Top tan stripe sits on a dark
+       brown shadow band. -->
+  <ellipse cx="256" cy="420" rx="184" ry="20" fill="#5a3a1b"/>
+  <ellipse cx="256" cy="414" rx="184" ry="14" fill="#d9b88c"/>
 
-  <!-- Handle: drawn first so the cup body covers its inside edge cleanly. -->
+  <!-- Handle. Drawn before the cup so the body covers its inside edge. -->
   <path d="M 360 246 Q 444 246 444 304 Q 444 362 360 362"
         fill="none" stroke="#fffaf0" stroke-width="34" stroke-linecap="round"/>
   <path d="M 360 246 Q 444 246 444 304 Q 444 362 360 362"
-        fill="none" stroke="#5a3a1b" stroke-width="8"/>
+        fill="none" stroke="#5a3a1b" stroke-width="6"/>
 
-  <!-- Cup body: cream rounded rectangle. Slightly narrower than the saucer. -->
-  <rect x="148" y="206" width="220" height="208" rx="14"
-        fill="#fffaf0" stroke="#5a3a1b" stroke-width="8"/>
+  <!-- Cup body, with gradient fill. Straight vertical sides with large
+       curved bottom corners (radius ~36) so the mug reads as a cylinder
+       sitting on the saucer rather than a rectangle with subtly rounded
+       corners. -->
+  <path d="M 148 210
+           L 368 210
+           L 368 378
+           Q 368 414 332 414
+           L 184 414
+           Q 148 414 148 378
+           Z"
+        fill="url(#cup)" stroke="#5a3a1b" stroke-width="8" stroke-linejoin="round"/>
 
-  <!-- Cup rim line and coffee surface, both centered on x=258 to read as an
-       elliptical opening. -->
-  <ellipse cx="258" cy="210" rx="106" ry="16"
-           fill="#7b3f00" stroke="#5a3a1b" stroke-width="6"/>
+  <!-- Coffee surface. Dark espresso (#3a2418) so it reads as a liquid
+       against both the cream cup and the orange-brown background. -->
+  <ellipse cx="258" cy="210" rx="100" ry="14"
+           fill="#3a2418" stroke="#5a3a1b" stroke-width="4"/>
+
+  <!-- Small crema highlight on the upper-left of the coffee surface. Warm
+       russet so it reads as reflected light, not foam. -->
+  <ellipse cx="232" cy="207" rx="34" ry="4" fill="#a96a3f" opacity="0.55"/>
 
   <!-- Three steam wisps. stroke-linecap=round plus the same wavy path style
        across all three for a clear "hot drink" silhouette at any size. -->
