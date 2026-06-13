@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Coffee Shop">
+  <title>Coffee Shop</title>
+  <defs>
+    <!-- Left-to-right cream-to-tan gradient on the cup body and handle, so
+         the right side of the mug falls into a soft shadow like a cylinder
+         under directional light. Applied to BOTH the cup and the handle so
+         the handle reads as the same piece of ceramic. -->
+    <linearGradient id="cup" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#fffaf0"/>
+      <stop offset="65%"  stop-color="#f4e9d8"/>
+      <stop offset="100%" stop-color="#d9b88c"/>
+    </linearGradient>
+    <!-- Contact shadow: darkest at the cup-floor contact line, fading to
+         transparent at the edge. Holds the dark value for the first 50%
+         so the shadow reads as solid right under the cup, then fades. -->
+    <radialGradient id="shadow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#1a1410" stop-opacity="0.5"/>
+      <stop offset="55%"  stop-color="#1a1410" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#1a1410" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Brown rounded background. Color matches the default theme accent (#7b3f00). -->
+  <rect width="512" height="512" rx="96" fill="#7b3f00"/>
+
+  <!-- Whole mug (shadow + handle + cup + coffee + crema + steam) shifted
+       LEFT 18px so the optical center sits at the geometric center of the
+       icon. The handle's extra mass on the right of the cup body would
+       otherwise drag the visual weight right of x=256, making the mug
+       look slightly off-center. Background rect stays at x=0 so the brown
+       square remains symmetric in the icon. -->
+  <g transform="translate(-18 0)">
+    <!-- Contact shadow under the cup. Positioned so the gradient's darkest
+         center (cy=438) sits right at the cup-floor contact line — the top
+         half is hidden behind the cup body, the visible bottom half emerges
+         from directly beneath the cup with no offset. Aspect ratio (rx:ry ≈
+         7.4:1) matches the cup's base ellipse (110:16 ≈ 6.9:1) so the
+         shadow's visible curve mirrors the cup's bottom arc. -->
+    <ellipse cx="258" cy="438" rx="148" ry="20" fill="url(#shadow)"/>
+
+    <!-- Handle: the C-curve shape from earlier versions, but drawn as a filled
+         horseshoe so it can take the same gradient fill and outline weight as
+         the cup body (matching the v5 styling). Layered before the cup body
+         so the body's right edge covers the handle's flat attachment, making
+         the handle look attached rather than floating. The flat ends extend
+         a few pixels into the cup so the attachment is reliably hidden. -->
+    <path d="M 360 229
+             Q 469 229 469 304
+             Q 469 379 360 379
+             L 360 345
+             Q 435 345 435 304
+             Q 435 263 360 263
+             Z"
+          fill="url(#cup)" stroke="#5a3a1b" stroke-width="8" stroke-linejoin="round"/>
+
+    <!-- Cup body: cylinder seen at a slight downward angle so the front of
+         the rim AND the front of the base both show as the same ellipse
+         curve. Wider than v4 (rim rx=110) so the mug doesn't read narrow. -->
+    <path d="M 148 200
+             A 110 16 0 0 1 368 200
+             L 368 420
+             A 110 16 0 0 1 148 420
+             Z"
+          fill="url(#cup)" stroke="#5a3a1b" stroke-width="8" stroke-linejoin="round"/>
+
+    <!-- Coffee surface: full rim ellipse, dark espresso so it contrasts with
+         both the cream cup and the orange-brown background. Drawn AFTER the
+         cup body so the body's front-of-rim arc tucks under the coffee. -->
+    <ellipse cx="258" cy="200" rx="110" ry="16"
+             fill="#3a2418" stroke="#5a3a1b" stroke-width="4"/>
+
+    <!-- Small crema highlight on the upper-left of the coffee surface for a
+         hint of reflected light. -->
+    <ellipse cx="232" cy="197" rx="36" ry="4" fill="#a96a3f" opacity="0.55"/>
+
+    <!-- Three steam wisps. stroke-linecap=round plus the same wavy path style
+         across all three for a clear "hot drink" silhouette at any size. -->
+    <path d="M 214 158 Q 238 130 214 102 Q 190 74 214 46"
+          fill="none" stroke="#fffaf0" stroke-width="13" stroke-linecap="round" opacity="0.92"/>
+    <path d="M 258 168 Q 282 140 258 112 Q 234 84 258 56"
+          fill="none" stroke="#fffaf0" stroke-width="13" stroke-linecap="round" opacity="0.92"/>
+    <path d="M 302 158 Q 326 130 302 102 Q 278 74 302 46"
+          fill="none" stroke="#fffaf0" stroke-width="13" stroke-linecap="round" opacity="0.92"/>
+  </g>
+</svg>
