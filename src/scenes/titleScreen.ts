@@ -20,6 +20,21 @@ export interface TitleScreenCallbacks {
   onNewGame: () => void;
 }
 
+// Above this width/height ratio we switch into "landscape" mode: the shop
+// drifts left so the overlay can lay the title card + button stack out down
+// the right side without the two colliding. The CSS uses a matching media
+// query (`(orientation: landscape) and (min-aspect-ratio: 13/10)`) so the
+// canvas and DOM agree on what counts as landscape.
+const LANDSCAPE_RATIO = 1.3;
+
+function shopXForCanvas(viewW: number, viewH: number): number {
+  // Landscape: anchor the shop roughly in the middle of the LEFT half of the
+  // canvas, leaving the right half free for the menu overlay.
+  if (viewW / viewH > LANDSCAPE_RATIO) return viewW * 0.28 - 60;
+  // Portrait / squarish: centered, matching the street phase exactly.
+  return viewW * 0.5 - 60;
+}
+
 // Title screen backdrop: warm late-afternoon golden hour. timeOfDay=0.65 maps
 // to ~5pm in the street scene's 8am→8pm window — keeps the sky warm without
 // being a literal sunset.
@@ -124,11 +139,11 @@ export function renderTitleScreen(root: HTMLElement, cb: TitleScreenCallbacks): 
       if (pedestrians[i].x > viewW + 80) pedestrians.splice(i, 1);
     }
 
-    // Draw. Shop is anchored so its bottom sits at the top of the sidewalk
-    // (viewH * 0.6), matching the street phase exactly — otherwise it floats
-    // higher and higher as the viewport gets taller.
+    // Draw. Shop bottom is anchored to the top of the sidewalk (viewH * 0.6)
+    // to match the street phase exactly; shop X drifts left in landscape so
+    // the menu overlay can sit down the right side.
     drawBackground(ctx, viewW, viewH, TITLE_CONDITION, TITLE_TIME_OF_DAY, now);
-    drawShop(ctx, viewW * 0.5 - 60, viewH * 0.6 - 110, 120, 110);
+    drawShop(ctx, shopXForCanvas(viewW, viewH), viewH * 0.6 - 110, 120, 110);
     for (const p of pedestrians) {
       p.sprite.draw(ctx, p.x, p.y, now);
     }

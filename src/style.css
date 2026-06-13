@@ -1290,6 +1290,30 @@ input[type="range"] {
 }
 .title-footer a:hover { color: var(--ink); border-bottom-color: var(--ink); }
 
+/* Landscape mode (wide enough that a side-by-side layout makes sense): the
+   coffee stand drifts left on the canvas (shopXForCanvas in titleScreen.ts
+   uses the same 13/10 aspect threshold), and the menu overlay pins the title
+   card + button stack to the right edge instead of the center, so the shop
+   stays uncovered. */
+@media (orientation: landscape) and (min-aspect-ratio: 13/10) {
+  .title-overlay {
+    align-items: flex-end;
+    padding-right: max(32px, env(safe-area-inset-right));
+    padding-left: max(24px, env(safe-area-inset-left));
+  }
+  .title-card {
+    max-width: min(46%, 460px);
+  }
+  .title-buttons {
+    width: min(320px, 46%);
+  }
+  /* Title scales down a notch — landscape title cards on a phone are short
+     vertically, and the portrait clamp() can overflow the card. */
+  .title-name {
+    font-size: clamp(28px, 5vw, 44px);
+  }
+}
+
 /* Landscape-rotate fullscreen prompt — appears on mobile when the device is
    rotated to landscape and we're not already fullscreen. */
 .fullscreen-prompt {
