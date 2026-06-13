@@ -8,12 +8,24 @@ name: Deploy branch preview
 #
 # If the branch has an open PR, the preview URL is posted as a sticky comment
 # on the PR (one comment that gets edited in place, not a fresh one per push).
+#
+# Triggers on three events:
+#  - push (non-main):     build + deploy + sticky comment
+#  - pull_request opened/reopened: sticky comment only (no rebuild — the
+#                                  preview was already deployed on the push
+#                                  that came before opening the PR). This is
+#                                  what guarantees the comment lands the
+#                                  moment the PR is opened, instead of only
+#                                  on the NEXT push to the branch.
+#  - workflow_dispatch:   build + deploy + sticky comment (manual rerun)
 
 on:
   push:
     branches-ignore:
       - main
       - gh-pages
+  pull_request:
+    types: [opened, reopened]
   workflow_dispatch:
 
 permissions:
@@ -21,46 +33,71 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: pages-deploy-preview-${{ github.ref }}
+  # Keyed by the source branch (head_ref for pull_request events, ref_name for
+  # push/workflow_dispatch) so the group is consistent regardless of event type.
+  group: pages-deploy-preview-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  preview:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - id: meta
+        env:
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
         run: |
-          SANITIZED=$(printf '%s' "${GITHUB_REF_NAME}" | sed 's|/|-|g' | tr '[:upper:]' '[:lower:]')
+          SANITIZED=$(printf '%s' "$BRANCH_NAME" | sed 's|/|-|g' | tr '[:upper:]' '[:lower:]')
           REPO_NAME="${GITHUB_REPOSITORY##*/}"
           OWNER="${GITHUB_REPOSITORY_OWNER}"
           {
+            echo "branch=$BRANCH_NAME"
             echo "name=$SANITIZED"
             echo "dest=branches/$SANITIZED"
             echo "url=https://${OWNER}.github.io/${REPO_NAME}/branches/${SANITIZED}/"
           } >> "$GITHUB_OUTPUT"
+
+      # Build + deploy only run when there's actually new content to ship.
+      # On `pull_request: opened/reopened` we skip these steps entirely and
+      # jump straight to the comment, because the deploy that matters already
+      # happened on the push that built this branch.
       - uses: actions/setup-node@v4
+        if: github.event_name != 'pull_request'
         with:
           node-version: 20
           cache: npm
       - run: npm ci
+        if: github.event_name != 'pull_request'
       - run: npm run build
+        if: github.event_name != 'pull_request'
       - name: Publish to gh-pages preview directory
+        if: github.event_name != 'pull_request'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           destination_dir: ${{ steps.meta.outputs.dest }}
           keep_files: true
-          commit_message: "deploy(preview): ${{ github.ref_name }} → ${{ steps.meta.outputs.dest }} @ ${{ github.sha }}"
+          commit_message: "deploy(preview): ${{ steps.meta.outputs.branch }} → ${{ steps.meta.outputs.dest }} @ ${{ github.sha }}"
 
-      - name: Find open PR for this branch
+      # PR number lookup. On `pull_request` events it's right there in the
+      # event payload; on `push`/`workflow_dispatch` we look it up by head
+      # ref via the gh CLI (output is empty if no open PR exists, and the
+      # comment step gracefully skips in that case).
+      - name: Resolve PR number
         id: pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ steps.meta.outputs.branch }}
+          PR_FROM_EVENT: ${{ github.event.pull_request.number }}
         run: |
-          PR=$(gh pr list --head "${GITHUB_REF_NAME}" --state open --json number --jq '.[0].number' 2>/dev/null || true)
-          echo "number=${PR:-}" >> "$GITHUB_OUTPUT"
+          if [ -n "$PR_FROM_EVENT" ]; then
+            echo "number=$PR_FROM_EVENT" >> "$GITHUB_OUTPUT"
+          else
+            PR=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number' 2>/dev/null || true)
+            echo "number=${PR:-}" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Comment preview URL on PR
         if: steps.pr.outputs.number != ''
@@ -69,7 +106,7 @@ jobs:
           number: ${{ steps.pr.outputs.number }}
           header: preview-url
           message: |
-            🎮 **Preview deploy** for `${{ github.ref_name }}`
+            🎮 **Preview deploy** for `${{ steps.meta.outputs.branch }}`
 
             ▶ ${{ steps.meta.outputs.url }}
 
