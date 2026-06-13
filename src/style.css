@@ -1106,6 +1106,21 @@ input[type="range"] {
   min-width: 320px;
   max-width: 500px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  /* Cap the modal at almost the full viewport (svh tracks the actually-visible
+     height on iOS Safari, dodging the URL-bar vh inflation) and make the
+     pane-modal body scroll when content overflows. Without this the how-to-
+     play pane just runs off the bottom of a short landscape-phone viewport
+     with no way to scroll. */
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100svh - 32px);
+  /* Older Safari without svh falls back to vh — slightly worse on iOS but
+     still better than the unbounded original. */
+  max-height: calc(100vh - 32px);
+  /* For the simple confirm/alert modal (which has a small body and a single
+     actions row) just letting the whole thing scroll if it ever does is fine.
+     The pane modal overrides this below to keep its title row pinned. */
+  overflow-y: auto;
 }
 .modal h2 {
   margin: 0 0 12px;
@@ -1131,12 +1146,29 @@ input[type="range"] {
 }
 
 /* ===== Pane modal (settings panes, pause menu, future main menu) ===== */
+.modal.pane {
+  /* Pane modals stack title-row + body; the body scrolls, the title row stays
+     pinned at the top. The outer modal's overflow is locked to hidden so the
+     border-radius clips both, and the title row gets a small bottom shadow
+     so it reads as fixed when content scrolls under it. */
+  overflow: hidden;
+}
+.modal.pane .modal__body {
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0; /* lets the flex item actually shrink below content size */
+  /* a touch of right inset so the scrollbar (when present) doesn't crowd the
+     content */
+  padding-right: 4px;
+  margin-right: -4px;
+}
 .modal.pane .modal__title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
+  flex-shrink: 0;
 }
 .modal.pane .modal__title-row h2 { margin: 0; }
 .modal__close-btn {
