@@ -1227,7 +1227,11 @@ input[type="range"] {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  /* Title card hugs the top; buttons + footer hug the bottom (pushed there
+     by margin-top:auto on .title-buttons). This keeps the buttons over the
+     road area of the street backdrop instead of covering the coffee stand
+     in the middle. */
+  justify-content: flex-start;
   padding: max(24px, env(safe-area-inset-top)) 24px
           max(24px, env(safe-area-inset-bottom)) 24px;
   pointer-events: none; /* children re-enable */
@@ -1257,21 +1261,25 @@ input[type="range"] {
 .title-buttons {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  width: min(360px, 90%);
+  gap: 8px;
+  width: min(320px, 88%);
+  /* Pushed to the bottom of the overlay (just above the footer) so the
+     button stack sits on the road, not on the shop. */
+  margin-top: auto;
 }
 .title-btn {
   width: 100%;
-  font-size: 16px;
-  padding: 12px 16px;
+  font-size: 14px;
+  padding: 9px 14px;
   border-radius: 10px;
 }
 .title-btn.primary {
   /* Default `button` styling is already the accent; primary just emphasizes
-     by being slightly larger. */
+     by being slightly bolder. */
   font-weight: 700;
 }
 .title-footer {
+  margin-top: 10px;
   font-size: 12px;
   color: var(--muted);
 }
