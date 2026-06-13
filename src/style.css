@@ -1160,38 +1160,127 @@ input[type="range"] {
 }
 .modal.pane .modal__body { color: var(--ink); }
 
-/* Pause menu body */
-.pause-pane { min-width: 360px; }
-.pause-pane .modal__body {
+/* Pause menu / options / how-to-play body. The options pane on the title
+   screen reuses the section / row styling from the pause pane, so the
+   selectors are generic (not scoped to .pause-pane). */
+.pause-pane, .options-pane, .howto-pane { min-width: 360px; }
+.pause-pane .modal__body,
+.options-pane .modal__body,
+.howto-pane .modal__body {
   display: flex;
   flex-direction: column;
   gap: 14px;
   text-align: left;
 }
-.pause-pane .pause-section h3 {
+.pause-section h3,
+.howto-section h3 {
   font-size: 12px;
   color: var(--muted);
   margin: 0 0 6px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
-.pause-pane .pause-row {
+.pause-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 4px 0;
 }
-.pause-pane .pause-row label {
+.pause-row label {
   color: var(--ink);
   font-weight: 500;
 }
-.pause-pane .pause-row .theme-select { min-width: 180px; }
-.pause-pane .game-actions {
+.pause-row .theme-select { min-width: 180px; }
+.game-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
+.howto-section p {
+  margin: 0;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+/* Title screen */
+.title-screen {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  /* On iOS Safari `vh` includes the URL bar, which clips the footer; svh tracks
+     the actually-visible viewport so the layout sits inside the browser chrome. */
+  height: 100svh;
+  overflow: hidden;
+  background: var(--bg);
+}
+.title-screen canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.title-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(24px, env(safe-area-inset-top)) 24px
+          max(24px, env(safe-area-inset-bottom)) 24px;
+  pointer-events: none; /* children re-enable */
+  text-align: center;
+}
+.title-overlay > * { pointer-events: auto; }
+.title-card {
+  background: color-mix(in srgb, var(--panel) 80%, transparent);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 28px;
+  box-shadow: var(--shadow);
+}
+.title-name {
+  margin: 0;
+  font-size: clamp(34px, 7vw, 54px);
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+.title-tagline {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+  font-style: italic;
+}
+.title-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(360px, 90%);
+}
+.title-btn {
+  width: 100%;
+  font-size: 16px;
+  padding: 12px 16px;
+  border-radius: 10px;
+}
+.title-btn.primary {
+  /* Default `button` styling is already the accent; primary just emphasizes
+     by being slightly larger. */
+  font-weight: 700;
+}
+.title-footer {
+  font-size: 12px;
+  color: var(--muted);
+}
+.title-footer a {
+  color: var(--muted);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--muted);
+}
+.title-footer a:hover { color: var(--ink); border-bottom-color: var(--ink); }
 
 /* Landscape-rotate fullscreen prompt — appears on mobile when the device is
    rotated to landscape and we're not already fullscreen. */
