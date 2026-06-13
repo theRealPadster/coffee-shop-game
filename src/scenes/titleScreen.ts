@@ -124,9 +124,11 @@ export function renderTitleScreen(root: HTMLElement, cb: TitleScreenCallbacks): 
       if (pedestrians[i].x > viewW + 80) pedestrians.splice(i, 1);
     }
 
-    // Draw.
+    // Draw. Shop is anchored so its bottom sits at the top of the sidewalk
+    // (viewH * 0.6), matching the street phase exactly — otherwise it floats
+    // higher and higher as the viewport gets taller.
     drawBackground(ctx, viewW, viewH, TITLE_CONDITION, TITLE_TIME_OF_DAY, now);
-    drawShop(ctx, viewW * 0.5 - 60, viewH * 0.45, 120, 110);
+    drawShop(ctx, viewW * 0.5 - 60, viewH * 0.6 - 110, 120, 110);
     for (const p of pedestrians) {
       p.sprite.draw(ctx, p.x, p.y, now);
     }
