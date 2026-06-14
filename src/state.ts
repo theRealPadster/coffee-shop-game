@@ -41,6 +41,7 @@ export interface TodayStats {
   grumpyCount: number;
   complaints: Record<string, number>;
   hypeStart: number;
+  spoiled: Partial<Record<Ingredient, number>>; // perishables lost overnight, by ingredient
 }
 
 export interface GameState {
@@ -88,6 +89,7 @@ export function freshStats(hypeStart: number): TodayStats {
     grumpyCount: 0,
     complaints: {},
     hypeStart,
+    spoiled: {},
   };
 }
 
