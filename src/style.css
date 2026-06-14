@@ -799,27 +799,50 @@ input[type="range"] {
    gets no hover feedback at all. */
 #start-day-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--good) 82%, white); }
 
-/* ===== Hype Meter ===== */
-.hype-meter {
+/* ===== Hype chip ===== */
+/* Mirrors the weather chip's grow mechanics, but sits on the right of the status
+   row and grows anchored to its right edge. The head is the live meter (label +
+   value + bar); the body reveals the reputation band + effect. The shared body /
+   list styles live with the weather chip below. */
+.hype-chip {
+  --chip-w: 9rem;        /* collapsed: fits the meter (label + bar) */
+  --chip-w-open: 13rem;  /* expanded card width */
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  width: var(--chip-w);
+  overflow: hidden;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: width 0.18s ease;
+}
+/* Buy phase: inset to line up with the weather chip (absolute children aren't
+   inset by the row's padding). Street's overlay row supplies the inset itself. */
+.hype-chip--buy { top: var(--chip-inset); right: var(--chip-inset); }
+.hype-chip.is-open { width: var(--chip-w-open); z-index: 10; }
+
+.hype-chip__head {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-width: 140px;
-  /* Themed chip surface to match the weather chip and the rest of the UI. */
-  background: var(--panel);
-  border: 1px solid var(--border);
   padding: 5px 10px;
-  border-radius: 14px;
-  box-shadow: var(--shadow);
 }
-.hype-meter .label {
+.hype-chip__head .label {
   font-size: 12px;
   color: var(--muted);
   display: flex;
   justify-content: space-between;
   gap: 12px;
 }
-.hype-meter .bar {
+.hype-chip__head .bar {
   position: relative;
   height: 10px;
   background: var(--hype-track);
@@ -827,7 +850,7 @@ input[type="range"] {
   overflow: hidden;
 }
 /* Neutral midpoint tick */
-.hype-meter .bar::before {
+.hype-chip__head .bar::before {
   content: '';
   position: absolute;
   left: 50%;
@@ -838,13 +861,19 @@ input[type="range"] {
   transform: translateX(-0.5px);
   z-index: 1;
 }
-.hype-meter .fill {
+.hype-chip__head .fill {
   position: absolute;
   top: 0;
   bottom: 0;
   transition: width 0.4s ease, left 0.4s ease, right 0.4s ease;
 }
-.hype-meter.pulse .fill { animation: pulse-fill 0.6s; }
+.hype-chip.pulse .fill { animation: pulse-fill 0.6s; }
+.hype-chip__band {
+  font-weight: 700;
+  padding: 8px 10px 4px;
+  border-top: 1px solid var(--border);
+  white-space: nowrap;
+}
 @keyframes pulse-fill {
   0%, 100% { filter: brightness(1); }
   50% { filter: brightness(1.4); }
@@ -1022,13 +1051,17 @@ input[type="range"] {
 
 /* Height reveal: grid-template-rows 0fr -> 1fr animates the body to its natural
    (auto) height without hardcoding a value. */
-.weather-chip__body {
+/* Body reveal + effect list, shared by both chips. */
+.weather-chip__body,
+.hype-chip__body {
   display: grid;
   grid-template-rows: 0fr;
   transition: grid-template-rows 0.18s ease;
 }
-.weather-chip.is-open .weather-chip__body { grid-template-rows: 1fr; }
-.weather-chip__body-inner {
+.weather-chip.is-open .weather-chip__body,
+.hype-chip.is-open .hype-chip__body { grid-template-rows: 1fr; }
+.weather-chip__body-inner,
+.hype-chip__body-inner {
   overflow: hidden;
   min-height: 0;
   cursor: default;
@@ -1039,7 +1072,8 @@ input[type="range"] {
   padding: 8px 10px 4px;
   border-top: 1px solid var(--border);
 }
-.weather-fx {
+.weather-fx,
+.hype-fx {
   list-style: none;
   margin: 0;
   padding: 0 10px 8px;
@@ -1049,33 +1083,33 @@ input[type="range"] {
   font-size: 12px;
   font-weight: 400;
 }
-.weather-fx li {
+.weather-fx li,
+.hype-fx li {
   display: flex;
   justify-content: space-between;
   gap: 12px;
   white-space: nowrap;
 }
-.weather-fx li span { color: var(--muted); }
-.weather-fx li strong { font-weight: 600; }
+.weather-fx li span,
+.hype-fx li span { color: var(--muted); }
+.weather-fx li strong,
+.hype-fx li strong { font-weight: 600; }
 
-/* Status row: weather chip (absolute, left) and hype meter (in flow, right) as a
+/* Status row: weather chip (absolute, left) and hype chip (absolute, right) as a
    consistent strip across the top of both phases. The shared --chip-inset keeps
    the chips in the exact same spot in buy and street so they don't shift when
-   switching phases. */
+   switching phases. Both chips are absolute (so they can grow over the content
+   without reflowing). */
 .status-row {
   --chip-inset: 16px;
   position: relative;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  gap: 12px;
 }
 /* Buy phase: a full-width row (spanning the screen, not just the centered
-   content column). z-index lifts it (and the expanding chip) above .buy-content.
-   The inset padding (matched by the buy weather chip's top/left) positions the
-   in-flow hype meter to match the street overlay. */
+   content column). z-index lifts it (and the expanding chips) above
+   .buy-content. Since both chips are absolute, reserve their collapsed height
+   here (inset + the taller hype chip) so the content below doesn't shift. */
 .status-row--buy {
-  padding: var(--chip-inset) var(--chip-inset) 0;
+  min-height: calc(var(--chip-inset) + 44px);
   z-index: 5;
 }
 /* Street phase: overlaid across the top of the canvas. The row is
