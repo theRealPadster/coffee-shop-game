@@ -1400,12 +1400,15 @@ input[type="range"] {
   background: color-mix(in srgb, var(--panel) 88%, transparent);
 }
 
-/* Landscape mode (wide enough that a side-by-side layout makes sense): the
-   coffee stand sits just left of center on the canvas (shopXForCanvas in
-   titleScreen.ts uses the same 13/10 aspect threshold), and the menu
-   overlay sits in the right-middle band — close enough to the shop that
-   they read as one composition, but not overlapping. */
-@media (orientation: landscape) and (min-aspect-ratio: 13/10) {
+/* Landscape *phone* mode (wide AND short — a phone held sideways, which lacks
+   the vertical room for the centered title-top / shop-middle / buttons-bottom
+   layout): the coffee stand sits just left of center on the canvas
+   (shopXForCanvas in titleScreen.ts uses the same 13/10 + 600px-height
+   thresholds), and the menu overlay sits in the right-middle band — close
+   enough to the shop that they read as one composition, but not overlapping.
+   Desktops and tablets are tall enough that the max-height cap excludes them,
+   so they keep the centered default layout above. */
+@media (orientation: landscape) and (min-aspect-ratio: 13/10) and (max-height: 600px) {
   .title-overlay {
     /* Keep the column right-aligned, but push it well off the right edge
        so it lands in the right-middle area instead of hugging the wall.

@@ -20,21 +20,32 @@ export interface TitleScreenCallbacks {
   onNewGame: () => void;
 }
 
-// Above this width/height ratio we switch into "landscape" mode: the shop
-// drifts left so the overlay can lay the title card + button stack out down
-// the right side without the two colliding. The CSS uses a matching media
-// query (`(orientation: landscape) and (min-aspect-ratio: 13/10)`) so the
-// canvas and DOM agree on what counts as landscape.
+// We only use the side-by-side "landscape" layout (shop drifted left, menu
+// stacked down the right side) for *short* wide viewports — i.e. phones held
+// in landscape, which don't have the vertical room for the centered
+// title-top / shop-middle / buttons-bottom composition. Desktops and tablets
+// are tall enough to use that centered layout even when wide, so they read as
+// a normal game screen instead of two elements pinned to opposite corners.
+//
+// A viewport is a "landscape phone" when it's both wide (ratio past
+// LANDSCAPE_RATIO) and short (height at/below DESKTOP_MIN_HEIGHT). The CSS uses
+// a matching media query (`(orientation: landscape) and
+// (min-aspect-ratio: 13/10) and (max-height: 600px)`) so the canvas and DOM
+// agree on what counts as a landscape phone.
 const LANDSCAPE_RATIO = 1.3;
+const DESKTOP_MIN_HEIGHT = 600;
+
+function isLandscapePhone(viewW: number, viewH: number): boolean {
+  return viewW / viewH > LANDSCAPE_RATIO && viewH <= DESKTOP_MIN_HEIGHT;
+}
 
 function shopXForCanvas(viewW: number, viewH: number): number {
-  // Landscape: anchor the shop just left of center so it sits next to the
-  // menu overlay (which lives in the right-middle band) without overlapping.
-  // Was viewW * 0.28 originally; nudged right toward center so the title
-  // card and shop read as one balanced composition instead of one element
-  // on each edge with a dead zone between them.
-  if (viewW / viewH > LANDSCAPE_RATIO) return viewW * 0.32 - 60;
-  // Portrait / squarish: centered, matching the street phase exactly.
+  // Landscape phone: anchor the shop just left of center so it sits next to
+  // the menu overlay (which lives in the right-middle band) without
+  // overlapping.
+  if (isLandscapePhone(viewW, viewH)) return viewW * 0.32 - 60;
+  // Portrait, squarish, and desktop/tablet: centered, matching the street
+  // phase exactly.
   return viewW * 0.5 - 60;
 }
 
