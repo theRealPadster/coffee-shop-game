@@ -22,14 +22,40 @@ let state: GameState = initialState();
 const root = document.getElementById('app')!;
 let activeTeardown: (() => void) | null = null;
 
+// Android back-gesture handling. While 'game' is on screen we keep one
+// sentinel history entry on the stack. A back press pops it; the popstate
+// handler immediately re-pushes it and either dismisses the topmost modal
+// (via a synthetic Esc, which all modals already handle) or opens the pause
+// menu. popInternal lets quitToTitle() pop the sentinel without re-entering
+// the handler.
+let popInternal = false;
+
+function pushGameSentinel(): void {
+  history.pushState({ gameSentinel: true }, '');
+}
+
+function popGameSentinel(): void {
+  popInternal = true;
+  history.back();
+}
+
 function noop(): void { /* placeholder for state-change hook */ }
+
+function enterGame(): void {
+  screen = 'game';
+  pushGameSentinel();
+  renderCurrent();
+}
 
 function quitToTitle(): void {
   screen = 'title';
+  popGameSentinel();
   renderCurrent();
 }
 
 function onRestore(restored: GameState): void {
+  // Restore is only invoked from the in-game pause menu, so the sentinel
+  // is already on the stack — no history change needed.
   state = restored;
   screen = 'game';
   renderCurrent();
@@ -44,8 +70,7 @@ function renderCurrent(): void {
     activeTeardown = renderTitleScreen(root, {
       onContinue: (restored) => {
         state = restored;
-        screen = 'game';
-        renderCurrent();
+        enterGame();
       },
       onNewGame: () => {
         // Wipe the saved game too — title-screen "New Game" is now a true
@@ -54,8 +79,7 @@ function renderCurrent(): void {
         // sitting around to confuse Restore in the middle of the new game.
         clearSave();
         state = initialState();
-        screen = 'game';
-        renderCurrent();
+        enterGame();
       },
     });
     return;
@@ -103,6 +127,34 @@ window.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   if (screen !== 'game') return;
   if (document.querySelector('.modal-backdrop')) return;
+  const opener = getMenuOpener() ?? defaultOpenMenu;
+  opener();
+});
+
+// Android back gesture / browser back button. Mirrors the Esc behavior:
+// in-game with no modal → open pause menu; in-game with a modal → close
+// the modal; on title → don't intercept (browser handles it, typically
+// exiting the tab/PWA). See the popInternal comment near pushGameSentinel
+// for the quit-to-title flow.
+window.addEventListener('popstate', () => {
+  if (popInternal) {
+    popInternal = false;
+    return;
+  }
+  if (screen !== 'game') return;
+
+  // The back press just consumed the sentinel; re-arm it so the *next*
+  // back press still routes through us.
+  pushGameSentinel();
+
+  if (document.querySelector('.modal-backdrop')) {
+    // Reuse each modal's existing Esc handler so close logic stays in one
+    // place (the pause menu's quit/save flows, confirmModal cancellation,
+    // etc. all happen as if the user hit Esc).
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    return;
+  }
+
   const opener = getMenuOpener() ?? defaultOpenMenu;
   opener();
 });
