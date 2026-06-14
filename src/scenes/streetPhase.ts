@@ -6,17 +6,18 @@ import { spawnCustomer, decide, spawnRate, walkByRemark, Customer } from '../cus
 import { applyHype } from '../hype';
 import { consumeRecipe, maxCups } from '../recipe';
 import { play } from '../audio';
-import { appHeaderHtml, renderHypeMeter, attachHeaderMenu } from '../header';
+import { appHeaderHtml, attachHeaderMenu } from '../header';
 import { openPauseMenu } from '../pauseMenu';
 import { setMenuOpener } from '../menuOpener';
 import { weatherChipHtml } from '../chips/weatherChip';
+import { hypeChipHtml, updateHypeChip } from '../chips/hypeChip';
 import { makeExpandableChip } from '../chips/expandableChip';
 
 export interface StreetPhaseCallbacks {
   onCloseShop: () => void;
   onStateChange: () => void;
   onRestore: (state: GameState) => void;
-  onReset: () => void;
+  onQuitToTitle: () => void;
 }
 
 // Real-time length of one game day (8:00 → 20:00)
@@ -79,7 +80,7 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
         <canvas id="street-canvas"></canvas>
         <div class="status-row status-row--overlay">
           ${weatherChipHtml(state, 'street')}
-          <div id="hype-meter-host"></div>
+          ${hypeChipHtml(state.hype, 'street')}
         </div>
       </div>
     </div>
@@ -88,10 +89,10 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
   const canvas = root.querySelector<HTMLCanvasElement>('#street-canvas')!;
   const wrap = root.querySelector<HTMLDivElement>('.street-canvas-wrap')!;
   const ctx = canvas.getContext('2d')!;
-  const hudHost = root.querySelector<HTMLDivElement>('#hype-meter-host')!;
-  renderHypeMeter(hudHost, state.hype);
+  const hudHost = root.querySelector<HTMLElement>('.hype-chip')!;
   const weatherChip = root.querySelector<HTMLElement>('.weather-chip');
   if (weatherChip) makeExpandableChip(weatherChip);
+  makeExpandableChip(hudHost);
 
   // Logical (CSS-pixel) drawing dimensions. The canvas backing store is scaled
   // up by devicePixelRatio for crispness, but all game geometry is computed in
@@ -162,9 +163,9 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
   async function onOpenMenu(): Promise<void> {
     pauseSceneClock();
     try {
-      await openPauseMenu({ state, onRestore: cb.onRestore, onReset: cb.onReset });
+      await openPauseMenu({ state, onRestore: cb.onRestore, onQuitToTitle: cb.onQuitToTitle });
     } finally {
-      // Only resume if the scene is still running; onRestore/onReset tear it down.
+      // Only resume if the scene is still running; onRestore / onQuitToTitle tear it down.
       if (scene.running) resumeSceneClock();
     }
   }
@@ -347,7 +348,7 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
 
     // Update HUD counters
     updateHud(root, state);
-    renderHypeMeter(hudHost, state.hype);
+    updateHypeChip(hudHost, state.hype);
 
     scene.rafId = requestAnimationFrame(tick);
   }

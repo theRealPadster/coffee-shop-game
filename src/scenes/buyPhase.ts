@@ -3,16 +3,17 @@ import { classifyPrice, PriceLevel, BULK_TIERS, bulkCost } from '../economy';
 import { spoilageFraction, SPOILAGE } from '../spoilage';
 import { maxCups, bottleneck } from '../recipe';
 import { play } from '../audio';
-import { appHeaderHtml, renderHypeMeter, attachHeaderMenu } from '../header';
+import { appHeaderHtml, attachHeaderMenu } from '../header';
 import { openPauseMenu } from '../pauseMenu';
 import { weatherChipHtml } from '../chips/weatherChip';
+import { hypeChipHtml } from '../chips/hypeChip';
 import { makeExpandableChip } from '../chips/expandableChip';
 
 export interface BuyPhaseCallbacks {
   onStartDay: () => void;
   onStateChange: () => void;
   onRestore: (state: GameState) => void;
-  onReset: () => void;
+  onQuitToTitle: () => void;
 }
 
 const LEVEL_LABEL: Record<PriceLevel, string> = {
@@ -74,7 +75,7 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
     <div class="buy-phase">
       <div class="status-row status-row--buy">
         ${weatherChipHtml(state, 'buy')}
-        <div id="hype-meter-host"></div>
+        ${hypeChipHtml(state.hype, 'buy')}
       </div>
       <div class="buy-content">
       <div class="panel shop-panel">
@@ -114,14 +115,12 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
     </div>
   `;
 
-  const hypeHost = root.querySelector<HTMLElement>('#hype-meter-host');
-  if (hypeHost) {
-    renderHypeMeter(hypeHost, state.hype);
-  }
   const weatherChip = root.querySelector<HTMLElement>('.weather-chip');
   if (weatherChip) makeExpandableChip(weatherChip);
+  const hypeChip = root.querySelector<HTMLElement>('.hype-chip');
+  if (hypeChip) makeExpandableChip(hypeChip);
   attachHeaderMenu(root, () => {
-    void openPauseMenu({ state, onRestore: cb.onRestore, onReset: cb.onReset });
+    void openPauseMenu({ state, onRestore: cb.onRestore, onQuitToTitle: cb.onQuitToTitle });
   });
   attachBuyPhaseEvents(root, state, cb);
 }

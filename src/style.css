@@ -812,27 +812,50 @@ input[type="range"] {
    gets no hover feedback at all. */
 #start-day-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--good) 82%, white); }
 
-/* ===== Hype Meter ===== */
-.hype-meter {
+/* ===== Hype chip ===== */
+/* Mirrors the weather chip's grow mechanics, but sits on the right of the status
+   row and grows anchored to its right edge. The head is the live meter (label +
+   value + bar); the body reveals the reputation band + effect. The shared body /
+   list styles live with the weather chip below. */
+.hype-chip {
+  --chip-w: 9rem;        /* collapsed: fits the meter (label + bar) */
+  --chip-w-open: 13rem;  /* expanded card width */
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  width: var(--chip-w);
+  overflow: hidden;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: width 0.18s ease;
+}
+/* Buy phase: inset to line up with the weather chip (absolute children aren't
+   inset by the row's padding). Street's overlay row supplies the inset itself. */
+.hype-chip--buy { top: var(--chip-inset); right: var(--chip-inset); }
+.hype-chip.is-open { width: var(--chip-w-open); z-index: 10; }
+
+.hype-chip__head {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-width: 140px;
-  /* Themed chip surface to match the weather chip and the rest of the UI. */
-  background: var(--panel);
-  border: 1px solid var(--border);
   padding: 5px 10px;
-  border-radius: 14px;
-  box-shadow: var(--shadow);
 }
-.hype-meter .label {
+.hype-chip__head .label {
   font-size: 12px;
   color: var(--muted);
   display: flex;
   justify-content: space-between;
   gap: 12px;
 }
-.hype-meter .bar {
+.hype-chip__head .bar {
   position: relative;
   height: 10px;
   background: var(--hype-track);
@@ -840,7 +863,7 @@ input[type="range"] {
   overflow: hidden;
 }
 /* Neutral midpoint tick */
-.hype-meter .bar::before {
+.hype-chip__head .bar::before {
   content: '';
   position: absolute;
   left: 50%;
@@ -851,13 +874,19 @@ input[type="range"] {
   transform: translateX(-0.5px);
   z-index: 1;
 }
-.hype-meter .fill {
+.hype-chip__head .fill {
   position: absolute;
   top: 0;
   bottom: 0;
   transition: width 0.4s ease, left 0.4s ease, right 0.4s ease;
 }
-.hype-meter.pulse .fill { animation: pulse-fill 0.6s; }
+.hype-chip.pulse .fill { animation: pulse-fill 0.6s; }
+.hype-chip__band {
+  font-weight: 700;
+  padding: 8px 10px 4px;
+  border-top: 1px solid var(--border);
+  white-space: nowrap;
+}
 @keyframes pulse-fill {
   0%, 100% { filter: brightness(1); }
   50% { filter: brightness(1.4); }
@@ -1035,13 +1064,17 @@ input[type="range"] {
 
 /* Height reveal: grid-template-rows 0fr -> 1fr animates the body to its natural
    (auto) height without hardcoding a value. */
-.weather-chip__body {
+/* Body reveal + effect list, shared by both chips. */
+.weather-chip__body,
+.hype-chip__body {
   display: grid;
   grid-template-rows: 0fr;
   transition: grid-template-rows 0.18s ease;
 }
-.weather-chip.is-open .weather-chip__body { grid-template-rows: 1fr; }
-.weather-chip__body-inner {
+.weather-chip.is-open .weather-chip__body,
+.hype-chip.is-open .hype-chip__body { grid-template-rows: 1fr; }
+.weather-chip__body-inner,
+.hype-chip__body-inner {
   overflow: hidden;
   min-height: 0;
   cursor: default;
@@ -1052,7 +1085,8 @@ input[type="range"] {
   padding: 8px 10px 4px;
   border-top: 1px solid var(--border);
 }
-.weather-fx {
+.weather-fx,
+.hype-fx {
   list-style: none;
   margin: 0;
   padding: 0 10px 8px;
@@ -1062,33 +1096,33 @@ input[type="range"] {
   font-size: 12px;
   font-weight: 400;
 }
-.weather-fx li {
+.weather-fx li,
+.hype-fx li {
   display: flex;
   justify-content: space-between;
   gap: 12px;
   white-space: nowrap;
 }
-.weather-fx li span { color: var(--muted); }
-.weather-fx li strong { font-weight: 600; }
+.weather-fx li span,
+.hype-fx li span { color: var(--muted); }
+.weather-fx li strong,
+.hype-fx li strong { font-weight: 600; }
 
-/* Status row: weather chip (absolute, left) and hype meter (in flow, right) as a
+/* Status row: weather chip (absolute, left) and hype chip (absolute, right) as a
    consistent strip across the top of both phases. The shared --chip-inset keeps
    the chips in the exact same spot in buy and street so they don't shift when
-   switching phases. */
+   switching phases. Both chips are absolute (so they can grow over the content
+   without reflowing). */
 .status-row {
   --chip-inset: 16px;
   position: relative;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  gap: 12px;
 }
 /* Buy phase: a full-width row (spanning the screen, not just the centered
-   content column). z-index lifts it (and the expanding chip) above .buy-content.
-   The inset padding (matched by the buy weather chip's top/left) positions the
-   in-flow hype meter to match the street overlay. */
+   content column). z-index lifts it (and the expanding chips) above
+   .buy-content. Since both chips are absolute, reserve their collapsed height
+   here (inset + the taller hype chip) so the content below doesn't shift. */
 .status-row--buy {
-  padding: var(--chip-inset) var(--chip-inset) 0;
+  min-height: calc(var(--chip-inset) + 44px);
   z-index: 5;
 }
 /* Street phase: overlaid across the top of the canvas. The row is
@@ -1119,6 +1153,21 @@ input[type="range"] {
   min-width: 320px;
   max-width: 500px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  /* Cap the modal at almost the full viewport (svh tracks the actually-visible
+     height on iOS Safari, dodging the URL-bar vh inflation) and make the
+     pane-modal body scroll when content overflows. Without this the how-to-
+     play pane just runs off the bottom of a short landscape-phone viewport
+     with no way to scroll. */
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100svh - 32px);
+  /* Older Safari without svh falls back to vh — slightly worse on iOS but
+     still better than the unbounded original. */
+  max-height: calc(100vh - 32px);
+  /* For the simple confirm/alert modal (which has a small body and a single
+     actions row) just letting the whole thing scroll if it ever does is fine.
+     The pane modal overrides this below to keep its title row pinned. */
+  overflow-y: auto;
 }
 .modal h2 {
   margin: 0 0 12px;
@@ -1146,12 +1195,29 @@ input[type="range"] {
 }
 
 /* ===== Pane modal (settings panes, pause menu, future main menu) ===== */
+.modal.pane {
+  /* Pane modals stack title-row + body; the body scrolls, the title row stays
+     pinned at the top. The outer modal's overflow is locked to hidden so the
+     border-radius clips both, and the title row gets a small bottom shadow
+     so it reads as fixed when content scrolls under it. */
+  overflow: hidden;
+}
+.modal.pane .modal__body {
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0; /* lets the flex item actually shrink below content size */
+  /* a touch of right inset so the scrollbar (when present) doesn't crowd the
+     content */
+  padding-right: 4px;
+  margin-right: -4px;
+}
 .modal.pane .modal__title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
+  flex-shrink: 0;
 }
 .modal.pane .modal__title-row h2 { margin: 0; }
 .modal__close-btn {
@@ -1175,37 +1241,221 @@ input[type="range"] {
 }
 .modal.pane .modal__body { color: var(--ink); }
 
-/* Pause menu body */
-.pause-pane { min-width: 360px; }
-.pause-pane .modal__body {
+/* Pause menu / options / how-to-play body. The options pane on the title
+   screen reuses the section / row styling from the pause pane, so the
+   selectors are generic (not scoped to .pause-pane). */
+.pause-pane, .options-pane, .howto-pane { min-width: 360px; }
+.pause-pane .modal__body,
+.options-pane .modal__body,
+.howto-pane .modal__body {
   display: flex;
   flex-direction: column;
   gap: 14px;
   text-align: left;
 }
-.pause-pane .pause-section h3 {
+.pause-section h3,
+.howto-section h3 {
   font-size: 12px;
   color: var(--muted);
   margin: 0 0 6px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
-.pause-pane .pause-row {
+.pause-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 4px 0;
 }
-.pause-pane .pause-row label {
+.pause-row label {
   color: var(--ink);
   font-weight: 500;
 }
-.pause-pane .pause-row .theme-select { min-width: 180px; }
-.pause-pane .game-actions {
+.pause-row .theme-select { min-width: 180px; }
+.game-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+.game-actions .secondary {
+  /* Save and Restore split the row evenly so the pair reads as paired
+     actions instead of randomly-sized chips. */
+  flex: 1 1 0;
+}
+
+/* Prominent full-width "Quit to Main Menu" button at the bottom of the
+   pause pane — it's the navigation action that exits the overlay and
+   earns its own row. Styled with the same accent fill as a primary
+   button so it carries visual weight. */
+.pause-quit-btn {
+  width: 100%;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: none;
+  cursor: pointer;
+  margin-top: 4px;
+}
+.pause-quit-btn:hover:not(:disabled) {
+  background: var(--accent-light);
+}
+.howto-section p {
+  margin: 0;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+/* Title screen */
+.title-screen {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  /* On iOS Safari `vh` includes the URL bar, which clips the footer; svh tracks
+     the actually-visible viewport so the layout sits inside the browser chrome. */
+  height: 100svh;
+  overflow: hidden;
+  background: var(--bg);
+}
+.title-screen canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.title-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Title card hugs the top; buttons + footer hug the bottom (pushed there
+     by margin-top:auto on .title-buttons). This keeps the buttons over the
+     road area of the street backdrop instead of covering the coffee stand
+     in the middle. */
+  justify-content: flex-start;
+  padding: max(24px, env(safe-area-inset-top)) 24px
+          max(24px, env(safe-area-inset-bottom)) 24px;
+  pointer-events: none; /* children re-enable */
+  text-align: center;
+}
+.title-overlay > * { pointer-events: auto; }
+.title-card {
+  background: color-mix(in srgb, var(--panel) 80%, transparent);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 28px;
+  box-shadow: var(--shadow);
+  /* Portrait: push the card down so it sits roughly midway between the top
+     of the screen and the top of the coffee stand. clamp keeps it sane on
+     very short or very tall viewports. Landscape overrides with its own
+     smaller margin so the card stays near the top of the right column. */
+  margin-top: clamp(48px, 12vh, 140px);
+}
+.title-name {
+  margin: 0;
+  font-size: clamp(34px, 7vw, 54px);
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+.title-tagline {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+  font-style: italic;
+}
+.title-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(320px, 88%);
+  /* Pushed to the bottom of the overlay (just above the footer) so the
+     button stack sits on the road, not on the shop. */
+  margin-top: auto;
+}
+.title-btn {
+  width: 100%;
+  font-size: 14px;
+  padding: 9px 14px;
+  border-radius: 10px;
+}
+.title-btn.primary {
+  /* Default `button` styling is already the accent; primary just emphasizes
+     by being slightly bolder. */
+  font-weight: 700;
+}
+.title-footer {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+  /* Match the button-stack width so the github link sits centered directly
+     under the button column instead of free-floating at the screen edge.
+     align-self stops the overlay's flex-end (landscape) or center (portrait)
+     alignment from overriding this — the footer column tracks the buttons. */
+  width: min(320px, 88%);
+  text-align: center;
+}
+.title-footer a {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 8px;
+  color: var(--ink);
+  text-decoration: none;
+  background: color-mix(in srgb, var(--panel) 70%, transparent);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: background-color 0.15s ease;
+}
+.title-footer a:hover {
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+}
+
+/* Landscape mode (wide enough that a side-by-side layout makes sense): the
+   coffee stand sits just left of center on the canvas (shopXForCanvas in
+   titleScreen.ts uses the same 13/10 aspect threshold), and the menu
+   overlay sits in the right-middle band — close enough to the shop that
+   they read as one composition, but not overlapping. */
+@media (orientation: landscape) and (min-aspect-ratio: 13/10) {
+  .title-overlay {
+    /* Keep the column right-aligned, but push it well off the right edge
+       so it lands in the right-middle area instead of hugging the wall.
+       16vw scales with viewport: a 1500px desktop gets 240px of right
+       padding, a 900px landscape phone gets 144px — both feel centered.
+       The env() inset still wins on devices with a notch on the right. */
+    align-items: flex-end;
+    padding-right: max(32px, env(safe-area-inset-right), 16vw);
+    padding-left: max(24px, env(safe-area-inset-left));
+  }
+  .title-card {
+    /* Match the button-stack width so the card sits directly above the
+       button column — same horizontal position, same width, text centered
+       within (the overlay's text-align: center handles that). Pushed down
+       a little from the top edge so it doesn't feel jammed into the
+       corner, but not so far that it leaves the upper band of the
+       overlay. */
+    width: min(300px, 38%);
+    max-width: min(300px, 38%);
+    margin-top: 3vh;
+  }
+  /* In landscape the title font + tagline + padding all shrink a notch so
+     the card fits in the narrower button-column width without "Coffee Shop"
+     wrapping awkwardly. Portrait stays at the larger original sizes. */
+  .title-card { padding: 12px 20px; border-radius: 12px; }
+  .title-name { font-size: clamp(22px, 3.6vw, 32px); }
+  .title-tagline { font-size: 12px; margin-top: 4px; }
+  .title-buttons {
+    width: min(300px, 38%);
+  }
+  .title-footer {
+    /* Footer tracks the buttons in landscape too, so github stays centered
+       under the column instead of free-floating at the right edge. */
+    width: min(300px, 38%);
+  }
 }
 
 /* Landscape-rotate fullscreen prompt — appears on mobile when the device is
