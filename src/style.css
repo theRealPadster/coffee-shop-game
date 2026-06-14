@@ -1274,19 +1274,23 @@ input[type="range"] {
   background: color-mix(in srgb, var(--panel) 80%, transparent);
   backdrop-filter: blur(6px);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 18px 28px;
+  border-radius: 12px;
+  /* Smaller padding to match the smaller title text — was 18px 28px. */
+  padding: 12px 20px;
   box-shadow: var(--shadow);
 }
 .title-name {
   margin: 0;
-  font-size: clamp(34px, 7vw, 54px);
+  /* Reduced to ~60% of the original (was clamp(34, 7vw, 54)). Smaller card
+     lets "Coffee Shop" sit on one line at landscape widths instead of
+     wrapping awkwardly. */
+  font-size: clamp(22px, 4.2vw, 34px);
   color: var(--accent);
   letter-spacing: 0.02em;
 }
 .title-tagline {
-  margin: 6px 0 0;
-  font-size: 14px;
+  margin: 4px 0 0;
+  font-size: 12px;
   color: var(--muted);
   font-style: italic;
 }
@@ -1314,6 +1318,12 @@ input[type="range"] {
   margin-top: 10px;
   font-size: 12px;
   color: var(--muted);
+  /* Match the button-stack width so the github link sits centered directly
+     under the button column instead of free-floating at the screen edge.
+     align-self stops the overlay's flex-end (landscape) or center (portrait)
+     alignment from overriding this — the footer column tracks the buttons. */
+  width: min(320px, 88%);
+  text-align: center;
 }
 .title-footer a {
   color: var(--muted);
@@ -1340,15 +1350,20 @@ input[type="range"] {
   }
   .title-card {
     /* Slightly tighter so it doesn't sprawl into the shop area. */
-    max-width: min(38%, 420px);
+    max-width: min(38%, 320px);
   }
   .title-buttons {
     width: min(300px, 38%);
   }
+  .title-footer {
+    /* Footer tracks the buttons in landscape too, so github stays centered
+       under the column instead of free-floating at the right edge. */
+    width: min(300px, 38%);
+  }
   /* Title scales down a notch — landscape title cards on a phone are short
-     vertically, and the portrait clamp() can overflow the card. */
+     vertically, so we want the title smaller still than the portrait clamp. */
   .title-name {
-    font-size: clamp(28px, 5vw, 44px);
+    font-size: clamp(18px, 3vw, 28px);
   }
 }
 
