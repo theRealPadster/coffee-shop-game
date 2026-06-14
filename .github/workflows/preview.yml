@@ -42,7 +42,7 @@ jobs:
   preview:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - id: meta
         env:
@@ -62,10 +62,10 @@ jobs:
       # On `pull_request: opened/reopened` we skip these steps entirely and
       # jump straight to the comment, because the deploy that matters already
       # happened on the push that built this branch.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         if: github.event_name != 'pull_request'
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
         if: github.event_name != 'pull_request'
