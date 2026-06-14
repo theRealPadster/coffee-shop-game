@@ -28,9 +28,12 @@ export interface TitleScreenCallbacks {
 const LANDSCAPE_RATIO = 1.3;
 
 function shopXForCanvas(viewW: number, viewH: number): number {
-  // Landscape: anchor the shop roughly in the middle of the LEFT half of the
-  // canvas, leaving the right half free for the menu overlay.
-  if (viewW / viewH > LANDSCAPE_RATIO) return viewW * 0.28 - 60;
+  // Landscape: anchor the shop just left of center so it sits next to the
+  // menu overlay (which lives in the right-middle band) without overlapping.
+  // Was viewW * 0.28 originally; nudged right toward center so the title
+  // card and shop read as one balanced composition instead of one element
+  // on each edge with a dead zone between them.
+  if (viewW / viewH > LANDSCAPE_RATIO) return viewW * 0.32 - 60;
   // Portrait / squarish: centered, matching the street phase exactly.
   return viewW * 0.5 - 60;
 }

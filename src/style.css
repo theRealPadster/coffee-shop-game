@@ -1323,21 +1323,27 @@ input[type="range"] {
 .title-footer a:hover { color: var(--ink); border-bottom-color: var(--ink); }
 
 /* Landscape mode (wide enough that a side-by-side layout makes sense): the
-   coffee stand drifts left on the canvas (shopXForCanvas in titleScreen.ts
-   uses the same 13/10 aspect threshold), and the menu overlay pins the title
-   card + button stack to the right edge instead of the center, so the shop
-   stays uncovered. */
+   coffee stand sits just left of center on the canvas (shopXForCanvas in
+   titleScreen.ts uses the same 13/10 aspect threshold), and the menu
+   overlay sits in the right-middle band — close enough to the shop that
+   they read as one composition, but not overlapping. */
 @media (orientation: landscape) and (min-aspect-ratio: 13/10) {
   .title-overlay {
+    /* Keep the column right-aligned, but push it well off the right edge
+       so it lands in the right-middle area instead of hugging the wall.
+       16vw scales with viewport: a 1500px desktop gets 240px of right
+       padding, a 900px landscape phone gets 144px — both feel centered.
+       The env() inset still wins on devices with a notch on the right. */
     align-items: flex-end;
-    padding-right: max(32px, env(safe-area-inset-right));
+    padding-right: max(32px, env(safe-area-inset-right), 16vw);
     padding-left: max(24px, env(safe-area-inset-left));
   }
   .title-card {
-    max-width: min(46%, 460px);
+    /* Slightly tighter so it doesn't sprawl into the shop area. */
+    max-width: min(38%, 420px);
   }
   .title-buttons {
-    width: min(320px, 46%);
+    width: min(300px, 38%);
   }
   /* Title scales down a notch — landscape title cards on a phone are short
      vertically, and the portrait clamp() can overflow the card. */
