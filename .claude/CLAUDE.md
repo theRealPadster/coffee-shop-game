@@ -15,6 +15,16 @@ There are no tests. The build is the only verification step. `npm run build` run
 
 The production output is a single `dist/index.html` (via `vite-plugin-singlefile`) that runs directly from `file://` with no server.
 
+## Preview URLs
+
+CI deploys per-branch previews to GitHub Pages at:
+
+```
+https://therealpadster.github.io/coffee-shop-game/branches/<branch-name>/
+```
+
+Slashes in branch names are converted to dashes — e.g. `fix/title-github-link` → `branches/fix-title-github-link/`.
+
 ## Architecture
 
 ### State is a single plain object
