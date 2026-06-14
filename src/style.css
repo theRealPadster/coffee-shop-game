@@ -1336,6 +1336,11 @@ input[type="range"] {
   border-radius: 14px;
   padding: 18px 28px;
   box-shadow: var(--shadow);
+  /* Portrait: push the card down so it sits roughly midway between the top
+     of the screen and the top of the coffee stand. clamp keeps it sane on
+     very short or very tall viewports. Landscape overrides with its own
+     smaller margin so the card stays near the top of the right column. */
+  margin-top: clamp(48px, 12vh, 140px);
 }
 .title-name {
   margin: 0;
@@ -1381,11 +1386,19 @@ input[type="range"] {
   text-align: center;
 }
 .title-footer a {
-  color: var(--muted);
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 8px;
+  color: var(--ink);
   text-decoration: none;
-  border-bottom: 1px dotted var(--muted);
+  background: color-mix(in srgb, var(--panel) 70%, transparent);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: background-color 0.15s ease;
 }
-.title-footer a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+.title-footer a:hover {
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+}
 
 /* Landscape mode (wide enough that a side-by-side layout makes sense): the
    coffee stand sits just left of center on the canvas (shopXForCanvas in
