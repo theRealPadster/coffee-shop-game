@@ -12,7 +12,7 @@ export interface BuyPhaseCallbacks {
   onStartDay: () => void;
   onStateChange: () => void;
   onRestore: (state: GameState) => void;
-  onReset: () => void;
+  onQuitToTitle: () => void;
 }
 
 const LEVEL_LABEL: Record<PriceLevel, string> = {
@@ -119,7 +119,7 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
   const hypeChip = root.querySelector<HTMLElement>('.hype-chip');
   if (hypeChip) makeExpandableChip(hypeChip);
   attachHeaderMenu(root, () => {
-    void openPauseMenu({ state, onRestore: cb.onRestore, onReset: cb.onReset });
+    void openPauseMenu({ state, onRestore: cb.onRestore, onQuitToTitle: cb.onQuitToTitle });
   });
   attachBuyPhaseEvents(root, state, cb);
 }
