@@ -294,13 +294,16 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
             c.phase = 'leaving';
             // The cup's been sipped — now they react. Praise or gripe, the bubble
             // and the taste-reaction hype both land here (not on the coin), so the
-            // meter moves when they actually voice it. Grumble only on a letdown.
+            // meter moves when they actually voice it. A matching sound plays
+            // either way: a warm chime for a satisfied buyer, a grumble for a
+            // letdown — so positive feedback is as audible as negative.
             if (c.postSaleReaction) {
               c.thought = c.postSaleReaction;
               c.thoughtUntil = now + 1800;
               c.postSaleReaction = null;
               if (c.postSaleHype !== 0) applyHype(state, c.postSaleHype);
               if (c.postSaleHype < 0) play('grumble');
+              else if (c.postSaleHype > 0) play('praise');
             }
           }
         } else if (c.phase === 'leaving') {

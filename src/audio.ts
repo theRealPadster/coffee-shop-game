@@ -3,7 +3,7 @@
 
 import { loadMute, saveMute } from './save';
 
-type SoundName = 'coin' | 'walkby' | 'grumble' | 'bell' | 'cashier' | 'lowstock';
+type SoundName = 'coin' | 'walkby' | 'grumble' | 'praise' | 'bell' | 'cashier' | 'lowstock';
 
 let ctx: AudioContext | null = null;
 let muted = loadMute();
@@ -90,6 +90,14 @@ const SOUND_PLAYERS: Record<SoundName, () => void> = {
     envelope(gain, 0.01, 0.2, 0.1, now);
     osc.start(now);
     osc.stop(now + 0.3);
+  },
+  praise: () => {
+    // Gentle rising major arpeggio (D5–F#5–A5) — a warm "they liked it" cue for
+    // a satisfied buyer's walk-off reaction. Mellow triangle tone keeps it
+    // clearly positive yet distinct from the coin's bright square money chime.
+    blip(587, 0.12, 'triangle', 0.12);
+    setTimeout(() => blip(740, 0.12, 'triangle', 0.12), 70);
+    setTimeout(() => blip(880, 0.16, 'triangle', 0.11), 140);
   },
   bell: () => {
     blip(1568, 0.4, 'sine', 0.2);
