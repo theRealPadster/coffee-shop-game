@@ -268,8 +268,10 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
             c.considerUntil = now + 1500 + Math.random() * 1500;
             const dec = decide(state, c);
             applyOutcome(state, c, dec);
-            if (dec.buy && !dec.isHappy) {
-              // They bought but didn't love it — hold the gripe until they walk off.
+            if (dec.buy) {
+              // Buyers can't judge the cup until they sip it — hold their taste
+              // reaction (praise or gripe) until they walk off, for both happy
+              // and unhappy alike. applyOutcome parked it on postSaleReaction.
               c.thought = null;
             } else {
               c.thought = dec.thought;
@@ -290,12 +292,15 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
           c.x += c.vx * 0.5 * dt;
           if (now >= c.considerUntil + 600) {
             c.phase = 'leaving';
-            // Now that the sale has landed, an unhappy buyer grumbles on the way out.
-            if (c.postSaleComplaint) {
-              c.thought = c.postSaleComplaint;
+            // The cup's been sipped — now they react. Praise or gripe, the bubble
+            // and the taste-reaction hype both land here (not on the coin), so the
+            // meter moves when they actually voice it. Grumble only on a letdown.
+            if (c.postSaleReaction) {
+              c.thought = c.postSaleReaction;
               c.thoughtUntil = now + 1800;
-              c.postSaleComplaint = null;
-              play('grumble');
+              c.postSaleReaction = null;
+              if (c.postSaleHype !== 0) applyHype(state, c.postSaleHype);
+              if (c.postSaleHype < 0) play('grumble');
             }
           }
         } else if (c.phase === 'leaving') {
@@ -366,6 +371,14 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
   };
 }
 
+// Hype awarded at the coin for any completed sale, regardless of taste — the
+// intrinsic buzz of converting a passerby. It's split out of the customer's net
+// (dec.hypeDelta); the remainder lands later as their taste reaction on walk-off
+// (e.g. a +2 "good value" buyer is +1 here and +1 when they voice the praise).
+// Kept small so the taste reaction stays the dominant signal — raising it shifts
+// the satisfied/unhappy break-even and makes the game easier.
+const PURCHASE_HYPE = 1;
+
 function applyOutcome(state: GameState, c: Customer, dec: ReturnType<typeof decide>): void {
   c.decided = true;
   if (dec.buy) {
@@ -377,16 +390,23 @@ function applyOutcome(state: GameState, c: Customer, dec: ReturnType<typeof deci
       c.hasBought = true;
       // Cha-ching: every sale gets the money sound the moment they pay.
       play('coin');
+      // A completed sale is a little buzz on its own, regardless of taste — so
+      // every purchase nudges hype up by PURCHASE_HYPE right here at the coin.
+      // The rest of the customer's net hype (dec.hypeDelta) is the *taste*
+      // reaction, deferred to when they voice it on walk-off. Splitting it this
+      // way keeps each outcome's TOTAL identical to dec.hypeDelta — the bump is
+      // a re-timing, not a buff — while making the meter tick up on the sale and
+      // (for a letdown) back down a beat later when they grumble.
+      applyHype(state, PURCHASE_HYPE);
       if (dec.isHappy) {
         state.todayStats.happyCount++;
       } else {
-        // Bought it, but the recipe disappointed them. Log it now, but let them
-        // voice the gripe (bubble + grumble) a beat later as they walk off.
+        // Bought it, but the recipe disappointed them.
         state.todayStats.grumpyCount++;
         if (dec.complaintKey) bumpComplaint(state, dec.complaintKey);
-        c.postSaleComplaint = dec.thought;
       }
-      if (dec.hypeDelta !== 0) applyHype(state, dec.hypeDelta);
+      c.postSaleReaction = dec.thought;
+      c.postSaleHype = dec.hypeDelta - PURCHASE_HYPE;
     } else {
       // Lost the sale to sold-out between scoring and consumption
       c.thought = 'Sold out 🚫';
