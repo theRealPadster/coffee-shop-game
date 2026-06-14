@@ -15,7 +15,6 @@ export interface StreetPhaseCallbacks {
   onCloseShop: () => void;
   onStateChange: () => void;
   onRestore: (state: GameState) => void;
-  onReset: () => void;
   onQuitToTitle: () => void;
 }
 
@@ -162,9 +161,9 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
   async function onOpenMenu(): Promise<void> {
     pauseSceneClock();
     try {
-      await openPauseMenu({ state, onRestore: cb.onRestore, onReset: cb.onReset, onQuitToTitle: cb.onQuitToTitle });
+      await openPauseMenu({ state, onRestore: cb.onRestore, onQuitToTitle: cb.onQuitToTitle });
     } finally {
-      // Only resume if the scene is still running; onRestore/onReset tear it down.
+      // Only resume if the scene is still running; onRestore / onQuitToTitle tear it down.
       if (scene.running) resumeSceneClock();
     }
   }

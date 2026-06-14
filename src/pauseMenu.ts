@@ -1,6 +1,6 @@
 import { GameState } from './state';
 import { paneModal, alertModal, confirmModal } from './ui';
-import { saveGame, loadGame, clearSave } from './save';
+import { saveGame, loadGame } from './save';
 import { play } from './audio';
 import { renderSettingsRows } from './settingsRows';
 import { openHowToPlay } from './howToPlay';
@@ -8,18 +8,26 @@ import { openHowToPlay } from './howToPlay';
 export interface PauseMenuOpts {
   state: GameState;
   onRestore: (s: GameState) => void;
-  onReset: () => void;
   onQuitToTitle: () => void;
 }
 
 /**
  * Pause / settings menu. Opened from the header pause button or Esc.
- * Settings (theme, sound, fullscreen) apply immediately without closing the
- * pane — they're rendered by the shared renderSettingsRows helper so the
- * title screen's Options pane shows the same controls.
  *
- * Game actions (save, restore, reset, quit to title) close the pane and
- * run their own follow-up confirm/alert flows.
+ * Layout:
+ *   - Settings — theme / sound / fullscreen / how-to-play (all "reference"
+ *     controls that don't touch game state, rendered by renderSettingsRows
+ *     so the title-screen Options pane shares the same controls).
+ *   - Game — just Save and Restore now (paired save-state actions). The
+ *     previous "Reset" option was removed; the title-screen "New Game" path
+ *     covers the wipe-and-restart case and now also calls clearSave().
+ *   - A prominent full-width Quit-to-Main-Menu button at the bottom — it's
+ *     the navigation action that exits the overlay, and it earns a row of
+ *     its own instead of hiding in a flex-wrap cluster with Save/Restore.
+ *
+ * Settings apply immediately without closing the pane. Game actions and
+ * the Quit button close the pane first so the follow-up confirm/alert
+ * modal owns Esc.
  */
 export function openPauseMenu(opts: PauseMenuOpts): Promise<void> {
   return paneModal({
@@ -30,17 +38,19 @@ export function openPauseMenu(opts: PauseMenuOpts): Promise<void> {
         <section class="pause-section">
           <h3>Settings</h3>
           <div id="pause-settings-host"></div>
+          <div class="pause-row">
+            <label for="pause-howto-btn">How to Play</label>
+            <button id="pause-howto-btn" class="secondary">📖 Open</button>
+          </div>
         </section>
         <section class="pause-section">
           <h3>Game</h3>
           <div class="game-actions">
             <button id="pause-save-btn" class="secondary">💾 Save</button>
             <button id="pause-restore-btn" class="secondary">↩ Restore</button>
-            <button id="pause-howto-btn" class="secondary">📖 How to Play</button>
-            <button id="pause-quit-btn" class="secondary">🏠 Quit to Main Menu</button>
-            <button id="pause-reset-btn" class="danger">⟲ Reset</button>
           </div>
         </section>
+        <button id="pause-quit-btn" class="pause-quit-btn">🏠 Quit to Main Menu</button>
       `;
 
       // Settings rows: theme / sound / fullscreen. Shared with title Options.
@@ -55,7 +65,13 @@ export function openPauseMenu(opts: PauseMenuOpts): Promise<void> {
       });
       observer.observe(document.body, { childList: true, subtree: true });
 
-      // Game actions: close the pane first so the follow-up modal owns Esc.
+      // How to Play — reference info, opens a separate static pane.
+      host.querySelector<HTMLButtonElement>('#pause-howto-btn')?.addEventListener('click', () => {
+        close();
+        void openHowToPlay();
+      });
+
+      // Save: closes the pane and shows a brief result alert.
       host.querySelector<HTMLButtonElement>('#pause-save-btn')?.addEventListener('click', () => {
         close();
         const ok = saveGame(opts.state);
@@ -65,6 +81,7 @@ export function openPauseMenu(opts: PauseMenuOpts): Promise<void> {
           : { title: 'Save failed', message: 'Your game could not be saved. Your browser may be blocking storage.' });
       });
 
+      // Restore: confirm before discarding in-memory progress.
       host.querySelector<HTMLButtonElement>('#pause-restore-btn')?.addEventListener('click', async () => {
         close();
         const restored = loadGame();
@@ -83,11 +100,9 @@ export function openPauseMenu(opts: PauseMenuOpts): Promise<void> {
         opts.onRestore(restored);
       });
 
-      host.querySelector<HTMLButtonElement>('#pause-howto-btn')?.addEventListener('click', () => {
-        close();
-        void openHowToPlay();
-      });
-
+      // Quit to Main Menu — the prominent bottom action. Saved game is kept
+      // (the title's "Continue" still loads it); only in-memory progress
+      // since the last Save is lost.
       host.querySelector<HTMLButtonElement>('#pause-quit-btn')?.addEventListener('click', async () => {
         close();
         const ok = await confirmModal({
@@ -99,20 +114,6 @@ export function openPauseMenu(opts: PauseMenuOpts): Promise<void> {
         });
         if (!ok) return;
         opts.onQuitToTitle();
-      });
-
-      host.querySelector<HTMLButtonElement>('#pause-reset-btn')?.addEventListener('click', async () => {
-        close();
-        const ok = await confirmModal({
-          title: 'Reset game?',
-          message: 'This starts a brand-new game and erases your saved progress. This cannot be undone.',
-          confirmLabel: '⟲ Reset',
-          cancelLabel: 'Cancel',
-          danger: true,
-        });
-        if (!ok) return;
-        clearSave();
-        opts.onReset();
       });
     },
   });

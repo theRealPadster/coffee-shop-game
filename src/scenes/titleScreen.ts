@@ -169,9 +169,10 @@ export function renderTitleScreen(root: HTMLElement, cb: TitleScreenCallbacks): 
     if (hasSave) {
       const ok = await confirmModal({
         title: 'Start a new game?',
-        message: 'Starting a new game will not delete your existing save — you can still Continue from the title screen — but anything unsaved in the new game is lost when you quit.',
+        message: 'This will erase your saved game and start over from day 1. This cannot be undone.',
         confirmLabel: '✨ New Game',
         cancelLabel: 'Cancel',
+        danger: true,
       });
       if (!ok) return;
     }

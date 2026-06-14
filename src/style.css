@@ -1229,6 +1229,31 @@ input[type="range"] {
   flex-wrap: wrap;
   gap: 6px;
 }
+.game-actions .secondary {
+  /* Save and Restore split the row evenly so the pair reads as paired
+     actions instead of randomly-sized chips. */
+  flex: 1 1 0;
+}
+
+/* Prominent full-width "Quit to Main Menu" button at the bottom of the
+   pause pane — it's the navigation action that exits the overlay and
+   earns its own row. Styled with the same accent fill as a primary
+   button so it carries visual weight. */
+.pause-quit-btn {
+  width: 100%;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: none;
+  cursor: pointer;
+  margin-top: 4px;
+}
+.pause-quit-btn:hover:not(:disabled) {
+  background: var(--accent-light);
+}
 .howto-section p {
   margin: 0;
   line-height: 1.55;

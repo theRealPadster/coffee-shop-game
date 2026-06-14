@@ -11,7 +11,6 @@ export interface BuyPhaseCallbacks {
   onStartDay: () => void;
   onStateChange: () => void;
   onRestore: (state: GameState) => void;
-  onReset: () => void;
   onQuitToTitle: () => void;
 }
 
@@ -121,7 +120,7 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
   const weatherChip = root.querySelector<HTMLElement>('.weather-chip');
   if (weatherChip) makeExpandableChip(weatherChip);
   attachHeaderMenu(root, () => {
-    void openPauseMenu({ state, onRestore: cb.onRestore, onReset: cb.onReset, onQuitToTitle: cb.onQuitToTitle });
+    void openPauseMenu({ state, onRestore: cb.onRestore, onQuitToTitle: cb.onQuitToTitle });
   });
   attachBuyPhaseEvents(root, state, cb);
 }

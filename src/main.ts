@@ -7,6 +7,7 @@ import { rollPrices, recordPrices } from './economy';
 import { generateForecast } from './weather';
 import { decayHype } from './hype';
 import { loadAndApplyTheme } from './themes';
+import { clearSave } from './save';
 import { openPauseMenu } from './pauseMenu';
 import { getMenuOpener } from './menuOpener';
 import { initOrientationPrompt } from './orientationPrompt';
@@ -33,12 +34,6 @@ function onRestore(restored: GameState): void {
   screen = 'game';
   renderCurrent();
 }
-function onReset(): void {
-  state = initialState();
-  screen = 'game';
-  renderCurrent();
-}
-
 function renderCurrent(): void {
   if (activeTeardown) {
     activeTeardown();
@@ -53,6 +48,11 @@ function renderCurrent(): void {
         renderCurrent();
       },
       onNewGame: () => {
+        // Wipe the saved game too — title-screen "New Game" is now a true
+        // reset (the confirm wording says so). This keeps the model simple:
+        // Continue = old save, New Game = fresh start, with no orphan save
+        // sitting around to confuse Restore in the middle of the new game.
+        clearSave();
         state = initialState();
         screen = 'game';
         renderCurrent();
@@ -69,14 +69,12 @@ function renderCurrent(): void {
       },
       onStateChange: noop,
       onRestore,
-      onReset,
       onQuitToTitle: quitToTitle,
     });
   } else {
     activeTeardown = renderStreetPhase(root, state, {
       onStateChange: noop,
       onRestore,
-      onReset,
       onQuitToTitle: quitToTitle,
       onCloseShop: () => {
         // Advance to next day: new prices, new weather, hype decay
@@ -94,7 +92,7 @@ function renderCurrent(): void {
 }
 
 function defaultOpenMenu(): void {
-  void openPauseMenu({ state, onRestore, onReset, onQuitToTitle: quitToTitle });
+  void openPauseMenu({ state, onRestore, onQuitToTitle: quitToTitle });
 }
 
 // Global Escape opens the pause menu — but only when we're actually in the
