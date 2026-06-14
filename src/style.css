@@ -1345,23 +1345,19 @@ input[type="range"] {
     padding-left: max(24px, env(safe-area-inset-left));
   }
   .title-card {
-    /* Tighter so it doesn't sprawl, and centered horizontally instead of
-       hugging the right edge with the buttons — sits over the sky band
-       between the shop and the menu. margin-top pushes it down off the
-       top corner so it doesn't feel jammed against the viewport edge. */
-    max-width: min(34%, 280px);
-    align-self: center;
-    margin-top: 6vh;
-    /* The card lives in a flex column that uses the overlay's right-side
-       padding, but we want it centered on the FULL viewport — undo the
-       overlay's right padding by adding an equivalent margin on the left
-       so the centering is relative to the canvas, not the overlay's
-       content box. */
-    margin-left: max(32px, env(safe-area-inset-right), 16vw);
+    /* Match the button-stack width so the card sits directly above the
+       button column — same horizontal position, same width, text centered
+       within (the overlay's text-align: center handles that). Pushed down
+       a little from the top edge so it doesn't feel jammed into the
+       corner, but not so far that it leaves the upper band of the
+       overlay. */
+    width: min(300px, 38%);
+    max-width: min(300px, 38%);
+    margin-top: 3vh;
   }
   /* In landscape the title font + tagline + padding all shrink a notch so
-     the card fits in the sky strip above the shop and doesn't overlap it.
-     Portrait stays at the larger original sizes. */
+     the card fits in the narrower button-column width without "Coffee Shop"
+     wrapping awkwardly. Portrait stays at the larger original sizes. */
   .title-card { padding: 12px 20px; border-radius: 12px; }
   .title-name { font-size: clamp(22px, 3.6vw, 32px); }
   .title-tagline { font-size: 12px; margin-top: 4px; }
