@@ -388,9 +388,6 @@ input[type="number"], input[type="text"], select {
 input[type="range"] {
   width: 100%;
   accent-color: var(--accent);
-  /* Vertical drags over a slider should scroll the page, not change the value
-     — a common mobile foot-gun. Horizontal drags still adjust the slider. */
-  touch-action: pan-y;
 }
 
 /* ===== Buy Phase ===== */
