@@ -1,6 +1,7 @@
 # Coffee Shop Game
 
 [![Play now](https://img.shields.io/badge/▶_Play_now-coffee--shop--game-6f4e37?style=for-the-badge)](https://therealpadster.github.io/coffee-shop-game/)
+
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
 A lemonade-stand-style coffee shop game where you run a sidewalk coffee stand. Each day has a **buy phase** (market prices, ingredient stocking, recipe tuning) and a **street phase** (pedestrians walk by, some stop, some buy).
