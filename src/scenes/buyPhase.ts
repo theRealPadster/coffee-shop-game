@@ -1,5 +1,6 @@
 import { GameState, INGREDIENTS, INGREDIENT_META, PRICE_BANDS, formatCents, Ingredient, DrinkType, activeRecipe, activeCupPrice } from '../state';
 import { classifyPrice, PriceLevel, BULK_TIERS, bulkCost } from '../economy';
+import { spoilageFraction, SPOILAGE } from '../spoilage';
 import { maxCups, bottleneck } from '../recipe';
 import { play } from '../audio';
 import { appHeaderHtml, attachHeaderMenu } from '../header';
@@ -132,6 +133,17 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
   const isBn = bn === ing;
   const dose = r.doses[ing] ?? 0;
 
+  // Perishables left over after today spoil/melt overnight at today's temperature.
+  const spoilFrac = spoilageFraction(ing, state.weather);
+  let spoilWarn = '';
+  if (spoilFrac > 0) {
+    const cfg = SPOILAGE[ing]!;
+    const bare = cfg.verb.slice(0, -1); // "spoils" → "spoil", "melts" → "melt"
+    const verbCap = cfg.verb.charAt(0).toUpperCase() + cfg.verb.slice(1); // "melts" → "Melts"
+    const tooltip = `${meta.label} ${cfg.verb} above ${cfg.temp}°C. Today is ${state.weather.tempC}°C, so some of any unsold ${meta.label.toLowerCase()} will ${bare} overnight.`;
+    spoilWarn = `<div class="spoil-warn" title="${escapeAttr(tooltip)}">⚠ ${verbCap} overnight</div>`;
+  }
+
   let doseCell: string;
   if (ing === 'cups') {
     doseCell = `<span class="dose-static">1 per drink</span>`;
@@ -157,6 +169,7 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
           ${BULK_TIERS.map(({ qty }) => `<span class="buy-cost">${formatCents(bulkCost(price, qty))}</span>`).join('')}
         </div>
       </div>
+      ${spoilWarn}
     </div>
   `;
 }

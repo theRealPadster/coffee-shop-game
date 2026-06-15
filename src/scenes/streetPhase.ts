@@ -1,4 +1,5 @@
-import { GameState, formatCents, freshStats, activeRecipe, activeCupPrice } from '../state';
+import { GameState, formatCents, freshStats, activeRecipe, activeCupPrice, INGREDIENT_META, Ingredient } from '../state';
+import { applySpoilage, SPOILAGE } from '../spoilage';
 import { drawBackground, drawShop, drawMenuSign } from '../render';
 import { weatherEmoji } from '../weather';
 import { spawnCustomer, decide, spawnRate, walkByRemark, Customer } from '../customers';
@@ -502,6 +503,18 @@ function showReportCard(state: GameState, cb: StreetPhaseCallbacks): void {
   const topComplaint = complaints.length > 0 ? `${complaints[0][0]} (${complaints[0][1]}x)` : '—';
   const tomorrow = state.tomorrowWeather;
 
+  // Leftover perishables degrade overnight based on today's heat. Apply now so
+  // the stock the buy phase shows already reflects the loss, and surface it here.
+  const spoiled = applySpoilage(state);
+  state.todayStats.spoiled = spoiled;
+  const spoiledRows = (Object.entries(spoiled) as [Ingredient, number][])
+    .map(([ingredient, lost]) => {
+      const verb = SPOILAGE[ingredient]?.verb ?? 'lost';
+      const meta = INGREDIENT_META[ingredient];
+      return `<div class="row spoiled"><span>${meta.emoji} ${meta.label} ${verb}</span><strong>−${lost}</strong></div>`;
+    })
+    .join('');
+
   const modal = document.createElement('div');
   modal.className = 'modal-backdrop';
   modal.innerHTML = `
@@ -513,6 +526,7 @@ function showReportCard(state: GameState, cb: StreetPhaseCallbacks): void {
       <div class="row"><span>Happy customers</span><strong>${state.todayStats.happyCount}</strong></div>
       <div class="row"><span>Grumpy customers</span><strong>${state.todayStats.grumpyCount}</strong></div>
       <div class="row"><span>Top complaint</span><strong>${topComplaint}</strong></div>
+      ${spoiledRows}
       <div class="row"><span>Hype change</span><strong>${hypeDelta >= 0 ? '+' : ''}${hypeDelta} (now ${Math.round(state.hype)})</strong></div>
       <div class="row"><span>Tomorrow</span><strong>${weatherEmoji(tomorrow.condition)} ${tomorrow.tempC}°C ${tomorrow.condition}</strong></div>
       <div class="actions">

@@ -9,8 +9,9 @@
 // tier is always 'vibe'; a future "weather analytics" upgrade (see TODO) flips
 // it to 'precise' to reveal the hard numbers.
 
-import { GameState, Weather } from '../state';
+import { GameState, Weather, Ingredient, INGREDIENT_META } from '../state';
 import { weatherEmoji, weatherEffects } from '../weather';
+import { SPOILAGE, spoilageFraction } from '../spoilage';
 
 export type WeatherChipVariant = 'buy' | 'street';
 export type InsightTier = 'vibe' | 'precise';
@@ -47,10 +48,45 @@ function weatherInsights(w: Weather): Insight[] {
   else if (a > -0.7) cravePrecise = 'Iced';
   else cravePrecise = 'Strongly iced';
 
-  return [
+  const insights: Insight[] = [
     { label: 'Foot traffic', vibe: trafficVibe, precise: trafficPrecise },
     { label: 'Crowd wants', vibe: craveVibe, precise: cravePrecise },
   ];
+
+  // Tie the spoilage warning back to the weather card so the player can see
+  // that today's heat is what's putting milk/ice at risk. Only render the row
+  // when at least one perishable is actually above its threshold today,
+  // otherwise the chip stays clean on cool days.
+  const perishables = perishableInsight(w);
+  if (perishables) insights.push(perishables);
+
+  return insights;
+}
+
+function perishableInsight(w: Weather): Insight | null {
+  const atRisk = (Object.keys(SPOILAGE) as Ingredient[])
+    .map((ing) => {
+      const frac = spoilageFraction(ing, w);
+      if (frac <= 0) return null;
+      return {
+        label: INGREDIENT_META[ing].label,
+        pct: Math.round(frac * 100),
+        verb: SPOILAGE[ing]!.verb,
+      };
+    })
+    .filter((x): x is { label: string; pct: number; verb: string } => x !== null);
+  if (atRisk.length === 0) return null;
+
+  let vibe: string;
+  if (atRisk.length === 1) {
+    // "spoils" → "spoiling", "melts" → "melting"
+    const gerund = `${atRisk[0].verb.slice(0, -1)}ing`;
+    vibe = `${atRisk[0].label} ${gerund}`;
+  } else {
+    vibe = `${atRisk.map((r) => r.label).join(' + ')} at risk`;
+  }
+  const precise = atRisk.map((r) => `${r.label} −${r.pct}%`).join(' · ');
+  return { label: 'Perishables', vibe, precise };
 }
 
 export function weatherChipHtml(
