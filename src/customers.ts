@@ -30,7 +30,11 @@ export interface Customer {
   thoughtUntil: number;
   decided: boolean;
   hasBought: boolean;
-  postSaleComplaint: string | null; // a recipe gripe voiced only after buying, as they walk off
+  // Taste reaction (praise OR gripe) voiced only after buying, as they walk off —
+  // you can't judge the recipe until you've sipped it. Both happy and unhappy
+  // buyers defer to this beat so the two read consistently.
+  postSaleReaction: string | null;
+  postSaleHype: number; // taste-reaction hype delta, applied when postSaleReaction is voiced
   remarked: boolean; // whether this passerby has already had a chance to badmouth the shop
 }
 
@@ -72,7 +76,8 @@ export function spawnCustomer(state: GameState, _canvasWidth: number, canvasHeig
     thoughtUntil: 0,
     decided: false,
     hasBought: false,
-    postSaleComplaint: null,
+    postSaleReaction: null,
+    postSaleHype: 0,
     remarked: false,
   };
 }
@@ -197,16 +202,22 @@ export function decide(state: GameState, c: Customer): DecisionResult {
     return { buy: true, thought, hypeDelta, complaintKey, isHappy: false };
   }
 
-  // Bought and satisfied — reaction scales with how well the drink landed.
+  // Bought and satisfied — reaction scales with how well the drink landed. A
+  // clean cup (no complaint at all) is worth +2 to hype, a dialed-in one ("best
+  // in town") +3. These are a touch generous on purpose: a fixed recipe always
+  // disappoints some slice of the preference spread, so the +2 floor lets a
+  // genuinely good shop build a reputation at a satisfying pace instead of
+  // crawling. The unhappy side stays −1/−2, which puts the break-even around a
+  // third of buyers happy (vs half before).
   const totalMiss = sugarMiss + coffeeMiss + milkMiss + iceMiss;
   let thought = 'Good value! ✨';
-  let hype = 1;
+  let hype = 2;
   if (weatherFit > 0.5) thought = 'Hits the spot ☂️';
   // A strong reputation is itself part of the draw — happy buyers often credit the buzz,
   // and the praise gets louder the better the reputation.
   const repRemark = goodRepRemark(state.hype);
   if (repRemark && Math.random() < 0.6) thought = repRemark;
-  if (totalMiss <= 1 && buyScore > 3) { thought = 'Best coffee in town! 🤩'; hype = 2; }
+  if (totalMiss <= 1 && buyScore > 3) { thought = 'Best coffee in town! 🤩'; hype = 3; }
   return { buy: true, thought, hypeDelta: hype, complaintKey: '', isHappy: true };
 }
 
