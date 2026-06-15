@@ -135,9 +135,13 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
 
   // Perishables left over after today spoil/melt overnight at today's temperature.
   const spoilFrac = spoilageFraction(ing, state.weather);
-  const spoilWarn = spoilFrac > 0
-    ? `<span class="spoil-warn" title="Leftover ${meta.label.toLowerCase()} ${SPOILAGE[ing]?.verb} overnight — about ${Math.round(spoilFrac * 100)}% of what's unsold today.">⚠ ${SPOILAGE[ing]?.verb} overnight</span>`
-    : '';
+  let spoilWarn = '';
+  if (spoilFrac > 0) {
+    const cfg = SPOILAGE[ing]!;
+    const bare = cfg.verb.slice(0, -1); // "spoils" → "spoil", "melts" → "melt"
+    const tooltip = `${meta.label} ${cfg.verb} above ${cfg.temp}°C. Today is ${state.weather.tempC}°C, so about ${Math.round(spoilFrac * 100)}% of any unsold ${meta.label.toLowerCase()} will ${bare} overnight.`;
+    spoilWarn = `<span class="spoil-warn" title="${escapeAttr(tooltip)}">⚠ ${cfg.verb} overnight</span>`;
+  }
 
   let doseCell: string;
   if (ing === 'cups') {
