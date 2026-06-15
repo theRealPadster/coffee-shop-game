@@ -1,6 +1,7 @@
 # Coffee Shop Game
 
 [![Play now](https://img.shields.io/badge/▶_Play_now-coffee--shop--game-6f4e37?style=for-the-badge)](https://therealpadster.github.io/coffee-shop-game/)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
 A lemonade-stand-style coffee shop game where you run a sidewalk coffee stand. Each day has a **buy phase** (market prices, ingredient stocking, recipe tuning) and a **street phase** (pedestrians walk by, some stop, some buy).
 
@@ -80,3 +81,7 @@ scripts/
 ```
 
 The `Sprite`/`render` abstraction is designed to be swapped from emoji to vector art later without changing scene code.
+
+## License
+
+Released under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0). In plain language: you can use, modify, and redistribute the code, but if you run a modified version publicly (e.g. host it on a website) you must publish your source under the same license. See [`LICENSE`](LICENSE) for the full text and [`CONTRIBUTING.md`](CONTRIBUTING.md) before opening a pull request.
