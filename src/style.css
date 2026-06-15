@@ -388,6 +388,10 @@ input[type="number"], input[type="text"], select {
 input[type="range"] {
   width: 100%;
   accent-color: var(--accent);
+  /* Hint to the browser: vertical drags over a slider should scroll the page
+     rather than change the value. Works well on Chrome; Firefox Android still
+     grabs the gesture on diagonal drags (tracked in the affordances TODO). */
+  touch-action: pan-y;
 }
 
 /* ===== Buy Phase ===== */
@@ -597,6 +601,22 @@ input[type="range"] {
   font-variant-numeric: tabular-nums;
 }
 .ingredient-row .stock strong { font-weight: 600; }
+
+/* Brief flash on stock + header cash after a successful buy, so the change is
+   visible even with sound off (a tester accidentally over-bought milk because
+   the cashier sound was muted and the numbers updated silently). The class is
+   re-toggled in JS on each buy, with a reflow in between to restart the
+   animation when the same row is bought again in quick succession. */
+@keyframes buy-flash {
+  0%   { background: color-mix(in srgb, var(--good) 35%, transparent); }
+  100% { background: transparent; }
+}
+.buy-flash {
+  animation: buy-flash 0.5s ease-out;
+  border-radius: 6px;
+  padding: 0 4px;
+  margin: 0 -4px;
+}
 .stock-unit, .price-unit { font-size: 11px; color: var(--muted); }
 .ingredient-row .price strong { font-weight: 600; }
 .ingredient-row .controls {
