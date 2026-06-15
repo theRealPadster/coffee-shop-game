@@ -234,9 +234,10 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
     btn.addEventListener('click', () => {
       const ing = btn.dataset.buy as Ingredient;
       const qty = parseInt(btn.dataset.qty || '0', 10);
-      attemptTrade(state, ing, qty);
+      if (!attemptTrade(state, ing, qty)) return;
       cb.onStateChange();
       rerender();
+      flashBuyFeedback(root, ing);
     });
   });
 
@@ -250,14 +251,30 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
   });
 }
 
-function attemptTrade(state: GameState, ing: Ingredient, qty: number): void {
-  if (qty <= 0) return;
+function attemptTrade(state: GameState, ing: Ingredient, qty: number): boolean {
+  if (qty <= 0) return false;
   const price = state.prices[ing];
   const cost = bulkCost(price, qty);
   // No partial buys — you either afford the whole bundle or nothing happens
   // (the Buy buttons are disabled in this case, so this is also a guard).
-  if (state.cash < cost) return;
+  if (state.cash < cost) return false;
   state.cash -= cost;
   state.stock[ing] += qty;
   play('cashier');
+  return true;
+}
+
+// Re-trigger the buy-flash animation on the row's stock count and the header
+// cash counter. Called after a full rerender, so we're attaching the class to
+// fresh DOM nodes. The reflow restart lets rapid clicks on the same row pulse
+// each time instead of locking the animation mid-frame.
+function flashBuyFeedback(root: HTMLElement, ing: Ingredient): void {
+  const flash = (el: HTMLElement | null): void => {
+    if (!el) return;
+    el.classList.remove('buy-flash');
+    void el.offsetWidth;
+    el.classList.add('buy-flash');
+  };
+  flash(root.querySelector<HTMLElement>(`.ingredient-row[data-row="${ing}"] .stock`));
+  flash(root.querySelector<HTMLElement>('#header-cash'));
 }
