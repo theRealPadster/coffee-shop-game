@@ -30,10 +30,6 @@ function pickFrom<T>(weighted: Array<[T, number]>): T {
 
 export function generateForecast(prev: Weather): Weather {
   const condition = pickFrom(TRANSITIONS[prev.condition]);
-  // Temperature random walks ±3, bounded by condition typical range
-  const step = Math.round((Math.random() - 0.5) * 6);
-  let tempC = prev.tempC + step;
-  // Condition pulls temperature toward its typical range
   const typical: Record<WeatherCondition, [number, number]> = {
     sunny: [18, 32],
     cloudy: [10, 22],
@@ -41,6 +37,21 @@ export function generateForecast(prev: Weather): Weather {
     snowy: [-8, 2],
   };
   const [lo, hi] = typical[condition];
+  const mid = (lo + hi) / 2;
+
+  // Random walk widened to ±5°C/day (was ±3) so temps actually drift across
+  // the band instead of wobbling around the starting value.
+  const step = Math.round((Math.random() - 0.5) * 10);
+
+  // Pull 30% of the way toward the new condition's midpoint each day. This is
+  // what turns a sunny week into actually-warm days and a rainy week into
+  // actually-cool days — without this, temp only moved when the walk happened
+  // to push it past the band edge, which kept everything stuck at 18–22°C.
+  const drift = Math.round((mid - prev.tempC) * 0.3);
+  let tempC = prev.tempC + step + drift;
+
+  // Soft clamp — the walk can still overshoot occasionally; the drift makes
+  // that less common but the bounds keep things sane.
   if (tempC < lo) tempC = lo + Math.floor(Math.random() * 3);
   if (tempC > hi) tempC = hi - Math.floor(Math.random() * 3);
   return { condition, tempC };
