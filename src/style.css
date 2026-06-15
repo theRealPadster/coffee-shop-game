@@ -388,6 +388,10 @@ input[type="number"], input[type="text"], select {
 input[type="range"] {
   width: 100%;
   accent-color: var(--accent);
+  /* Hint to the browser: vertical drags over a slider should scroll the page
+     rather than change the value. Works well on Chrome; Firefox Android still
+     grabs the gesture on diagonal drags (tracked in the affordances TODO). */
+  touch-action: pan-y;
 }
 
 /* ===== Buy Phase ===== */
