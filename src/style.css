@@ -834,6 +834,103 @@ input[type="range"] {
    gets no hover feedback at all. */
 #start-day-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--good) 82%, white); }
 
+/* ===== Help tips (day-1 onboarding) ===== */
+/* Small floating callout pills anchored to specific buy-phase controls. They
+   auto-show on day 1, can be re-shown on any later day via the .help-fab
+   button, and can be individually dismissed via the × in each pill. The state
+   (which ids are dismissed + replay flag) lives in buyPhase.ts module scope. */
+.help-tip {
+  position: absolute;
+  z-index: 10;
+  max-width: 16em;
+  padding: 6px 26px 6px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+  border: 1px solid var(--accent-light);
+  box-shadow: var(--shadow);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--ink);
+  text-align: left;
+}
+.help-tip::before {
+  /* Small caret pointing at the anchor. The transform-rotate trick keeps two
+     borders visible (the two that face the parent), so the arrow looks like a
+     continuous extension of the pill. */
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: inherit;
+  border-left: 1px solid var(--accent-light);
+  border-top: 1px solid var(--accent-light);
+  transform: rotate(45deg);
+}
+.help-tip__close {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 6px;
+  cursor: pointer;
+  color: var(--muted);
+}
+.help-tip__close:hover { color: var(--ink); }
+
+/* Tip-type sits below the Hot/Iced toggle inside the serving banner. */
+.serving-banner { position: relative; }
+.help-tip--tip-type {
+  top: calc(100% + 6px);
+  right: 8px;
+}
+.help-tip--tip-type::before { top: -6px; right: 14px; }
+
+/* Tip-dose: above the slider in the first ingredient row. */
+.ingredient-row .row-top { position: relative; }
+.help-tip--tip-dose {
+  bottom: calc(100% + 6px);
+  right: 8px;
+}
+.help-tip--tip-dose::before {
+  bottom: -6px;
+  right: 14px;
+  transform: rotate(225deg);
+}
+
+/* Tip-price: below the row-bottom of the first ingredient row. */
+.ingredient-row .row-bottom { position: relative; }
+.help-tip--tip-price {
+  top: calc(100% + 6px);
+  right: 8px;
+}
+.help-tip--tip-price::before { top: -6px; right: 14px; }
+
+/* Floating "?" button — fixed bottom-right of the buy phase, the always-on
+   replay affordance. Stays clear of system bars via safe-area-inset. */
+.help-fab {
+  position: fixed;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  right: calc(16px + env(safe-area-inset-right));
+  z-index: 50;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.help-fab:hover { background: var(--secondary-hover); }
+
 /* ===== Hype chip ===== */
 /* Mirrors the weather chip's grow mechanics, but sits on the right of the status
    row and grows anchored to its right edge. The head is the live meter (label +
@@ -1329,6 +1426,27 @@ input[type="range"] {
   margin: 0;
   line-height: 1.55;
   color: var(--ink);
+}
+/* Glossary list in the "Controls reference" section — each entry is a term
+   (UI element name) followed by a short description, indented and softened
+   so it reads like a reference card rather than a paragraph. */
+.howto-glossary {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px 0;
+  margin: 6px 0 12px;
+  padding: 0;
+  line-height: 1.45;
+}
+.howto-glossary dt {
+  font-weight: 600;
+  color: var(--ink);
+}
+.howto-glossary dd {
+  margin: 0 0 4px 0;
+  padding-left: 12px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 /* Title screen */

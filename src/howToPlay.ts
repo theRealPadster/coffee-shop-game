@@ -57,6 +57,39 @@ export function openHowToPlay(): Promise<void> {
             go fullscreen, or quit back to the title.
           </p>
         </section>
+        <section class="howto-section">
+          <h3>Controls reference</h3>
+          <p><strong>Buy phase</strong></p>
+          <dl class="howto-glossary">
+            <dt>☕🧊 Serving Today / Hot · Iced toggle</dt>
+            <dd>Pick which drink you're selling today. Hot and iced are separate recipes with separate cup prices — the toggle remembers each.</dd>
+            <dt>$ per cup</dt>
+            <dd>What customers pay. Hype, weather, and the price they see all factor into whether they buy.</dd>
+            <dt>🌤️ Weather chip</dt>
+            <dd>Tap to expand. Shows today's foot traffic, what the crowd's craving, and a "perishables at risk" warning when it's hot enough for milk or ice to spoil overnight.</dd>
+            <dt>📣 Hype chip</dt>
+            <dd>Tap to expand. Your shop's buzz meter — happy customers raise it, walk-aways and unhappy tasters drop it. Higher hype means more foot traffic and a higher price tolerance.</dd>
+            <dt>Dose slider (per ingredient)</dt>
+            <dd>How much of each ingredient goes in a cup. Iced ingredient only applies when you're serving iced.</dd>
+            <dt>Stock + spoilage warning</dt>
+            <dd>How much you have on hand. Milk and ice show a ⚠ "spoils/melts overnight" warning when today's temp is above their threshold — leftovers degrade by morning.</dd>
+            <dt>Market price chip + sparkline</dt>
+            <dd>Today's market level (▼▼ bargain → ▲▲ expensive) and a 5-day history. Buy when it dips.</dd>
+            <dt>Buy 5 / 10 / 20 + Bottleneck</dt>
+            <dd>Larger bundles include a small per-unit discount. The 🔻 bottleneck marker shows which ingredient is capping how many cups you can brew today.</dd>
+          </dl>
+          <p><strong>Street phase</strong></p>
+          <dl class="howto-glossary">
+            <dt>HUD counters</dt>
+            <dd>Sold (cups served) · Walk-bys (people who passed without stopping) · Cups left (turns amber when low, red when sold out).</dd>
+            <dt>Time of day</dt>
+            <dd>The day runs on a 12-hour clock from 8am to 8pm. Foot traffic varies through the day.</dd>
+            <dt>Customer thought bubbles</dt>
+            <dd>What they were thinking — praise, complaints, or "wanted iced today" — useful signal for recipe tuning.</dd>
+            <dt>Close shop</dt>
+            <dd>End the day early. You'll still see the report card.</dd>
+          </dl>
+        </section>
       `;
     },
   });

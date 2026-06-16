@@ -16,6 +16,15 @@ export interface BuyPhaseCallbacks {
   onQuitToTitle: () => void;
 }
 
+// Module-local UI state for the day-1 help tips. Kept out of GameState because
+// it's transient screen state, not save-worthy:
+//   - replayHints lets the floating "?" button reshow tips on a later day; it
+//     resets when the player starts a day, so a replay is good for one buy phase.
+//   - dismissedTips tracks which tip ids the player closed via the × button;
+//     cleared at the same time so a fresh day-1 / replay starts clean.
+let replayHints = false;
+const dismissedTips = new Set<string>();
+
 const LEVEL_LABEL: Record<PriceLevel, string> = {
   'very-low': 'bargain',
   'low': 'cheap',
@@ -64,11 +73,22 @@ function priceSparkline(history: number[], band: [number, number]): string {
   return `<svg class="price-spark ${dir}" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><title>${title}</title><polyline points="${points}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" /></svg>`;
 }
 
+// Render a single help tip if hints are showing for this phase and the tip
+// hasn't been dismissed. Returns an empty string otherwise so callers can
+// unconditionally interpolate it into a template.
+function helpTip(id: string, text: string, showHints: boolean): string {
+  if (!showHints || dismissedTips.has(id)) return '';
+  return `<div class="help-tip help-tip--${id}" data-tip-id="${id}">${text}<button class="help-tip__close" aria-label="Dismiss tip" data-dismiss-tip="${id}">×</button></div>`;
+}
+
 export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhaseCallbacks): void {
   const r = activeRecipe(state);
   const bn = bottleneck(state.stock, r);
   const cups = maxCups(state.stock, r);
   const typeIcon = r.type === 'hot' ? '☕' : '🧊';
+  // Hints auto-show on day 1; the floating "?" button flips replayHints to
+  // bring them back on any later day for the current buy phase.
+  const showHints = state.day === 1 || replayHints;
 
   root.innerHTML = `
     ${appHeaderHtml(state, { variant: 'buy' })}
@@ -87,6 +107,7 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
               <button data-type="iced" class="${r.type === 'iced' ? 'active' : ''}">Iced 🧊</button>
             </div>
           </div>
+          ${helpTip('tip-type', "Hot and iced are separate recipes with separate prices — switch which you're serving today.", showHints)}
           <div class="serving-main">
             <span class="serving-icon">${typeIcon}</span>
             <input id="recipe-name-input" type="text" value="${escapeAttr(r.name)}" />
@@ -99,7 +120,7 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
         </div>
 
         <div class="shop-rows">
-          ${INGREDIENTS.map(ing => shopRow(state, ing, r, bn)).join('')}
+          ${INGREDIENTS.map((ing, idx) => shopRow(state, ing, r, bn, showHints && idx === 0)).join('')}
         </div>
 
         <div class="cups-producible">
@@ -112,6 +133,7 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
         <button id="start-day-btn">Start Day ▶</button>
       </div>
       </div>
+      <button class="help-fab" id="help-fab-btn" aria-label="Show tutorial hints" title="Show tutorial hints">?</button>
     </div>
   `;
 
@@ -125,7 +147,7 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
   attachBuyPhaseEvents(root, state, cb);
 }
 
-function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot'], bn: Ingredient | null): string {
+function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot'], bn: Ingredient | null, showHintsForThisRow: boolean): string {
   const meta = INGREDIENT_META[ing];
   const price = state.prices[ing];
   const level = classifyPrice(price, PRICE_BANDS[ing]);
@@ -160,6 +182,7 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
       <div class="row-top">
         <div class="name">${meta.emoji} ${meta.label}</div>
         ${doseCell}
+        ${helpTip('tip-dose', 'Drag to set how much of this ingredient goes in each cup.', showHintsForThisRow)}
       </div>
       <div class="row-bottom">
         <div class="stock"><strong>${stock}</strong> <span class="stock-unit">in stock</span></div>
@@ -168,6 +191,7 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
           ${BULK_TIERS.map(({ qty }) => `<button class="buy-btn" data-buy="${ing}" data-qty="${qty}" ${state.cash < bulkCost(price, qty) ? 'disabled' : ''}>Buy ${qty}</button>`).join('')}
           ${BULK_TIERS.map(({ qty }) => `<span class="buy-cost">${formatCents(bulkCost(price, qty))}</span>`).join('')}
         </div>
+        ${helpTip('tip-price', "Today's market price plus the last few days — buy when it dips.", showHintsForThisRow)}
       </div>
       ${spoilWarn}
     </div>
@@ -259,8 +283,32 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
     if (maxCups(state.stock, activeRecipe(state)) <= 0) {
       if (!confirm("You can't brew any cups with your current recipe and stock. Start day anyway?")) return;
     }
+    // Reset hint UI state so a fresh day-1 (new game) or a "?" replay later
+    // starts with all tips visible again.
+    replayHints = false;
+    dismissedTips.clear();
     play('bell');
     cb.onStartDay();
+  });
+
+  // Help "?" floating button — bring all hint tips back for the current buy
+  // phase, regardless of day. Cleared by Start Day so it's per-buy-phase only.
+  root.querySelector<HTMLButtonElement>('#help-fab-btn')?.addEventListener('click', () => {
+    replayHints = true;
+    dismissedTips.clear();
+    rerender();
+  });
+
+  // × on each tip — dismiss in place without a full rerender (so the surrounding
+  // controls aren't reflowed). Remember the id so subsequent rerenders skip it.
+  root.querySelectorAll<HTMLButtonElement>('[data-dismiss-tip]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.dismissTip;
+      if (!id) return;
+      dismissedTips.add(id);
+      btn.closest('.help-tip')?.remove();
+    });
   });
 }
 
