@@ -108,8 +108,8 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
               <button data-type="hot" class="${r.type === 'hot' ? 'active' : ''}">Hot ☕</button>
               <button data-type="iced" class="${r.type === 'iced' ? 'active' : ''}">Iced 🧊</button>
             </div>
+            ${helpTip('tip-type', "Hot and iced are separate recipes with separate prices — switch which you're serving today.", showHints, 'right')}
           </div>
-          ${helpTip('tip-type', "Hot and iced are separate recipes with separate prices — switch which you're serving today.", showHints, 'right')}
           <div class="serving-main">
             <span class="serving-icon">${typeIcon}</span>
             <input id="recipe-name-input" type="text" value="${escapeAttr(r.name)}" />
@@ -184,8 +184,8 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
       <div class="row-top">
         <div class="name">${meta.emoji} ${meta.label}</div>
         ${doseCell}
+        ${helpTip('tip-dose', 'Drag to set how much of this ingredient goes in each cup.', showHintsForThisRow, 'right')}
       </div>
-      ${helpTip('tip-dose', 'Drag to set how much of this ingredient goes in each cup.', showHintsForThisRow, 'right')}
       <div class="row-bottom">
         <div class="stock"><strong>${stock}</strong> <span class="stock-unit">in stock</span></div>
         <div class="price"><strong>${formatCents(price)}</strong> <span class="price-unit">each</span> ${priceChip(level)}${priceSparkline(state.priceHistory[ing], PRICE_BANDS[ing])}</div>
@@ -193,8 +193,8 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
           ${BULK_TIERS.map(({ qty }) => `<button class="buy-btn" data-buy="${ing}" data-qty="${qty}" ${state.cash < bulkCost(price, qty) ? 'disabled' : ''}>Buy ${qty}</button>`).join('')}
           ${BULK_TIERS.map(({ qty }) => `<span class="buy-cost">${formatCents(bulkCost(price, qty))}</span>`).join('')}
         </div>
+        ${helpTip('tip-price', "Today's market price plus the last few days — buy when it dips.", showHintsForThisRow, 'left')}
       </div>
-      ${helpTip('tip-price', "Today's market price plus the last few days — buy when it dips.", showHintsForThisRow, 'left')}
       ${spoilWarn}
     </div>
   `;

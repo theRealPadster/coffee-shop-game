@@ -835,16 +835,22 @@ input[type="range"] {
 #start-day-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--good) 82%, white); }
 
 /* ===== Help tips (day-1 onboarding) ===== */
-/* Inline callout pills slotted in between buy-phase rows. They auto-show on
-   day 1, can be re-shown on any later day via the .help-fab button, and can
-   be individually dismissed via the × in each pill. The state (which ids are
-   dismissed + replay flag) lives in buyPhase.ts module scope. Each tip carries
-   a caret pointing up at the control just above it. */
+/* Floating callout popovers anchored to specific buy-phase controls. They
+   auto-show on day 1, can be re-shown on any later day via the .help-fab
+   button, and can be individually dismissed via the × in each pill. The state
+   (which ids are dismissed + replay flag) lives in buyPhase.ts module scope.
+
+   Each tip is position:absolute inside its anchor's container (.serving-top,
+   .row-top, .price — all made position:relative below) and sits just beneath
+   the control with a caret pointing up at it. max-width uses a vw clamp so the
+   pill never runs off either screen edge, which also makes it adapt to resize
+   and orientation changes without any JS. */
 .help-tip {
-  position: relative;
-  display: block;
-  margin: 8px 0;
-  max-width: 24em;
+  position: absolute;
+  top: calc(100% + 7px);
+  z-index: 30;
+  width: max-content;
+  max-width: min(20em, 72vw);
   padding: 8px 28px 8px 12px;
   border-radius: 10px;
   background: color-mix(in srgb, var(--accent) 10%, var(--panel));
@@ -857,9 +863,9 @@ input[type="range"] {
   text-align: left;
 }
 .help-tip::before {
-  /* Caret pointing up at the control just above the tip. transform-rotate
-     keeps two borders visible (the ones facing the anchor), so the arrow
-     reads as a continuous extension of the pill. */
+  /* Caret pointing up at the anchor control. transform-rotate keeps the two
+     borders facing the anchor visible, so the arrow reads as a continuous
+     extension of the pill. */
   content: '';
   position: absolute;
   top: -6px;
@@ -870,7 +876,11 @@ input[type="range"] {
   border-top: 1px solid var(--accent-light);
   transform: rotate(45deg);
 }
+/* Right-anchored tips (toggle, slider) hug the right edge of their container
+   and extend leftward; left-anchored tips (price chip) hug the left edge. */
+.help-tip--arrow-right { right: 0; }
 .help-tip--arrow-right::before { right: 16px; }
+.help-tip--arrow-left { left: 0; }
 .help-tip--arrow-left::before { left: 16px; }
 
 .help-tip__close {
@@ -887,8 +897,12 @@ input[type="range"] {
 }
 .help-tip__close:hover { color: var(--ink); }
 
-/* Right-align the tip when the anchor is on the right edge (slider, toggle). */
-.help-tip--arrow-right { margin-left: auto; }
+/* Anchor containers for the tips. row-top/row-bottom hug the row edges so the
+   pill can't be pushed off-screen; the caret still points at the right cluster
+   (slider) or left cluster (stock + price chip). */
+.serving-top { position: relative; }
+.ingredient-row .row-top { position: relative; }
+.ingredient-row .row-bottom { position: relative; }
 
 /* Floating "?" button — fixed bottom-right of the buy phase, the always-on
    replay affordance. Stays clear of system bars via safe-area-inset. */
