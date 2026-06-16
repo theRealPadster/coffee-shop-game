@@ -27,8 +27,9 @@ export function openHowToPlay(): Promise<void> {
             through <strong>▲▲ expensive</strong> — and a 5-day sparkline so you
             can stock up when prices dip. <strong>Buy 10</strong> and
             <strong>Buy 20</strong> bundles include a small per-unit discount.
-            The <strong>🔻 bottleneck</strong> badge marks the ingredient that's
-            limiting how many cups you can brew today.
+            The ingredient that's limiting today's brew is
+            <strong>highlighted</strong> in the buy panel and called out under
+            "Cups producible today".
           </p>
         </section>
         <section class="howto-section">
@@ -75,8 +76,10 @@ export function openHowToPlay(): Promise<void> {
             <dd>How much you have on hand. Milk and ice show a ⚠ "spoils/melts overnight" warning when today's temp is above their threshold — leftovers degrade by morning.</dd>
             <dt>Market price chip + sparkline</dt>
             <dd>Today's market level (▼▼ bargain → ▲▲ expensive) and a 5-day history. Buy when it dips.</dd>
-            <dt>Buy 5 / 10 / 20 + Bottleneck</dt>
-            <dd>Larger bundles include a small per-unit discount. The 🔻 bottleneck marker shows which ingredient is capping how many cups you can brew today.</dd>
+            <dt>Buy 5 / 10 / 20</dt>
+            <dd>Larger bundles include a small per-unit discount.</dd>
+            <dt>Bottleneck highlight</dt>
+            <dd>The ingredient capping today's cup count is shaded in the buy panel and named under "Cups producible today".</dd>
           </dl>
           <p><strong>Street phase</strong></p>
           <dl class="howto-glossary">
@@ -87,7 +90,7 @@ export function openHowToPlay(): Promise<void> {
             <dt>Customer thought bubbles</dt>
             <dd>What they were thinking — praise, complaints, or "wanted iced today" — useful signal for recipe tuning.</dd>
             <dt>Close shop</dt>
-            <dd>End the day early. You'll still see the report card.</dd>
+            <dd>End the day early — handy when you're out of an ingredient. Customers who walk up to a stand that can't serve them get upset, which costs hype, so it's often better to close than keep turning people away. You'll still see the report card.</dd>
           </dl>
         </section>
       `;
