@@ -75,10 +75,12 @@ function priceSparkline(history: number[], band: [number, number]): string {
 
 // Render a single help tip if hints are showing for this phase and the tip
 // hasn't been dismissed. Returns an empty string otherwise so callers can
-// unconditionally interpolate it into a template.
-function helpTip(id: string, text: string, showHints: boolean): string {
+// unconditionally interpolate it into a template. `arrow` controls where the
+// caret sits — 'right' for tips anchored to right-edge controls (slider,
+// type toggle), 'left' for the price chip area which sits on the left.
+function helpTip(id: string, text: string, showHints: boolean, arrow: 'left' | 'right' = 'right'): string {
   if (!showHints || dismissedTips.has(id)) return '';
-  return `<div class="help-tip help-tip--${id}" data-tip-id="${id}">${text}<button class="help-tip__close" aria-label="Dismiss tip" data-dismiss-tip="${id}">×</button></div>`;
+  return `<div class="help-tip help-tip--arrow-${arrow}" data-tip-id="${id}">${text}<button class="help-tip__close" aria-label="Dismiss tip" data-dismiss-tip="${id}">×</button></div>`;
 }
 
 export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhaseCallbacks): void {
@@ -107,7 +109,7 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
               <button data-type="iced" class="${r.type === 'iced' ? 'active' : ''}">Iced 🧊</button>
             </div>
           </div>
-          ${helpTip('tip-type', "Hot and iced are separate recipes with separate prices — switch which you're serving today.", showHints)}
+          ${helpTip('tip-type', "Hot and iced are separate recipes with separate prices — switch which you're serving today.", showHints, 'right')}
           <div class="serving-main">
             <span class="serving-icon">${typeIcon}</span>
             <input id="recipe-name-input" type="text" value="${escapeAttr(r.name)}" />
@@ -182,8 +184,8 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
       <div class="row-top">
         <div class="name">${meta.emoji} ${meta.label}</div>
         ${doseCell}
-        ${helpTip('tip-dose', 'Drag to set how much of this ingredient goes in each cup.', showHintsForThisRow)}
       </div>
+      ${helpTip('tip-dose', 'Drag to set how much of this ingredient goes in each cup.', showHintsForThisRow, 'right')}
       <div class="row-bottom">
         <div class="stock"><strong>${stock}</strong> <span class="stock-unit">in stock</span></div>
         <div class="price"><strong>${formatCents(price)}</strong> <span class="price-unit">each</span> ${priceChip(level)}${priceSparkline(state.priceHistory[ing], PRICE_BANDS[ing])}</div>
@@ -191,8 +193,8 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
           ${BULK_TIERS.map(({ qty }) => `<button class="buy-btn" data-buy="${ing}" data-qty="${qty}" ${state.cash < bulkCost(price, qty) ? 'disabled' : ''}>Buy ${qty}</button>`).join('')}
           ${BULK_TIERS.map(({ qty }) => `<span class="buy-cost">${formatCents(bulkCost(price, qty))}</span>`).join('')}
         </div>
-        ${helpTip('tip-price', "Today's market price plus the last few days — buy when it dips.", showHintsForThisRow)}
       </div>
+      ${helpTip('tip-price', "Today's market price plus the last few days — buy when it dips.", showHintsForThisRow, 'left')}
       ${spoilWarn}
     </div>
   `;

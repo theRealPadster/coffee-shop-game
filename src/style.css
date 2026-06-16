@@ -835,31 +835,34 @@ input[type="range"] {
 #start-day-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--good) 82%, white); }
 
 /* ===== Help tips (day-1 onboarding) ===== */
-/* Small floating callout pills anchored to specific buy-phase controls. They
-   auto-show on day 1, can be re-shown on any later day via the .help-fab
-   button, and can be individually dismissed via the × in each pill. The state
-   (which ids are dismissed + replay flag) lives in buyPhase.ts module scope. */
+/* Inline callout pills slotted in between buy-phase rows. They auto-show on
+   day 1, can be re-shown on any later day via the .help-fab button, and can
+   be individually dismissed via the × in each pill. The state (which ids are
+   dismissed + replay flag) lives in buyPhase.ts module scope. Each tip carries
+   a caret pointing up at the control just above it. */
 .help-tip {
-  position: absolute;
-  z-index: 10;
-  max-width: 16em;
-  padding: 6px 26px 6px 10px;
+  position: relative;
+  display: block;
+  margin: 8px 0;
+  max-width: 24em;
+  padding: 8px 28px 8px 12px;
   border-radius: 10px;
   background: color-mix(in srgb, var(--accent) 10%, var(--panel));
   border: 1px solid var(--accent-light);
   box-shadow: var(--shadow);
   font-size: 12px;
   font-weight: 400;
-  line-height: 1.35;
+  line-height: 1.4;
   color: var(--ink);
   text-align: left;
 }
 .help-tip::before {
-  /* Small caret pointing at the anchor. The transform-rotate trick keeps two
-     borders visible (the two that face the parent), so the arrow looks like a
-     continuous extension of the pill. */
+  /* Caret pointing up at the control just above the tip. transform-rotate
+     keeps two borders visible (the ones facing the anchor), so the arrow
+     reads as a continuous extension of the pill. */
   content: '';
   position: absolute;
+  top: -6px;
   width: 10px;
   height: 10px;
   background: inherit;
@@ -867,9 +870,12 @@ input[type="range"] {
   border-top: 1px solid var(--accent-light);
   transform: rotate(45deg);
 }
+.help-tip--arrow-right::before { right: 16px; }
+.help-tip--arrow-left::before { left: 16px; }
+
 .help-tip__close {
   position: absolute;
-  top: 2px;
+  top: 4px;
   right: 4px;
   background: transparent;
   border: none;
@@ -881,33 +887,8 @@ input[type="range"] {
 }
 .help-tip__close:hover { color: var(--ink); }
 
-/* Tip-type sits below the Hot/Iced toggle inside the serving banner. */
-.serving-banner { position: relative; }
-.help-tip--tip-type {
-  top: calc(100% + 6px);
-  right: 8px;
-}
-.help-tip--tip-type::before { top: -6px; right: 14px; }
-
-/* Tip-dose: above the slider in the first ingredient row. */
-.ingredient-row .row-top { position: relative; }
-.help-tip--tip-dose {
-  bottom: calc(100% + 6px);
-  right: 8px;
-}
-.help-tip--tip-dose::before {
-  bottom: -6px;
-  right: 14px;
-  transform: rotate(225deg);
-}
-
-/* Tip-price: below the row-bottom of the first ingredient row. */
-.ingredient-row .row-bottom { position: relative; }
-.help-tip--tip-price {
-  top: calc(100% + 6px);
-  right: 8px;
-}
-.help-tip--tip-price::before { top: -6px; right: 14px; }
+/* Right-align the tip when the anchor is on the right edge (slider, toggle). */
+.help-tip--arrow-right { margin-left: auto; }
 
 /* Floating "?" button — fixed bottom-right of the buy phase, the always-on
    replay affordance. Stays clear of system bars via safe-area-inset. */
