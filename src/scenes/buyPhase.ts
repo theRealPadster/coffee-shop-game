@@ -1,3 +1,4 @@
+import { computePosition, autoUpdate, offset, flip, shift, arrow, type VirtualElement } from '@floating-ui/dom';
 import { GameState, INGREDIENTS, INGREDIENT_META, PRICE_BANDS, formatCents, Ingredient, DrinkType, activeRecipe, activeCupPrice } from '../state';
 import { classifyPrice, PriceLevel, BULK_TIERS, bulkCost } from '../economy';
 import { spoilageFraction, SPOILAGE } from '../spoilage';
@@ -24,6 +25,9 @@ export interface BuyPhaseCallbacks {
 //     cleared at the same time so a fresh day-1 / replay starts clean.
 let replayHints = false;
 const dismissedTips = new Set<string>();
+// Floating-UI autoUpdate cleanups for the currently-mounted tips. Cleared and
+// rebuilt on every buy-phase render so detached anchors stop being watched.
+let tipCleanups: Array<() => void> = [];
 
 const LEVEL_LABEL: Record<PriceLevel, string> = {
   'very-low': 'bargain',
@@ -75,12 +79,80 @@ function priceSparkline(history: number[], band: [number, number]): string {
 
 // Render a single help tip if hints are showing for this phase and the tip
 // hasn't been dismissed. Returns an empty string otherwise so callers can
-// unconditionally interpolate it into a template. `arrow` controls where the
-// caret sits — 'right' for tips anchored to right-edge controls (slider,
-// type toggle), 'left' for the price chip area which sits on the left.
-function helpTip(id: string, text: string, showHints: boolean, arrow: 'left' | 'right' = 'right'): string {
+// unconditionally interpolate it into a template. Positioning (and the arrow)
+// is handled by Floating UI after mount — see positionHelpTips().
+function helpTip(id: string, text: string, showHints: boolean): string {
   if (!showHints || dismissedTips.has(id)) return '';
-  return `<div class="help-tip help-tip--arrow-${arrow}" data-tip-id="${id}">${text}<button class="help-tip__close" aria-label="Dismiss tip" data-dismiss-tip="${id}">×</button></div>`;
+  return `<div class="help-tip" data-tip-id="${id}" role="note">${text}<button class="help-tip__close" aria-label="Dismiss tip" data-dismiss-tip="${id}">×</button><span class="help-tip__arrow"></span></div>`;
+}
+
+// Anchor each mounted tip to its target with Floating UI: the tip floats just
+// below the control with the arrow pointing at it, flips/shifts to stay on
+// screen, and repositions on resize/scroll/orientation via autoUpdate. The
+// slider tip uses a virtual element pinned to the thumb's computed position so
+// the arrow tracks the current dose value rather than the track center.
+function positionHelpTips(root: HTMLElement): void {
+  for (const fn of tipCleanups) fn();
+  tipCleanups = [];
+
+  const place = (tip: HTMLElement, reference: Element | VirtualElement): void => {
+    const arrowEl = tip.querySelector<HTMLElement>('.help-tip__arrow');
+    const cleanup = autoUpdate(reference, tip, () => {
+      computePosition(reference, tip, {
+        placement: 'bottom',
+        middleware: [
+          offset(8),
+          flip({ fallbackPlacements: ['top'] }),
+          shift({ padding: 8 }),
+          ...(arrowEl ? [arrow({ element: arrowEl, padding: 8 })] : []),
+        ],
+      }).then(({ x, y, placement, middlewareData }) => {
+        Object.assign(tip.style, { left: `${x}px`, top: `${y}px` });
+        if (arrowEl && middlewareData.arrow) {
+          const { x: ax } = middlewareData.arrow;
+          // Arrow sits on whichever edge faces the reference.
+          const onTop = placement.startsWith('bottom');
+          Object.assign(arrowEl.style, {
+            left: ax != null ? `${ax}px` : '',
+            top: onTop ? '-5px' : '',
+            bottom: onTop ? '' : '-5px',
+          });
+          arrowEl.classList.toggle('help-tip__arrow--down', !onTop);
+        }
+      });
+    });
+    tipCleanups.push(cleanup);
+  };
+
+  // tip-type → the Hot/Iced toggle.
+  const typeTip = root.querySelector<HTMLElement>('[data-tip-id="tip-type"]');
+  const toggle = root.querySelector<HTMLElement>('.type-toggle');
+  if (typeTip && toggle) place(typeTip, toggle);
+
+  // tip-dose → a virtual element at the first slider's thumb position.
+  const doseTip = root.querySelector<HTMLElement>('[data-tip-id="tip-dose"]');
+  const slider = root.querySelector<HTMLInputElement>('input[type="range"][data-ing]');
+  if (doseTip && slider) {
+    const thumbRef: VirtualElement = {
+      getBoundingClientRect() {
+        const r = slider.getBoundingClientRect();
+        const min = Number(slider.min) || 0;
+        const max = Number(slider.max) || 100;
+        const val = Number(slider.value) || 0;
+        const pct = max > min ? (val - min) / (max - min) : 0;
+        // Inset by ~half a thumb so the extremes don't overhang the track.
+        const inset = 9;
+        const cx = r.left + inset + pct * (r.width - inset * 2);
+        return { width: 0, height: r.height, x: cx, y: r.top, left: cx, right: cx, top: r.top, bottom: r.bottom };
+      },
+    };
+    place(doseTip, thumbRef);
+  }
+
+  // tip-price → the price chip / sparkline cell.
+  const priceTip = root.querySelector<HTMLElement>('[data-tip-id="tip-price"]');
+  const priceCell = root.querySelector<HTMLElement>('.ingredient-row .price');
+  if (priceTip && priceCell) place(priceTip, priceCell);
 }
 
 export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhaseCallbacks): void {
@@ -108,7 +180,7 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
               <button data-type="hot" class="${r.type === 'hot' ? 'active' : ''}">Hot ☕</button>
               <button data-type="iced" class="${r.type === 'iced' ? 'active' : ''}">Iced 🧊</button>
             </div>
-            ${helpTip('tip-type', "Hot and iced are separate recipes with separate prices — switch which you're serving today.", showHints, 'right')}
+            ${helpTip('tip-type', "Hot and iced are separate recipes with separate prices — switch which you're serving today.", showHints)}
           </div>
           <div class="serving-main">
             <span class="serving-icon">${typeIcon}</span>
@@ -147,6 +219,7 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
     void openPauseMenu({ state, onRestore: cb.onRestore, onQuitToTitle: cb.onQuitToTitle });
   });
   attachBuyPhaseEvents(root, state, cb);
+  positionHelpTips(root);
 }
 
 function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot'], bn: Ingredient | null, showHintsForThisRow: boolean): string {
@@ -184,7 +257,7 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
       <div class="row-top">
         <div class="name">${meta.emoji} ${meta.label}</div>
         ${doseCell}
-        ${helpTip('tip-dose', 'Drag to set how much of this ingredient goes in each cup.', showHintsForThisRow, 'right')}
+        ${helpTip('tip-dose', 'Drag to set how much of this ingredient goes in each cup.', showHintsForThisRow)}
       </div>
       <div class="row-bottom">
         <div class="stock"><strong>${stock}</strong> <span class="stock-unit">in stock</span></div>
@@ -193,7 +266,7 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
           ${BULK_TIERS.map(({ qty }) => `<button class="buy-btn" data-buy="${ing}" data-qty="${qty}" ${state.cash < bulkCost(price, qty) ? 'disabled' : ''}>Buy ${qty}</button>`).join('')}
           ${BULK_TIERS.map(({ qty }) => `<span class="buy-cost">${formatCents(bulkCost(price, qty))}</span>`).join('')}
         </div>
-        ${helpTip('tip-price', "Today's market price plus the last few days — buy when it dips.", showHintsForThisRow, 'left')}
+        ${helpTip('tip-price', "Today's market price plus the last few days — buy when it dips.", showHintsForThisRow)}
       </div>
       ${spoilWarn}
     </div>
