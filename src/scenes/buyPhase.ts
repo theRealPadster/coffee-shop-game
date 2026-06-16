@@ -129,9 +129,10 @@ function positionHelpTips(root: HTMLElement): void {
   const toggle = root.querySelector<HTMLElement>('.type-toggle');
   if (typeTip && toggle) place(typeTip, toggle);
 
-  // tip-dose → a virtual element at the first slider's thumb position.
+  // tip-dose → a virtual element at the thumb position of the slider in the
+  // tip's own row (coffee), so the caret tracks the current dose.
   const doseTip = root.querySelector<HTMLElement>('[data-tip-id="tip-dose"]');
-  const slider = root.querySelector<HTMLInputElement>('input[type="range"][data-ing]');
+  const slider = doseTip?.closest('.ingredient-row')?.querySelector<HTMLInputElement>('input[type="range"][data-ing]');
   if (doseTip && slider) {
     const thumbRef: VirtualElement = {
       getBoundingClientRect() {
@@ -149,9 +150,10 @@ function positionHelpTips(root: HTMLElement): void {
     place(doseTip, thumbRef);
   }
 
-  // tip-price → the price chip / sparkline cell.
+  // tip-price → the price cell in the tip's own row (sugar, so it doesn't
+  // collide with the dose tip on the coffee row above).
   const priceTip = root.querySelector<HTMLElement>('[data-tip-id="tip-price"]');
-  const priceCell = root.querySelector<HTMLElement>('.ingredient-row .price');
+  const priceCell = priceTip?.closest('.ingredient-row')?.querySelector<HTMLElement>('.price');
   if (priceTip && priceCell) place(priceTip, priceCell);
 }
 
@@ -194,7 +196,7 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
         </div>
 
         <div class="shop-rows">
-          ${INGREDIENTS.map((ing, idx) => shopRow(state, ing, r, bn, showHints && idx === 0)).join('')}
+          ${INGREDIENTS.map((ing, idx) => shopRow(state, ing, r, bn, showHints && idx === 0, showHints && idx === 1)).join('')}
         </div>
 
         <div class="cups-producible">
@@ -222,7 +224,7 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
   positionHelpTips(root);
 }
 
-function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot'], bn: Ingredient | null, showHintsForThisRow: boolean): string {
+function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot'], bn: Ingredient | null, showDoseTip: boolean, showPriceTip: boolean): string {
   const meta = INGREDIENT_META[ing];
   const price = state.prices[ing];
   const level = classifyPrice(price, PRICE_BANDS[ing]);
@@ -257,7 +259,7 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
       <div class="row-top">
         <div class="name">${meta.emoji} ${meta.label}</div>
         ${doseCell}
-        ${helpTip('tip-dose', 'Drag to set how much of this ingredient goes in each cup.', showHintsForThisRow)}
+        ${helpTip('tip-dose', 'Drag to set how much of this ingredient goes in each cup.', showDoseTip)}
       </div>
       <div class="row-bottom">
         <div class="stock"><strong>${stock}</strong> <span class="stock-unit">in stock</span></div>
@@ -266,7 +268,7 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
           ${BULK_TIERS.map(({ qty }) => `<button class="buy-btn" data-buy="${ing}" data-qty="${qty}" ${state.cash < bulkCost(price, qty) ? 'disabled' : ''}>Buy ${qty}</button>`).join('')}
           ${BULK_TIERS.map(({ qty }) => `<span class="buy-cost">${formatCents(bulkCost(price, qty))}</span>`).join('')}
         </div>
-        ${helpTip('tip-price', "Today's market price plus the last few days — buy when it dips.", showHintsForThisRow)}
+        ${helpTip('tip-price', "Today's market price plus the last few days — buy when it dips.", showPriceTip)}
       </div>
       ${spoilWarn}
     </div>
