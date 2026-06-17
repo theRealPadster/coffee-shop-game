@@ -22,5 +22,8 @@
     "@emnapi/core": "1.11.0",
     "@emnapi/runtime": "1.11.0",
     "@emnapi/wasi-threads": "1.2.2"
+  },
+  "dependencies": {
+    "@floating-ui/dom": "^1.7.6"
   }
 }
