@@ -855,31 +855,34 @@ input[type="range"] {
   min-width: 260px;
   max-width: min(320px, calc(100vw - 24px));
 }
-.driver-popover-title {
+.driver-popover .driver-popover-title {
   font-family: inherit;
   font-size: 15px;
   font-weight: 700;
   color: var(--ink);
 }
-.driver-popover-description {
+.driver-popover .driver-popover-description {
   font-family: inherit;
   font-size: 13px;
   line-height: 1.45;
   color: var(--ink);
 }
-.driver-popover-progress-text {
+.driver-popover .driver-popover-progress-text {
   font-family: inherit;
   font-size: 12px;
   color: var(--muted);
 }
-.driver-popover-close-btn {
+.driver-popover .driver-popover-close-btn {
   color: var(--muted);
 }
-.driver-popover-close-btn:hover,
-.driver-popover-close-btn:focus {
+.driver-popover .driver-popover-close-btn:hover,
+.driver-popover .driver-popover-close-btn:focus {
   color: var(--ink);
 }
-.driver-popover-footer button {
+/* Selectors are scoped under .driver-popover to outrank driver.css's own
+   equal-specificity rules — driver.css is bundled after style.css, so without
+   the extra class our resets (notably text-shadow) would lose on tie. */
+.driver-popover .driver-popover-footer button {
   font-family: inherit;
   font-size: 13px;
   font-weight: 500;
@@ -890,27 +893,49 @@ input[type="range"] {
   padding: 6px 12px;
   text-shadow: none;
 }
-.driver-popover-footer button:hover,
-.driver-popover-footer button:focus {
+.driver-popover .driver-popover-footer button:hover,
+.driver-popover .driver-popover-footer button:focus {
   background-color: var(--secondary-hover);
 }
 /* The "Next" button is the primary action — paint it with the accent. The
    :last-child selector in the nav group targets it without driver.js exposing a
    semantic class. */
-.driver-popover-navigation-btns button:last-child {
+.driver-popover .driver-popover-navigation-btns button:last-child {
   background-color: var(--accent);
   color: var(--accent-ink);
   border-color: var(--accent);
 }
-.driver-popover-navigation-btns button:last-child:hover,
-.driver-popover-navigation-btns button:last-child:focus {
+.driver-popover .driver-popover-navigation-btns button:last-child:hover,
+.driver-popover .driver-popover-navigation-btns button:last-child:focus {
   background-color: color-mix(in srgb, var(--accent) 88%, white);
 }
-/* Arrow: driver.css uses border-color: #fff with one side transparent. Setting
-   border-color recolors the visible sides; the side-specific transparent rules
-   in driver.css still take precedence on the empty side. */
-.driver-popover-arrow {
+/* Arrow: driver.css builds the caret from a 5px border with three sides
+   transparent. We recolor all four to --panel, then re-assert the transparent
+   sides per direction at the same .driver-popover scope so the triangle shape
+   survives (without the scope these would tie driver.css and we'd get a solid
+   square). The colored side per selector matches driver's own mapping. */
+.driver-popover .driver-popover-arrow {
   border-color: var(--panel);
+}
+.driver-popover .driver-popover-arrow-side-left {
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  border-top-color: transparent;
+}
+.driver-popover .driver-popover-arrow-side-right {
+  border-left-color: transparent;
+  border-bottom-color: transparent;
+  border-top-color: transparent;
+}
+.driver-popover .driver-popover-arrow-side-top {
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+}
+.driver-popover .driver-popover-arrow-side-bottom {
+  border-left-color: transparent;
+  border-top-color: transparent;
+  border-right-color: transparent;
 }
 
 /* Floating "?" button — fixed bottom-right of the buy phase, the always-on
