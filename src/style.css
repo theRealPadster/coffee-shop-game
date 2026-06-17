@@ -956,28 +956,22 @@ input[type="range"] {
    transparent per direction, leaving one colored side. We recolor only that
    visible side — never touching the transparent ones, so the triangle shape is
    preserved. The colored side per selector matches driver's own mapping. */
-.driver-popover-arrow-side-left { border-left-color: var(--panel); }
-.driver-popover-arrow-side-right { border-right-color: var(--panel); }
-.driver-popover-arrow-side-top { border-top-color: var(--panel); }
-.driver-popover-arrow-side-bottom { border-bottom-color: var(--panel); }
+/* Recolor the visible side and outline the caret with a 1px --border to match
+   the popover. The caret is a pure border-triangle, so drop-shadow (which
+   traces its rendered shape) is the only way to outline it. A single shadow
+   cast in the pointing direction outlines just the two slanted edges + tip —
+   NOT the base, which must merge seamlessly into the popover body (a four-way
+   shadow would draw a line across that junction). The offset per side matches
+   driver's own side→direction mapping. */
+.driver-popover-arrow-side-left { border-left-color: var(--panel); filter: drop-shadow(1px 0 0 var(--border)); }
+.driver-popover-arrow-side-right { border-right-color: var(--panel); filter: drop-shadow(-1px 0 0 var(--border)); }
+.driver-popover-arrow-side-top { border-top-color: var(--panel); filter: drop-shadow(0 1px 0 var(--border)); }
+.driver-popover-arrow-side-bottom { border-bottom-color: var(--panel); filter: drop-shadow(0 -1px 0 var(--border)); }
 /* Bigger than driver's default 5px so the caret reads clearly. The
    center-align rules hard-code margin:-5px to center the 10px box, so they need
    a matching -8px for the wider 16px box; the start/end rules use a fixed 15px
-   corner offset that's fine as-is.
-
-   The caret is a pure border-triangle with no outline of its own, so its
-   slanted edges lacked the popover's 1px border. drop-shadow traces the
-   triangle's actual shape, so stacking it in all four directions paints a 1px
-   --border outline regardless of which way the arrow points (the edge against
-   the popover overlaps the popover's own same-color border, so it blends). */
-.driver-popover-arrow {
-  border-width: 8px;
-  filter:
-    drop-shadow(1px 0 0 var(--border))
-    drop-shadow(-1px 0 0 var(--border))
-    drop-shadow(0 1px 0 var(--border))
-    drop-shadow(0 -1px 0 var(--border));
-}
+   corner offset that's fine as-is. */
+.driver-popover-arrow { border-width: 8px; }
 .driver-popover-arrow-side-left.driver-popover-arrow-align-center,
 .driver-popover-arrow-side-right.driver-popover-arrow-align-center { margin-top: -8px; }
 .driver-popover-arrow-side-top.driver-popover-arrow-align-center,
