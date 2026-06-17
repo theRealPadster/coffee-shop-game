@@ -745,6 +745,11 @@ input[type="range"] {
   border-color: var(--border);
 }
 .serving-price-row {
+  /* fit-content (not the default flex-column stretch) so the row is only as
+     wide as "Selling for $X.XX per cup" — its content is left-packed anyway, so
+     this is visually identical but keeps the tutorial spotlight tight to it. */
+  width: fit-content;
+  max-width: 100%;
   display: flex;
   align-items: center;
   gap: 8px;

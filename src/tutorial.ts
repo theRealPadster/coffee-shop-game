@@ -37,7 +37,7 @@ const STEPS: DriveStep[] = [
   {
     element: '.hype-chip',
     popover: {
-      title: 'Hype',
+      title: 'Hype meter',
       description:
         "Your shop's reputation. Good sales lift it; sold-outs and unhappy customers drag it down. Tap to see where you stand.",
       side: 'bottom',
