@@ -100,6 +100,17 @@ const STEPS: DriveStep[] = [
 ];
 
 export function startBuyPhaseTutorial(onDone?: () => void): void {
+  // Capture-phase Esc handler so the tour "owns" Escape while open: first press
+  // closes the tour without reaching the global pause-menu Esc in main.ts
+  // (mirrors the expandable-chip pattern, see chips/expandableChip.ts:7-9).
+  // We close the tour explicitly here, so driver's own Esc handling becomes a
+  // redundant no-op.
+  const onEsc = (e: KeyboardEvent): void => {
+    if (e.key !== 'Escape') return;
+    e.stopPropagation();
+    e.preventDefault();
+    d.destroy();
+  };
   const d = driver({
     showProgress: true,
     progressText: 'Step {{current}} of {{total}}',
@@ -114,6 +125,7 @@ export function startBuyPhaseTutorial(onDone?: () => void): void {
     disableActiveInteraction: true,
     steps: STEPS,
     onDestroyed: () => {
+      window.removeEventListener('keydown', onEsc, true);
       try {
         localStorage.setItem(STORAGE_KEY, '1');
       } catch {
@@ -123,6 +135,7 @@ export function startBuyPhaseTutorial(onDone?: () => void): void {
       onDone?.();
     },
   });
+  window.addEventListener('keydown', onEsc, true);
   d.drive();
 }
 
