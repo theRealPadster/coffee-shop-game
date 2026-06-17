@@ -1,4 +1,4 @@
-import { GameState, Ingredient, Recipe, initialState, defaultRecipes } from './state';
+import { GameState, Ingredient, Recipe, initialState, defaultRecipes } from '../state';
 
 const KEY = 'coffee-shop-save';
 const MAX_DOSE = 5;

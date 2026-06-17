@@ -1,4 +1,4 @@
-import { Recipe, Ingredient, GameState, activeRecipe } from './state';
+import { Recipe, Ingredient, GameState, activeRecipe } from '../state';
 
 export function recipeIngredients(r: Recipe): Ingredient[] {
   return Object.keys(r.doses) as Ingredient[];

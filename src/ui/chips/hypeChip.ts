@@ -12,7 +12,7 @@
 // 'vibe' shows Strong/Steady/Weak, 'precise' (a future upgrade) shows the raw
 // stop-rate multiplier.
 
-import { hypeStopMultiplier } from '../hype';
+import { hypeStopMultiplier } from '../../game/hype';
 
 export type HypeChipVariant = 'buy' | 'street';
 export type InsightTier = 'vibe' | 'precise';

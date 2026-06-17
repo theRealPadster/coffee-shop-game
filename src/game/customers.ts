@@ -1,8 +1,8 @@
-import { GameState, DrinkType, activeRecipe, activeCupPrice } from './state';
+import { GameState, DrinkType, activeRecipe, activeCupPrice } from '../state';
 import { weatherEffects } from './weather';
 import { hypePriceTolerance, hypeStopMultiplier } from './hype';
 import { maxCups } from './recipe';
-import { randomPedestrianSprite, Sprite } from './render';
+import { randomPedestrianSprite, Sprite } from '../render';
 
 export type CustomerPhase = 'walking' | 'queuing' | 'considering' | 'buying' | 'leaving';
 

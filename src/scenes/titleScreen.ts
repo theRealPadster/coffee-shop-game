@@ -10,10 +10,10 @@
 
 import { GameState } from '../state';
 import { drawBackground, drawShop, randomPedestrianSprite, Sprite } from '../render';
-import { loadGame } from '../save';
-import { paneModal, confirmModal, alertModal } from '../ui';
-import { renderSettingsRows } from '../settingsRows';
-import { openHowToPlay } from '../howToPlay';
+import { loadGame } from '../platform/save';
+import { paneModal, confirmModal, alertModal } from '../ui/ui';
+import { renderSettingsRows } from '../ui/settingsRows';
+import { openHowToPlay } from '../ui/howToPlay';
 
 export interface TitleScreenCallbacks {
   onContinue: (restored: GameState) => void;

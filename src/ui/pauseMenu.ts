@@ -1,7 +1,7 @@
-import { GameState } from './state';
+import { GameState } from '../state';
 import { paneModal, alertModal, confirmModal } from './ui';
-import { saveGame, loadGame } from './save';
-import { play } from './audio';
+import { saveGame, loadGame } from '../platform/save';
+import { play } from '../platform/audio';
 import { renderSettingsRows } from './settingsRows';
 import { openHowToPlay } from './howToPlay';
 

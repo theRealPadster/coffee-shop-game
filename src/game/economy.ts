@@ -1,4 +1,4 @@
-import { Ingredient, PRICE_BANDS } from './state';
+import { Ingredient, PRICE_BANDS } from '../state';
 
 export type PriceLevel = 'very-low' | 'low' | 'mid' | 'high' | 'very-high';
 

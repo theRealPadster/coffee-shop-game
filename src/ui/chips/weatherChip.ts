@@ -9,9 +9,9 @@
 // tier is always 'vibe'; a future "weather analytics" upgrade (see TODO) flips
 // it to 'precise' to reveal the hard numbers.
 
-import { GameState, Weather, Ingredient, INGREDIENT_META } from '../state';
-import { weatherEmoji, weatherEffects } from '../weather';
-import { SPOILAGE, spoilageFraction } from '../spoilage';
+import { GameState, Weather, Ingredient, INGREDIENT_META } from '../../state';
+import { weatherEmoji, weatherEffects } from '../../game/weather';
+import { SPOILAGE, spoilageFraction } from '../../game/spoilage';
 
 export type WeatherChipVariant = 'buy' | 'street';
 export type InsightTier = 'vibe' | 'precise';

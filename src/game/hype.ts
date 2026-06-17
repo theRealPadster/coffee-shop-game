@@ -1,4 +1,4 @@
-import { GameState } from './state';
+import { GameState } from '../state';
 
 export function clampHype(h: number): number {
   // Good buzz caps at 100; bad reputation is uncapped on the downside

@@ -1,14 +1,14 @@
 import { GameState, INGREDIENTS, INGREDIENT_META, PRICE_BANDS, formatCents, Ingredient, DrinkType, activeRecipe, activeCupPrice } from '../state';
-import { classifyPrice, PriceLevel, BULK_TIERS, bulkCost } from '../economy';
-import { spoilageFraction, SPOILAGE } from '../spoilage';
-import { maxCups, bottleneck } from '../recipe';
-import { play } from '../audio';
-import { appHeaderHtml, attachHeaderMenu } from '../header';
-import { openPauseMenu } from '../pauseMenu';
-import { weatherChipHtml } from '../chips/weatherChip';
-import { hypeChipHtml } from '../chips/hypeChip';
-import { makeExpandableChip } from '../chips/expandableChip';
-import { startBuyPhaseTutorial, hasSeenTutorial } from '../tutorial';
+import { classifyPrice, PriceLevel, BULK_TIERS, bulkCost } from '../game/economy';
+import { spoilageFraction, SPOILAGE } from '../game/spoilage';
+import { maxCups, bottleneck } from '../game/recipe';
+import { play } from '../platform/audio';
+import { appHeaderHtml, attachHeaderMenu } from '../ui/header';
+import { openPauseMenu } from '../ui/pauseMenu';
+import { weatherChipHtml } from '../ui/chips/weatherChip';
+import { hypeChipHtml } from '../ui/chips/hypeChip';
+import { makeExpandableChip } from '../ui/chips/expandableChip';
+import { startBuyPhaseTutorial, hasSeenTutorial } from '../ui/tutorial';
 
 export interface BuyPhaseCallbacks {
   onStartDay: () => void;

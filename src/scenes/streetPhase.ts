@@ -1,17 +1,17 @@
 import { GameState, formatCents, freshStats, activeRecipe, activeCupPrice, INGREDIENT_META, Ingredient } from '../state';
-import { applySpoilage, SPOILAGE } from '../spoilage';
+import { applySpoilage, SPOILAGE } from '../game/spoilage';
 import { drawBackground, drawShop, drawMenuSign } from '../render';
-import { weatherEmoji } from '../weather';
-import { spawnCustomer, decide, spawnRate, walkByRemark, Customer } from '../customers';
-import { applyHype } from '../hype';
-import { consumeRecipe, maxCups } from '../recipe';
-import { play } from '../audio';
-import { appHeaderHtml, attachHeaderMenu } from '../header';
-import { openPauseMenu } from '../pauseMenu';
-import { setMenuOpener } from '../menuOpener';
-import { weatherChipHtml } from '../chips/weatherChip';
-import { hypeChipHtml, updateHypeChip } from '../chips/hypeChip';
-import { makeExpandableChip } from '../chips/expandableChip';
+import { weatherEmoji } from '../game/weather';
+import { spawnCustomer, decide, spawnRate, walkByRemark, Customer } from '../game/customers';
+import { applyHype } from '../game/hype';
+import { consumeRecipe, maxCups } from '../game/recipe';
+import { play } from '../platform/audio';
+import { appHeaderHtml, attachHeaderMenu } from '../ui/header';
+import { openPauseMenu } from '../ui/pauseMenu';
+import { setMenuOpener } from '../ui/menuOpener';
+import { weatherChipHtml } from '../ui/chips/weatherChip';
+import { hypeChipHtml, updateHypeChip } from '../ui/chips/hypeChip';
+import { makeExpandableChip } from '../ui/chips/expandableChip';
 
 export interface StreetPhaseCallbacks {
   onCloseShop: () => void;

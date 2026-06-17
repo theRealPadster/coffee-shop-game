@@ -1,4 +1,4 @@
-import { GameState, formatCents } from './state';
+import { GameState, formatCents } from '../state';
 
 export interface HeaderOpts {
   variant: 'buy' | 'street';
