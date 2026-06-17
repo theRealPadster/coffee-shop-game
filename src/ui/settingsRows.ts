@@ -8,7 +8,7 @@
 // keeps state.muted in sync so it persists into a future save.
 
 import { GameState } from '../state';
-import { THEMES, ThemeId, getTheme, setTheme } from '../platform/themes';
+import { THEMES, ThemeId, getTheme, setTheme } from '../themes/themes';
 import { isMuted, setMuted } from '../platform/audio';
 import {
   isFullscreen,

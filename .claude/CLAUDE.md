@@ -43,8 +43,9 @@ All game data lives in `GameState` (`src/state.ts`). It is passed by reference i
 `src/` is grouped into layers. `main.ts`, `state.ts`, `render.ts`, and `style.css` stay at the root (the shared spine everything imports). Everything else lives under:
 
 - `game/` — pure, framework-free logic (see table below). Imports only from each other or `../state`.
-- `platform/` — browser/system integration: `audio.ts`, `save.ts`, `themes.ts`, `fullscreen.ts`.
+- `platform/` — browser/system integration: `audio.ts`, `save.ts`, `fullscreen.ts`.
 - `ui/` — DOM chrome: `ui.ts` (modal primitives), `header.ts`, `pauseMenu.ts`, `settingsRows.ts`, `howToPlay.ts`, `tutorial.ts`, `menuOpener.ts`, `orientationPrompt.ts`, plus `ui/chips/` (expandable header chips).
+- `themes/` — the theming feature, both halves together: `themes.ts` (the `ThemeId` registry, localStorage persistence, and the `data-theme` attribute flip) and `themes.css` (the color variables — default palette + each `[data-theme]` override). `themes.ts` defines theme ids that must stay in sync with the selectors in `themes.css`. `style.css` (at the root) holds component/layout styling and reads those variables. `main.ts` imports `themes.css` before `style.css`.
 - `scenes/` — `titleScreen.ts`, `buyPhase.ts`, `streetPhase.ts`.
 
 ### Pure logic modules

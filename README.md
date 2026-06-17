@@ -43,14 +43,17 @@ The game opens on a **title screen** (Continue / New Game / How to Play / Option
 
 ## Project structure
 
-The tree is grouped into layers: `game/` (pure logic), `platform/` (browser integration), `ui/` (DOM chrome), and `scenes/`. The shared spine — `main.ts`, `state.ts`, `render.ts`, `style.css` — stays at the root.
+The tree is grouped into layers: `game/` (pure logic), `platform/` (browser integration), `ui/` (DOM chrome), `themes/` (color palettes + switching), and `scenes/`. The shared spine — `main.ts`, `state.ts`, `render.ts`, `style.css` — stays at the root.
 
 ```
 src/
   main.ts                # bootstrap + scene switching + global Esc handler
   state.ts               # game state types + initial state
   render.ts              # canvas drawing primitives (Sprite abstraction)
-  style.css
+  style.css              # component/layout styling (uses the color variables themes define)
+  themes/                # the theming feature — both halves live together
+    themes.ts            # ThemeId registry + persist (localStorage) + apply (data-theme)
+    themes.css           # the color variables: default palette + every [data-theme] override
   game/                  # pure, framework-free logic (imports only ../state + each other)
     economy.ts           # price random walk + chevron classification + bulk-buy tiers
     weather.ts           # forecast generation + weather effects
@@ -61,7 +64,6 @@ src/
   platform/              # browser / system integration
     audio.ts             # WebAudio-synthesized sound effects
     save.ts              # localStorage save/restore
-    themes.ts            # theme registry + apply/persist
     fullscreen.ts        # Fullscreen API wrapper with feature detection
   ui/                    # DOM chrome
     ui.ts                # modal + paneModal primitives (confirmModal, alertModal)

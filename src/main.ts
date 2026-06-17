@@ -2,6 +2,7 @@
 // style.css win on source order (driver.js ships hard-coded colors via the
 // same single-class selectors we use to retheme it).
 import 'driver.js/dist/driver.css';
+import './themes/themes.css';
 import './style.css';
 import { GameState, initialState } from './state';
 import { renderBuyPhase } from './scenes/buyPhase';
@@ -10,7 +11,7 @@ import { renderTitleScreen } from './scenes/titleScreen';
 import { rollPrices, recordPrices } from './game/economy';
 import { generateForecast } from './game/weather';
 import { decayHype } from './game/hype';
-import { loadAndApplyTheme } from './platform/themes';
+import { loadAndApplyTheme } from './themes/themes';
 import { clearSave } from './platform/save';
 import { openPauseMenu } from './ui/pauseMenu';
 import { getMenuOpener } from './ui/menuOpener';
