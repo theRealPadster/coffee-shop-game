@@ -858,27 +858,30 @@ input[type="range"] {
    The class names (.driver-popover-*) come from driver.css, which is imported
    before this file in main.ts — so these single-class overrides beat driver's
    equal-specificity defaults on source order. */
-/* Geometry mirrors .modal — same panel, 8px radius, drop shadow, and 24px
-   padding — so the tour popover reads as a smaller sibling of our modals. */
+/* Geometry takes its cues from .modal (same panel, 8px radius, drop shadow)
+   but uses tighter padding/spacing than the modals — they wrap settings lists
+   and long copy where 24px breathes, whereas the tour popover holds 2-3 lines
+   and looked too airy at modal padding. */
 .driver-popover {
   background-color: var(--panel);
   color: var(--ink);
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  padding: 24px;
+  padding: 16px;
   min-width: 260px;
   max-width: min(320px, calc(100vw - 24px));
 }
 .driver-popover-title {
   font-family: inherit;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
-  /* accent + 12px gap below, matching .modal h2. The right padding keeps a long
-     title from running under the absolutely-positioned close button. */
+  /* accent like .modal h2, but a tighter 8px gap below to suit the smaller
+     popover. The right padding keeps a long title from running under the
+     absolutely-positioned close button. */
   color: var(--accent);
-  margin: 0 0 12px;
-  padding-right: 28px;
+  margin: 0 0 8px;
+  padding-right: 24px;
 }
 .driver-popover-description {
   font-family: inherit;
@@ -906,8 +909,8 @@ input[type="range"] {
   background: transparent;
   border: 1px solid transparent;
   border-radius: 6px;
-  top: 18px;
-  right: 18px;
+  top: 12px;
+  right: 12px;
   width: auto;
   height: auto;
   font-size: 18px;
