@@ -594,6 +594,12 @@ input[type="range"] {
   width: 130px;
   flex-shrink: 0;
 }
+.ingredient-row .dose-control {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 .ingredient-row .row-top input[type="range"] { flex: 1; }
 .ingredient-row .row-top input[type="range"]:disabled { opacity: 0.4; }
 .ingredient-row .dose-val {

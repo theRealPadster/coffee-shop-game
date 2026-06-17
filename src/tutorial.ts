@@ -63,7 +63,7 @@ const STEPS: DriveStep[] = [
     },
   },
   {
-    element: '.ingredient-row[data-row="coffee"] input[type="range"]',
+    element: '.ingredient-row[data-row="coffee"] .dose-control',
     popover: {
       title: 'Dose sliders',
       description:

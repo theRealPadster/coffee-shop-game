@@ -164,9 +164,13 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
     doseCell = `<span class="dose-static">1 per drink</span>`;
   } else {
     const applicable = ing !== 'ice' || r.type === 'iced';
+    // Slider + value share a .dose-control wrapper so the tutorial can spotlight
+    // both as one rectangle (the value is otherwise a separate sibling).
     doseCell = `
-      <input type="range" min="0" max="5" step="1" value="${dose}" data-ing="${ing}" ${applicable ? '' : 'disabled'} />
-      <span class="dose-val" data-dose-val="${ing}">${dose}</span>
+      <div class="dose-control">
+        <input type="range" min="0" max="5" step="1" value="${dose}" data-ing="${ing}" ${applicable ? '' : 'disabled'} />
+        <span class="dose-val" data-dose-val="${ing}">${dose}</span>
+      </div>
     `;
   }
 
