@@ -898,8 +898,10 @@ input[type="range"] {
   border: 1px solid transparent;
   border-radius: 6px;
 }
-.driver-popover .driver-popover-close-btn:hover,
-.driver-popover .driver-popover-close-btn:focus {
+/* Hover only (no :focus) — driver.js focuses this button when the popover
+   opens, so styling :focus would leave it stuck in the filled state at rest.
+   Matches .modal__close-btn, which is also hover-only. */
+.driver-popover .driver-popover-close-btn:hover {
   color: var(--ink);
   background: var(--secondary-hover);
   border-color: var(--border);
