@@ -7,7 +7,8 @@
 // 1, which never happens for an existing save; new games trigger normally.
 
 import { driver, type DriveStep } from 'driver.js';
-import 'driver.js/dist/driver.css';
+// driver.css is imported in main.ts (before style.css) so our theme overrides
+// win on source order — see the note there.
 
 const STORAGE_KEY = 'csg-tutorial-seen';
 
