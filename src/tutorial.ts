@@ -77,7 +77,11 @@ const STEPS: DriveStep[] = [
       title: 'Market price',
       description:
         "Today's market price. After a few days a 5-day sparkline appears alongside it — buy when it dips.",
-      side: 'top',
+      // Below the sugar row (which sits high on the screen): on narrow viewports
+      // 'top' didn't have enough room above and the popover floated up, leaving
+      // a gap between the arrow tip and the target. Below has the milk/ice/cups
+      // rows for breathing room.
+      side: 'bottom',
     },
   },
   {
