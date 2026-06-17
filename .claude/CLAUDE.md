@@ -23,7 +23,7 @@ CI deploys per-branch previews to GitHub Pages at:
 https://therealpadster.github.io/coffee-shop-game/branches/<branch-name>/
 ```
 
-Slashes in branch names are converted to dashes — e.g. `fix/title-github-link` → `branches/fix-title-github-link/`.
+Branch names are converted to lowercase and slashes are converted to dashes — e.g. `fix/Title-Github-Link` → `branches/fix-title-github-link/`.
 
 ## Architecture
 
