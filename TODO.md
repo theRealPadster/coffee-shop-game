@@ -29,7 +29,7 @@ Loose backlog. No commitments, no order — just stuff to consider next.
 
 ## UI / UX
 
-- **Tutorial / onboarding.** First-time play-through is confusing per testing. A few inline tooltips on day 1 ("this slider sets dose", "this chip says today's market price") would go a long way.
+- ~~**Tutorial / onboarding.**~~ ✅ Done — day-1 buy phase shows dismissable help-tips on the Hot/Iced toggle, the dose slider, and the market price chip; a floating ? button replays them on later days. How to Play also has a Controls reference glossary for both phases.
 - ~~**Price history sparkline.**~~ ✅ Done — a 5-day sparkline (`state.priceHistory`) now sits next to each ingredient's price chip, normalized to the band and colored by the last day's direction.
 - **Report card depth.** End-of-day card shows totals and top complaint. Could also show which customer types walked by without buying — useful signal for recipe tuning.
 - **Day-view stats.** Surface revenue-so-far (and maybe a conversion %) during the day, and/or a small daily summary in the buy phase. Keep it glance-able — the HUD already shows Sold / Walk-bys, so this should add signal without making the UI visually busy.

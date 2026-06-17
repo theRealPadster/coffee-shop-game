@@ -834,6 +834,95 @@ input[type="range"] {
    gets no hover feedback at all. */
 #start-day-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--good) 82%, white); }
 
+/* ===== Help tips (day-1 onboarding) ===== */
+/* Floating callout popovers anchored to specific buy-phase controls. They
+   auto-show on day 1, can be re-shown on any later day via the .help-fab
+   button, and can be individually dismissed via the × in each pill. The state
+   (dismissed ids + replay flag) lives in buyPhase.ts module scope.
+
+   Positioning is done by Floating UI (positionHelpTips in buyPhase.ts): it sets
+   left/top, flips/shifts to stay on screen, and points the arrow element at the
+   anchor (the slider tip tracks the thumb via a virtual element). The CSS here
+   is purely the look. */
+.help-tip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 30;
+  width: max-content;
+  max-width: min(20em, 72vw);
+  padding: 8px 28px 8px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+  border: 1px solid var(--accent-light);
+  box-shadow: var(--shadow);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--ink);
+  text-align: left;
+}
+.help-tip__arrow {
+  /* A small rotated square; Floating UI sets its left + top/bottom. The two
+     visible borders face the anchor so it reads as a caret. */
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+  border-left: 1px solid var(--accent-light);
+  border-top: 1px solid var(--accent-light);
+  transform: rotate(45deg);
+}
+.help-tip__arrow--down {
+  /* Tip flipped above the anchor: caret points down, so show the other two
+     borders instead. */
+  border-left: none;
+  border-top: none;
+  border-right: 1px solid var(--accent-light);
+  border-bottom: 1px solid var(--accent-light);
+}
+.help-tip__close {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 6px;
+  cursor: pointer;
+  color: var(--muted);
+}
+.help-tip__close:hover { color: var(--ink); }
+
+/* Anchor containers are the tips' offsetParents (Floating UI positions each
+   tip relative to its nearest positioned ancestor). */
+.serving-top { position: relative; }
+.ingredient-row .row-top { position: relative; }
+.ingredient-row .row-bottom { position: relative; }
+
+/* Floating "?" button — fixed bottom-right of the buy phase, the always-on
+   replay affordance. Stays clear of system bars via safe-area-inset. */
+.help-fab {
+  position: fixed;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  right: calc(16px + env(safe-area-inset-right));
+  z-index: 50;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.help-fab:hover { background: var(--secondary-hover); }
+
 /* ===== Hype chip ===== */
 /* Mirrors the weather chip's grow mechanics, but sits on the right of the status
    row and grows anchored to its right edge. The head is the live meter (label +
@@ -1275,13 +1364,36 @@ input[type="range"] {
   gap: 14px;
   text-align: left;
 }
-.pause-section h3,
-.howto-section h3 {
+.pause-section h3 {
   font-size: 12px;
   color: var(--muted);
   margin: 0 0 6px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+/* How-to-play sections give each topic visual presence so the modal reads as
+   scannable cards rather than a wall of paragraphs. Section headings are
+   icon-led, in the accent color, and every section after the first gets a
+   top divider so the eye finds the boundaries. */
+.howto-section + .howto-section {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+.howto-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 0 0 8px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.howto-icon {
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
 }
 .pause-row {
   display: flex;
@@ -1329,6 +1441,94 @@ input[type="range"] {
   margin: 0;
   line-height: 1.55;
   color: var(--ink);
+}
+/* Bullet lists for the multi-point sections (e.g. "Reading the market"). The
+   lead <p> stays as a one-line setup; the bullets break each idea onto its own
+   row so the section scans cleanly. */
+.howto-bullets {
+  margin: 6px 0 0;
+  padding-left: 22px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.howto-bullets li + li { margin-top: 4px; }
+.howto-bullets li::marker { color: var(--accent); }
+
+/* Controls reference — wrapped in <details> so the dense glossary is one tap
+   away rather than dominating the modal on first read. Style the summary like
+   a tappable row that flips between collapsed/expanded states. */
+.howto-section--ref { padding-top: 14px; }
+.howto-details > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+  padding: 6px 0;
+}
+.howto-details > summary::-webkit-details-marker { display: none; }
+.howto-details > summary::after {
+  content: '▾';
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+  transition: transform 0.15s ease;
+}
+.howto-details[open] > summary::after { transform: rotate(180deg); }
+.howto-details__title { flex: 1; }
+.howto-details__hint {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.howto-details[open] .howto-details__hint { display: none; }
+.howto-details__body {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.howto-subdetails > summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+.howto-subdetails > summary::-webkit-details-marker { display: none; }
+.howto-subdetails > summary::before {
+  content: '▸ ';
+  color: var(--muted);
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+.howto-subdetails[open] > summary::before { content: '▾ '; }
+
+/* Glossary list inside each Controls-reference sub-section — each entry is a
+   term (UI element name) followed by a short description, indented and
+   softened so it reads like a reference card rather than a paragraph. */
+.howto-glossary {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px 0;
+  margin: 8px 0 4px;
+  padding: 0;
+  line-height: 1.45;
+}
+.howto-glossary dt {
+  font-weight: 600;
+  color: var(--ink);
+}
+.howto-glossary dd {
+  margin: 0 0 4px 0;
+  padding-left: 12px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 /* Title screen */
