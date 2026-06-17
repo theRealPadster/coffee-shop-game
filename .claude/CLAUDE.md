@@ -38,18 +38,29 @@ All game data lives in `GameState` (`src/state.ts`). It is passed by reference i
 - **Buy phase** (`src/scenes/buyPhase.ts`) — fully DOM-rendered. Re-renders itself on most interactions by calling its own `rerender()` closure. Sliders do a partial DOM update (doses + bottleneck only) on `input` for smoothness, then a full re-render on `change`.
 - **Street phase** (`src/scenes/streetPhase.ts`) — returns a teardown function that `main.ts` holds in `streetTeardown`. The teardown cancels the `requestAnimationFrame` loop and disconnects the `ResizeObserver`. Thought bubbles are DOM elements overlaid on the canvas, positioned in `renderThoughtBubbles()` each frame by scaling from canvas coordinates to wrapper coordinates.
 
+### Directory layout
+
+`src/` is grouped into layers. `main.ts`, `state.ts`, `render.ts`, and `style.css` stay at the root (the shared spine everything imports). Everything else lives under:
+
+- `game/` — pure, framework-free logic (see table below). Imports only from each other or `../state`.
+- `platform/` — browser/system integration: `audio.ts`, `save.ts`, `fullscreen.ts`.
+- `ui/` — DOM chrome: `ui.ts` (modal primitives), `header.ts`, `pauseMenu.ts`, `settingsRows.ts`, `howToPlay.ts`, `tutorial.ts`, `menuOpener.ts`, `orientationPrompt.ts`, plus `ui/chips/` (expandable header chips).
+- `themes/` — the theming feature, both halves together: `themes.ts` (the `ThemeId` registry, localStorage persistence, and the `data-theme` attribute flip) and `themes.css` (the color variables — default palette + each `[data-theme]` override). `themes.ts` defines theme ids that must stay in sync with the selectors in `themes.css`. `style.css` (at the root) holds component/layout styling and reads those variables. `main.ts` imports `themes.css` before `style.css`.
+- `scenes/` — `titleScreen.ts`, `buyPhase.ts`, `streetPhase.ts`.
+
 ### Pure logic modules
 
-All game logic lives in framework-free modules that only import from each other or `src/state.ts`:
+All game logic lives in framework-free modules under `src/game/` that only import from each other or `src/state.ts`:
 
 | Module | Responsibility |
 |---|---|
-| `economy.ts` | Price random walk (`nextPrice`), 5-level chevron classification (`classifyPrice`) |
-| `weather.ts` | Markov-chain forecast generation (`generateForecast`), weather effect multipliers (`weatherEffects`) |
-| `recipe.ts` | `maxCups` / `bottleneck` math, recipe library helpers (`cloneRecipe`, `isActiveRecipeDirty`, `setRecipeType`) |
-| `customers.ts` | `spawnCustomer`, `decide` (scoring + thought selection), `spawnRate` |
-| `hype.ts` | `applyHype`, `decayHype`, multiplier helpers |
-| `save.ts` | `saveGame` / `loadGame` / `clearSave` via `localStorage` |
+| `game/economy.ts` | Price random walk (`nextPrice`), 5-level chevron classification (`classifyPrice`), bulk-buy tiers |
+| `game/weather.ts` | Markov-chain forecast generation (`generateForecast`), weather effect multipliers (`weatherEffects`) |
+| `game/recipe.ts` | `maxCups` / `bottleneck` math, recipe library helpers (`cloneRecipe`, `isActiveRecipeDirty`, `setRecipeType`) |
+| `game/customers.ts` | `spawnCustomer`, `decide` (scoring + thought selection), `spawnRate` |
+| `game/hype.ts` | `applyHype`, `decayHype`, multiplier helpers |
+| `game/spoilage.ts` | Overnight perishable decay driven by temperature (`spoilageFraction`) |
+| `platform/save.ts` | `saveGame` / `loadGame` / `clearSave` via `localStorage` |
 
 ### Render abstraction
 

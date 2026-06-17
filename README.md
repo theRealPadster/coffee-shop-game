@@ -43,35 +43,42 @@ The game opens on a **title screen** (Continue / New Game / How to Play / Option
 
 ## Project structure
 
+The tree is grouped into layers: `game/` (pure logic), `platform/` (browser integration), `ui/` (DOM chrome), `themes/` (color palettes + switching), and `scenes/`. The shared spine — `main.ts`, `state.ts`, `render.ts`, `style.css` — stays at the root.
+
 ```
 src/
   main.ts                # bootstrap + scene switching + global Esc handler
   state.ts               # game state types + initial state
-  economy.ts             # price random walk + chevron classification + bulk-buy tiers
-  weather.ts             # forecast generation + weather effects
-  recipe.ts              # cups-producible/bottleneck math
-  customers.ts           # spawn + decision logic + thought picking
-  hype.ts                # hype math
-  spoilage.ts            # overnight perishable decay (temperature-driven)
-  audio.ts               # WebAudio-synthesized sound effects
   render.ts              # canvas drawing primitives (Sprite abstraction)
-  save.ts                # localStorage save/restore
-  themes.ts              # theme registry + apply/persist
-  ui.ts                  # modal + paneModal primitives (confirmModal, alertModal)
-  header.ts              # shared app-header HTML + hype meter renderer
-  pauseMenu.ts           # pause-menu pane (settings rows + Save / Restore / Reset)
-  settingsRows.ts        # shared Theme / Sound / Fullscreen rows (pause menu + title)
-  menuOpener.ts          # scene-aware menu opener registration (street phase wraps it
+  style.css              # component/layout styling (uses the color variables themes define)
+  themes/                # the theming feature — both halves live together
+    themes.ts            # ThemeId registry + persist (localStorage) + apply (data-theme)
+    themes.css           # the color variables: default palette + every [data-theme] override
+  game/                  # pure, framework-free logic (imports only ../state + each other)
+    economy.ts           # price random walk + chevron classification + bulk-buy tiers
+    weather.ts           # forecast generation + weather effects
+    recipe.ts            # cups-producible/bottleneck math
+    customers.ts         # spawn + decision logic + thought picking
+    hype.ts              # hype math
+    spoilage.ts          # overnight perishable decay (temperature-driven)
+  platform/              # browser / system integration
+    audio.ts             # WebAudio-synthesized sound effects
+    save.ts              # localStorage save/restore
+    fullscreen.ts        # Fullscreen API wrapper with feature detection
+  ui/                    # DOM chrome
+    ui.ts                # modal + paneModal primitives (confirmModal, alertModal)
+    header.ts            # shared app-header HTML + hype meter renderer
+    pauseMenu.ts         # pause-menu pane (settings rows + Save / Restore / Reset)
+    settingsRows.ts      # shared Theme / Sound / Fullscreen rows (pause menu + title)
+    menuOpener.ts        # scene-aware menu opener registration (street phase wraps it
                          # with clock pause/resume)
-  tutorial.ts            # day-1 guided buy-phase tour (driver.js), replayable via help fab
-  howToPlay.ts           # static "How to Play" info pane + glossary
-  fullscreen.ts          # Fullscreen API wrapper with feature detection
-  orientationPrompt.ts   # landscape-rotate "Tap for fullscreen" pill (mobile)
-  style.css
-  chips/
-    weatherChip.ts       # expandable weather chip with vibe-tier insights
-    hypeChip.ts          # expandable hype/buzz meter chip
-    expandableChip.ts    # generic expand/collapse behavior for header chips
+    tutorial.ts          # day-1 guided buy-phase tour (driver.js), replayable via help fab
+    howToPlay.ts         # static "How to Play" info pane + glossary
+    orientationPrompt.ts # landscape-rotate "Tap for fullscreen" pill (mobile)
+    chips/
+      weatherChip.ts     # expandable weather chip with vibe-tier insights
+      hypeChip.ts        # expandable hype/buzz meter chip
+      expandableChip.ts  # generic expand/collapse behavior for header chips
   scenes/
     titleScreen.ts       # animated title screen (reuses street sprites)
     buyPhase.ts          # DOM-rendered prep screen

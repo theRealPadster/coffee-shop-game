@@ -1,4 +1,4 @@
-import { Weather, WeatherCondition } from './state';
+import { Weather, WeatherCondition } from '../state';
 
 const CONDITION_EMOJI: Record<WeatherCondition, string> = {
   sunny: '🌞',

@@ -7,15 +7,15 @@
 // needing a GameState in scope. When state is provided, the sound toggle also
 // keeps state.muted in sync so it persists into a future save.
 
-import { GameState } from './state';
-import { THEMES, ThemeId, getTheme, setTheme } from './themes';
-import { isMuted, setMuted } from './audio';
+import { GameState } from '../state';
+import { THEMES, ThemeId, getTheme, setTheme } from '../themes/themes';
+import { isMuted, setMuted } from '../platform/audio';
 import {
   isFullscreen,
   isFullscreenSupported,
   onFullscreenChange,
   toggleFullscreen,
-} from './fullscreen';
+} from '../platform/fullscreen';
 
 export interface SettingsRowsOpts {
   state?: GameState;

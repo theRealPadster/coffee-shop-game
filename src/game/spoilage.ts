@@ -1,4 +1,4 @@
-import { GameState, Ingredient, Weather } from './state';
+import { GameState, Ingredient, Weather } from '../state';
 
 interface SpoilConfig {
   /** Above this temperature (°C) the perishable starts to degrade overnight. */

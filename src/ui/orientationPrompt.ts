@@ -3,7 +3,7 @@
 // invites the user to expand. The Fullscreen API requires a user gesture, so
 // we can only invite — never auto-enter.
 
-import { enterFullscreen, isFullscreen, isFullscreenSupported, onFullscreenChange } from './fullscreen';
+import { enterFullscreen, isFullscreen, isFullscreenSupported, onFullscreenChange } from '../platform/fullscreen';
 
 let promptEl: HTMLElement | null = null;
 // Dismissed-for-this-rotation flag. Reset whenever the device returns to
