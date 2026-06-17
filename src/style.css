@@ -960,6 +960,15 @@ input[type="range"] {
 .driver-popover-arrow-side-right { border-right-color: var(--panel); }
 .driver-popover-arrow-side-top { border-top-color: var(--panel); }
 .driver-popover-arrow-side-bottom { border-bottom-color: var(--panel); }
+/* Bigger than driver's default 5px so the caret reads clearly. The
+   center-align rules hard-code margin:-5px to center the 10px box, so they need
+   a matching -8px for the wider 16px box; the start/end rules use a fixed 15px
+   corner offset that's fine as-is. */
+.driver-popover-arrow { border-width: 8px; }
+.driver-popover-arrow-side-left.driver-popover-arrow-align-center,
+.driver-popover-arrow-side-right.driver-popover-arrow-align-center { margin-top: -8px; }
+.driver-popover-arrow-side-top.driver-popover-arrow-align-center,
+.driver-popover-arrow-side-bottom.driver-popover-arrow-align-center { margin-left: -8px; }
 
 /* Floating "?" button — fixed bottom-right of the buy phase, the always-on
    replay affordance. Stays clear of system bars via safe-area-inset. */
