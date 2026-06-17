@@ -885,14 +885,20 @@ input[type="range"] {
   font-size: 12px;
   color: var(--muted);
 }
-.driver-popover-close-btn {
+/* Button rules are scoped under .driver-popover to outrank our own global
+   button:hover:not(:disabled) (style.css:349), which would otherwise tint
+   every popover button (close, back, next) accent-brown on hover. The non-
+   button rules above don't need this — driver.css's own defaults are the
+   only thing they compete with, and source order handles those. */
+.driver-popover .driver-popover-close-btn {
   color: var(--muted);
 }
-.driver-popover-close-btn:hover,
-.driver-popover-close-btn:focus {
+.driver-popover .driver-popover-close-btn:hover,
+.driver-popover .driver-popover-close-btn:focus {
   color: var(--ink);
+  background: transparent;
 }
-.driver-popover-footer button {
+.driver-popover .driver-popover-footer button {
   font-family: inherit;
   font-size: 13px;
   font-weight: 500;
@@ -903,20 +909,20 @@ input[type="range"] {
   padding: 6px 12px;
   text-shadow: none;
 }
-.driver-popover-footer button:hover,
-.driver-popover-footer button:focus {
+.driver-popover .driver-popover-footer button:hover,
+.driver-popover .driver-popover-footer button:focus {
   background-color: var(--secondary-hover);
 }
 /* The "Next" button is the primary action — paint it with the accent. The
    :last-child selector in the nav group targets it without driver.js exposing a
    semantic class. */
-.driver-popover-navigation-btns button:last-child {
+.driver-popover .driver-popover-navigation-btns button:last-child {
   background-color: var(--accent);
   color: var(--accent-ink);
   border-color: var(--accent);
 }
-.driver-popover-navigation-btns button:last-child:hover,
-.driver-popover-navigation-btns button:last-child:focus {
+.driver-popover .driver-popover-navigation-btns button:last-child:hover,
+.driver-popover .driver-popover-navigation-btns button:last-child:focus {
   background-color: color-mix(in srgb, var(--accent) 88%, white);
 }
 /* Arrow: driver.css builds the caret from a 5px border with three sides set
