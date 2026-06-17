@@ -1364,13 +1364,36 @@ input[type="range"] {
   gap: 14px;
   text-align: left;
 }
-.pause-section h3,
-.howto-section h3 {
+.pause-section h3 {
   font-size: 12px;
   color: var(--muted);
   margin: 0 0 6px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+/* How-to-play sections give each topic visual presence so the modal reads as
+   scannable cards rather than a wall of paragraphs. Section headings are
+   icon-led, in the accent color, and every section after the first gets a
+   top divider so the eye finds the boundaries. */
+.howto-section + .howto-section {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+.howto-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 0 0 8px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.howto-icon {
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
 }
 .pause-row {
   display: flex;
@@ -1419,14 +1442,81 @@ input[type="range"] {
   line-height: 1.55;
   color: var(--ink);
 }
-/* Glossary list in the "Controls reference" section — each entry is a term
-   (UI element name) followed by a short description, indented and softened
-   so it reads like a reference card rather than a paragraph. */
+/* Bullet lists for the multi-point sections (e.g. "Reading the market"). The
+   lead <p> stays as a one-line setup; the bullets break each idea onto its own
+   row so the section scans cleanly. */
+.howto-bullets {
+  margin: 6px 0 0;
+  padding-left: 22px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.howto-bullets li + li { margin-top: 4px; }
+.howto-bullets li::marker { color: var(--accent); }
+
+/* Controls reference — wrapped in <details> so the dense glossary is one tap
+   away rather than dominating the modal on first read. Style the summary like
+   a tappable row that flips between collapsed/expanded states. */
+.howto-section--ref { padding-top: 14px; }
+.howto-details > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+  padding: 6px 0;
+}
+.howto-details > summary::-webkit-details-marker { display: none; }
+.howto-details > summary::after {
+  content: '▾';
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+  transition: transform 0.15s ease;
+}
+.howto-details[open] > summary::after { transform: rotate(180deg); }
+.howto-details__title { flex: 1; }
+.howto-details__hint {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.howto-details[open] .howto-details__hint { display: none; }
+.howto-details__body {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.howto-subdetails > summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+.howto-subdetails > summary::-webkit-details-marker { display: none; }
+.howto-subdetails > summary::before {
+  content: '▸ ';
+  color: var(--muted);
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+.howto-subdetails[open] > summary::before { content: '▾ '; }
+
+/* Glossary list inside each Controls-reference sub-section — each entry is a
+   term (UI element name) followed by a short description, indented and
+   softened so it reads like a reference card rather than a paragraph. */
 .howto-glossary {
   display: grid;
   grid-template-columns: 1fr;
   gap: 6px 0;
-  margin: 6px 0 12px;
+  margin: 8px 0 4px;
   padding: 0;
   line-height: 1.45;
 }
