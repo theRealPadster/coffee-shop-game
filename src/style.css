@@ -841,72 +841,77 @@ input[type="range"] {
    gets no hover feedback at all. */
 #start-day-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--good) 82%, white); }
 
-/* ===== Help tips (day-1 onboarding) ===== */
-/* Floating callout popovers anchored to specific buy-phase controls. They
-   auto-show on day 1, can be re-shown on any later day via the .help-fab
-   button, and can be individually dismissed via the × in each pill. The state
-   (dismissed ids + replay flag) lives in buyPhase.ts module scope.
-
-   Positioning is done by Floating UI (positionHelpTips in buyPhase.ts): it sets
-   left/top, flips/shifts to stay on screen, and points the arrow element at the
-   anchor (the slider tip tracks the thumb via a virtual element). The CSS here
-   is purely the look. */
-.help-tip {
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 30;
-  width: max-content;
-  max-width: min(20em, 72vw);
-  padding: 8px 28px 8px 12px;
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--accent) 10%, var(--panel));
-  border: 1px solid var(--accent-light);
-  box-shadow: var(--shadow);
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 1.4;
+/* ===== Guided tutorial (driver.js theme overrides) ===== */
+/* Driver.js ships hard-coded colors and a tiny popover; we restyle it to match
+   our panel/ink/accent tokens so all 8 themes work without per-theme tweaks.
+   The original class names (.driver-popover-*) come from driver.css. */
+.driver-popover {
+  background-color: var(--panel);
   color: var(--ink);
-  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+  min-width: 260px;
+  max-width: min(320px, calc(100vw - 24px));
 }
-.help-tip__arrow {
-  /* A small rotated square; Floating UI sets its left + top/bottom. The two
-     visible borders face the anchor so it reads as a caret. */
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background: color-mix(in srgb, var(--accent) 10%, var(--panel));
-  border-left: 1px solid var(--accent-light);
-  border-top: 1px solid var(--accent-light);
-  transform: rotate(45deg);
+.driver-popover-title {
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
 }
-.help-tip__arrow--down {
-  /* Tip flipped above the anchor: caret points down, so show the other two
-     borders instead. */
-  border-left: none;
-  border-top: none;
-  border-right: 1px solid var(--accent-light);
-  border-bottom: 1px solid var(--accent-light);
+.driver-popover-description {
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink);
 }
-.help-tip__close {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background: transparent;
-  border: none;
-  font-size: 16px;
-  line-height: 1;
-  padding: 2px 6px;
-  cursor: pointer;
+.driver-popover-progress-text {
+  font-family: inherit;
+  font-size: 12px;
   color: var(--muted);
 }
-.help-tip__close:hover { color: var(--ink); }
-
-/* Anchor containers are the tips' offsetParents (Floating UI positions each
-   tip relative to its nearest positioned ancestor). */
-.serving-top { position: relative; }
-.ingredient-row .row-top { position: relative; }
-.ingredient-row .row-bottom { position: relative; }
+.driver-popover-close-btn {
+  color: var(--muted);
+}
+.driver-popover-close-btn:hover,
+.driver-popover-close-btn:focus {
+  color: var(--ink);
+}
+.driver-popover-footer button {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  background-color: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  text-shadow: none;
+}
+.driver-popover-footer button:hover,
+.driver-popover-footer button:focus {
+  background-color: var(--secondary-hover);
+}
+/* The "Next" button is the primary action — paint it with the accent. The
+   :last-child selector in the nav group targets it without driver.js exposing a
+   semantic class. */
+.driver-popover-navigation-btns button:last-child {
+  background-color: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+.driver-popover-navigation-btns button:last-child:hover,
+.driver-popover-navigation-btns button:last-child:focus {
+  background-color: color-mix(in srgb, var(--accent) 88%, white);
+}
+/* Arrow: driver.css uses border-color: #fff with one side transparent. Setting
+   border-color recolors the visible sides; the side-specific transparent rules
+   in driver.css still take precedence on the empty side. */
+.driver-popover-arrow {
+  border-color: var(--panel);
+}
 
 /* Floating "?" button — fixed bottom-right of the buy phase, the always-on
    replay affordance. Stays clear of system bars via safe-area-inset. */
