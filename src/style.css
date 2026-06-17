@@ -858,21 +858,27 @@ input[type="range"] {
    The class names (.driver-popover-*) come from driver.css, which is imported
    before this file in main.ts — so these single-class overrides beat driver's
    equal-specificity defaults on source order. */
+/* Geometry mirrors .modal — same panel, 8px radius, drop shadow, and 24px
+   padding — so the tour popover reads as a smaller sibling of our modals. */
 .driver-popover {
   background-color: var(--panel);
   color: var(--ink);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  padding: 24px;
   min-width: 260px;
   max-width: min(320px, calc(100vw - 24px));
 }
 .driver-popover-title {
   font-family: inherit;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
-  color: var(--ink);
+  /* accent + 12px gap below, matching .modal h2. The right padding keeps a long
+     title from running under the absolutely-positioned close button. */
+  color: var(--accent);
+  margin: 0 0 12px;
+  padding-right: 28px;
 }
 .driver-popover-description {
   font-family: inherit;
@@ -891,12 +897,22 @@ input[type="range"] {
    button rules above don't need this — driver.css's own defaults are the
    only thing they compete with, and source order handles those. */
 /* Match our modal close button (.modal__close-btn): muted glyph, transparent
-   border in the base to keep layout stable, secondary-hover fill on hover. */
+   border in the base to keep layout stable, secondary-hover fill on hover.
+   driver.js positions this absolutely with a fixed 32x28 box jammed in the
+   corner; we inset it to line up with the title row and size it by padding so
+   the hover fill sits neatly inside the rounded corner. */
 .driver-popover .driver-popover-close-btn {
   color: var(--muted);
   background: transparent;
   border: 1px solid transparent;
   border-radius: 6px;
+  top: 18px;
+  right: 18px;
+  width: auto;
+  height: auto;
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px 8px;
 }
 /* Hover only (no :focus) — driver.js focuses this button when the popover
    opens, so styling :focus would leave it stuck in the filled state at rest.
