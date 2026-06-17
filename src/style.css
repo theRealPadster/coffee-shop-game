@@ -952,33 +952,45 @@ input[type="range"] {
 .driver-popover .driver-popover-navigation-btns button:last-child:focus {
   background-color: color-mix(in srgb, var(--accent) 88%, white);
 }
-/* Arrow: driver.css builds the caret from a 5px border with three sides set
-   transparent per direction, leaving one colored side. We recolor only that
-   visible side — never touching the transparent ones, so the triangle shape is
-   preserved. The colored side per selector matches driver's own mapping. */
-/* Recolor the visible side and outline the caret to match the popover's 1px
-   --border. The caret is a pure border-triangle, so drop-shadow (which traces
-   its rendered shape) is the only way to outline it. A single shadow cast in
-   the pointing direction outlines just the two slanted edges + tip — NOT the
-   base, which must merge seamlessly into the popover body (a four-way shadow
-   would draw a line across that junction). The offset per side matches driver's
-   own side→direction mapping. It's 1.5px, not 1px: the edges are 45°, so an
-   axial offset reveals only ~cos45°≈0.7 of itself perpendicular to the edge —
-   1.5px lands ~1px, matching the popover border. */
-/* The translate nudges the caret ~1px into the popover so its base just covers
-   the popover's own border line at the join. (A pure rectangle border vs. a
-   triangle can't merge perfectly: too little overlap leaves a seam at the base,
-   too much exposes border slivers beside it — ~1px is the balance.) Direction
-   is toward the popover per side. */
-.driver-popover-arrow-side-left { border-left-color: var(--panel); filter: drop-shadow(1.5px 0 0 var(--border)); transform: translateX(-1px); }
-.driver-popover-arrow-side-right { border-right-color: var(--panel); filter: drop-shadow(-1.5px 0 0 var(--border)); transform: translateX(1px); }
-.driver-popover-arrow-side-top { border-top-color: var(--panel); filter: drop-shadow(0 1.5px 0 var(--border)); transform: translateY(-1px); }
-.driver-popover-arrow-side-bottom { border-bottom-color: var(--panel); filter: drop-shadow(0 -1.5px 0 var(--border)); transform: translateY(1px); }
+/* Arrow: the classic two-triangle bubble caret, so the outline merges into the
+   popover border cleanly at any zoom (a single border-triangle + drop-shadow
+   always left a seam or slivers where the rectangle border met the triangle).
+
+   The arrow ELEMENT is the border-colored triangle — it sits flush against the
+   popover edge, so its border-colored base is continuous with the popover's own
+   border (same color, adjacent) with nothing to merge.
+
+   ::after is the panel fill triangle stacked on top (same size), shifted ~1.5px
+   toward the popover. That shift (a) leaves a ~1px border rim along the two
+   slanted edges + tip [edges are 45°, so 1.5*cos45 ≈ 1px, matching the popover
+   border] and (b) pushes the fill base past the border base to cover the
+   popover's border line under the caret, so the bubble "opens" into the arrow.
+   Shift direction is toward the popover, per driver's side→direction mapping. */
+.driver-popover-arrow { border-width: 8px; }
+.driver-popover-arrow::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 8px solid transparent;
+  /* parent's 0x0 padding box sits at the center of its 16x16 border box, so
+     top/left:50% lands ::after's corner there; translate centers it (then adds
+     the toward-popover shift per side below). */
+  top: 50%;
+  left: 50%;
+}
+.driver-popover-arrow-side-left { border-left-color: var(--border); }
+.driver-popover-arrow-side-left::after { border-left-color: var(--panel); transform: translate(calc(-50% - 1.5px), -50%); }
+.driver-popover-arrow-side-right { border-right-color: var(--border); }
+.driver-popover-arrow-side-right::after { border-right-color: var(--panel); transform: translate(calc(-50% + 1.5px), -50%); }
+.driver-popover-arrow-side-top { border-top-color: var(--border); }
+.driver-popover-arrow-side-top::after { border-top-color: var(--panel); transform: translate(-50%, calc(-50% - 1.5px)); }
+.driver-popover-arrow-side-bottom { border-bottom-color: var(--border); }
+.driver-popover-arrow-side-bottom::after { border-bottom-color: var(--panel); transform: translate(-50%, calc(-50% + 1.5px)); }
 /* Bigger than driver's default 5px so the caret reads clearly. The
    center-align rules hard-code margin:-5px to center the 10px box, so they need
    a matching -8px for the wider 16px box; the start/end rules use a fixed 15px
    corner offset that's fine as-is. */
-.driver-popover-arrow { border-width: 8px; }
 .driver-popover-arrow-side-left.driver-popover-arrow-align-center,
 .driver-popover-arrow-side-right.driver-popover-arrow-align-center { margin-top: -8px; }
 .driver-popover-arrow-side-top.driver-popover-arrow-align-center,
