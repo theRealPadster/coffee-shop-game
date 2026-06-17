@@ -996,12 +996,13 @@ input[type="range"] {
 .driver-popover-arrow-side-top.driver-popover-arrow-align-center,
 .driver-popover-arrow-side-bottom.driver-popover-arrow-align-center { margin-left: -8px; }
 
-/* Floating "?" button — fixed bottom-right of the buy phase, the always-on
-   replay affordance. Stays clear of system bars via safe-area-inset. */
+/* Floating "?" button — fixed bottom-left of the buy phase, the always-on
+   replay affordance. Sits left so it doesn't overlap the Start Day button on
+   the bottom-right. Stays clear of system bars via safe-area-inset. */
 .help-fab {
   position: fixed;
   bottom: calc(16px + env(safe-area-inset-bottom));
-  right: calc(16px + env(safe-area-inset-right));
+  left: calc(16px + env(safe-area-inset-left));
   z-index: 50;
   width: 40px;
   height: 40px;
