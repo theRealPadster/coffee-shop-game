@@ -29,7 +29,7 @@ const STEPS: DriveStep[] = [
     popover: {
       title: "Today's weather",
       description:
-        "Sets foot traffic and what people order. Tap the chip for the breakdown.",
+        "Affects foot traffic and what people order. Tap the chip for the breakdown.",
       side: 'bottom',
       align: 'start',
     },
@@ -39,7 +39,7 @@ const STEPS: DriveStep[] = [
     popover: {
       title: 'Hype',
       description:
-        "Your shop's reputation. Good sales lift it; sold-outs and unhappy tasters drag it down. Tap for your band.",
+        "Your shop's reputation. Good sales lift it; sold-outs and unhappy customers drag it down. Tap to see where you stand.",
       side: 'bottom',
       align: 'end',
     },
@@ -49,7 +49,7 @@ const STEPS: DriveStep[] = [
     popover: {
       title: 'Hot or iced',
       description:
-        "Hot and iced are separate recipes with separate prices. Switch which you're serving today.",
+        'Hot and iced are separate recipes with separate prices. Toggle between the two — only one is served each day.',
       side: 'bottom',
     },
   },
@@ -67,7 +67,7 @@ const STEPS: DriveStep[] = [
     popover: {
       title: 'Dose sliders',
       description:
-        'Drag to set how much of each ingredient goes in a cup.',
+        'Drag to set how much of each ingredient goes in each cup.',
       side: 'bottom',
     },
   },
@@ -76,7 +76,7 @@ const STEPS: DriveStep[] = [
     popover: {
       title: 'Market price',
       description:
-        "Today's price plus a 5-day sparkline. Buy when it dips.",
+        "Today's market price. After a few days a 5-day sparkline appears alongside it — buy when it dips.",
       side: 'top',
     },
   },
@@ -85,7 +85,7 @@ const STEPS: DriveStep[] = [
     popover: {
       title: 'Brewable cups',
       description:
-        'How many cups you can brew today. The named bottleneck is what is capping you.',
+        'How many cups you can brew today. The named bottleneck is the ingredient limiting you.',
       side: 'top',
     },
   },
