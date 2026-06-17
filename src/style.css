@@ -407,7 +407,11 @@ input[type="range"] {
 .buy-content {
   max-width: 768px;
   margin: 0 auto;
-  padding: 16px;
+  /* Expand padding into the device's safe-area insets so the Start Day button
+     clears the iPhone home indicator and the panel stays clear of the notch in
+     landscape. Top/horizontal stay at 16px when the inset is zero. */
+  padding: 16px max(16px, env(safe-area-inset-right))
+           max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
 }
 
 .shop-panel { margin-bottom: 16px; }
@@ -439,7 +443,12 @@ input[type="range"] {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 8px 16px;
+  /* Horizontal padding expands into the device's safe-area inset when present
+     (landscape iPhone with notch / Dynamic Island, foldables), so the Day/Cash
+     badges and pause button stay clear of the cutout. Vertical padding stays
+     fixed — iOS PWAs with status-bar-style=default (see index.html) already
+     reserve the status-bar band outside our viewport. */
+  padding: 8px max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left));
   background: var(--panel);
   border-bottom: 1px solid var(--border);
 }
@@ -502,13 +511,11 @@ input[type="range"] {
     width: 100%;
     justify-content: center;
   }
-  /* Push Day to the far left and Cash to the far right on the top row, so a
-     phone's center-mounted notch (iPhone notch / Dynamic Island, centered
-     Android punch-hole) sits in the empty middle without overlapping content.
-     This lets us skip the env(safe-area-inset-top) padding hack — corners stay
-     visible on every phone we care about (iPhone XR's ~210px wide notch on a
-     414px screen still leaves ~100px of safe corner on each side; Dynamic
-     Island and Android punch-holes are smaller). */
+  /* Push Day to the far left and Cash to the far right on the top row. The
+     iOS status bar is its own opaque band above our viewport (apple-mobile-
+     web-app-status-bar-style=default in index.html), so we don't need
+     env(safe-area-inset-top) padding here — only the horizontal inset on
+     .app-header above, for landscape with the notch. */
   .app-header .hdr-left {
     justify-content: space-between;
   }

@@ -9,15 +9,19 @@
          from a real home-screen icon with no browser chrome. Android Chrome
          and most Chromium-based browsers read the manifest below for name,
          icon, and display mode. iPhone Safari ignores the manifest's
-         `display: fullscreen` and reads the apple-mobile-web-app-* meta
-         tags below instead, which is the only way to take Safari out of
-         its browser shell on iPhone. -->
+         `display: fullscreen` (silently falls back to standalone) and reads
+         the apple-mobile-web-app-* meta tags below instead, which is the only
+         way to take Safari out of its browser shell on iPhone. -->
     <link rel="manifest" href="./manifest.webmanifest" />
     <meta name="theme-color" content="#7b3f00" />
 
-    <!-- iOS standalone-mode shims -->
+    <!-- iOS standalone-mode shims. status-bar-style=default keeps the iOS
+         status bar as its own opaque OS-managed band above our viewport, so
+         the page content doesn't end up underneath the clock and battery
+         icons. (iOS PWAs cannot hide the status bar — black-translucent would
+         overlap content and the white text reads badly on the light theme.) -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Coffee Shop" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
   </head>
