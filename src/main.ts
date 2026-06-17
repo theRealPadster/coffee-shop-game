@@ -1,3 +1,7 @@
+// driver.css must load before style.css so our tutorial theme overrides in
+// style.css win on source order (driver.js ships hard-coded colors via the
+// same single-class selectors we use to retheme it).
+import 'driver.js/dist/driver.css';
 import './style.css';
 import { GameState, initialState } from './state';
 import { renderBuyPhase } from './scenes/buyPhase';

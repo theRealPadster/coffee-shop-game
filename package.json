@@ -24,6 +24,6 @@
     "@emnapi/wasi-threads": "1.2.2"
   },
   "dependencies": {
-    "@floating-ui/dom": "^1.7.6"
+    "driver.js": "^1.4.0"
   }
 }

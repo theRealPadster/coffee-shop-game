@@ -1,4 +1,3 @@
-import { computePosition, autoUpdate, offset, flip, shift, arrow, type VirtualElement } from '@floating-ui/dom';
 import { GameState, INGREDIENTS, INGREDIENT_META, PRICE_BANDS, formatCents, Ingredient, DrinkType, activeRecipe, activeCupPrice } from '../state';
 import { classifyPrice, PriceLevel, BULK_TIERS, bulkCost } from '../economy';
 import { spoilageFraction, SPOILAGE } from '../spoilage';
@@ -9,6 +8,7 @@ import { openPauseMenu } from '../pauseMenu';
 import { weatherChipHtml } from '../chips/weatherChip';
 import { hypeChipHtml } from '../chips/hypeChip';
 import { makeExpandableChip } from '../chips/expandableChip';
+import { startBuyPhaseTutorial, hasSeenTutorial } from '../tutorial';
 
 export interface BuyPhaseCallbacks {
   onStartDay: () => void;
@@ -17,17 +17,9 @@ export interface BuyPhaseCallbacks {
   onQuitToTitle: () => void;
 }
 
-// Module-local UI state for the day-1 help tips. Kept out of GameState because
-// it's transient screen state, not save-worthy:
-//   - replayHints lets the floating "?" button reshow tips on a later day; it
-//     resets when the player starts a day, so a replay is good for one buy phase.
-//   - dismissedTips tracks which tip ids the player closed via the × button;
-//     cleared at the same time so a fresh day-1 / replay starts clean.
-let replayHints = false;
-const dismissedTips = new Set<string>();
-// Floating-UI autoUpdate cleanups for the currently-mounted tips. Cleared and
-// rebuilt on every buy-phase render so detached anchors stop being watched.
-let tipCleanups: Array<() => void> = [];
+// Guards against re-firing the tour when renderBuyPhase is called more than
+// once for the same buy phase (e.g. a re-render mid-tour from a button click).
+let tutorialAutoStarted = false;
 
 const LEVEL_LABEL: Record<PriceLevel, string> = {
   'very-low': 'bargain',
@@ -77,94 +69,11 @@ function priceSparkline(history: number[], band: [number, number]): string {
   return `<svg class="price-spark ${dir}" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><title>${title}</title><polyline points="${points}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" /></svg>`;
 }
 
-// Render a single help tip if hints are showing for this phase and the tip
-// hasn't been dismissed. Returns an empty string otherwise so callers can
-// unconditionally interpolate it into a template. Positioning (and the arrow)
-// is handled by Floating UI after mount — see positionHelpTips().
-function helpTip(id: string, text: string, showHints: boolean): string {
-  if (!showHints || dismissedTips.has(id)) return '';
-  return `<div class="help-tip" data-tip-id="${id}" role="note">${text}<button class="help-tip__close" aria-label="Dismiss tip" data-dismiss-tip="${id}">×</button><span class="help-tip__arrow"></span></div>`;
-}
-
-// Anchor each mounted tip to its target with Floating UI: the tip floats just
-// below the control with the arrow pointing at it, flips/shifts to stay on
-// screen, and repositions on resize/scroll/orientation via autoUpdate. The
-// slider tip uses a virtual element pinned to the thumb's computed position so
-// the arrow tracks the current dose value rather than the track center.
-function positionHelpTips(root: HTMLElement): void {
-  for (const fn of tipCleanups) fn();
-  tipCleanups = [];
-
-  const place = (tip: HTMLElement, reference: Element | VirtualElement): void => {
-    const arrowEl = tip.querySelector<HTMLElement>('.help-tip__arrow');
-    const cleanup = autoUpdate(reference, tip, () => {
-      computePosition(reference, tip, {
-        placement: 'bottom',
-        middleware: [
-          offset(8),
-          flip({ fallbackPlacements: ['top'] }),
-          shift({ padding: 8 }),
-          ...(arrowEl ? [arrow({ element: arrowEl, padding: 8 })] : []),
-        ],
-      }).then(({ x, y, placement, middlewareData }) => {
-        Object.assign(tip.style, { left: `${x}px`, top: `${y}px` });
-        if (arrowEl && middlewareData.arrow) {
-          const { x: ax } = middlewareData.arrow;
-          // Arrow sits on whichever edge faces the reference.
-          const onTop = placement.startsWith('bottom');
-          Object.assign(arrowEl.style, {
-            left: ax != null ? `${ax}px` : '',
-            top: onTop ? '-5px' : '',
-            bottom: onTop ? '' : '-5px',
-          });
-          arrowEl.classList.toggle('help-tip__arrow--down', !onTop);
-        }
-      });
-    });
-    tipCleanups.push(cleanup);
-  };
-
-  // tip-type → the Hot/Iced toggle.
-  const typeTip = root.querySelector<HTMLElement>('[data-tip-id="tip-type"]');
-  const toggle = root.querySelector<HTMLElement>('.type-toggle');
-  if (typeTip && toggle) place(typeTip, toggle);
-
-  // tip-dose → a virtual element at the thumb position of the slider in the
-  // tip's own row (coffee), so the caret tracks the current dose.
-  const doseTip = root.querySelector<HTMLElement>('[data-tip-id="tip-dose"]');
-  const slider = doseTip?.closest('.ingredient-row')?.querySelector<HTMLInputElement>('input[type="range"][data-ing]');
-  if (doseTip && slider) {
-    const thumbRef: VirtualElement = {
-      getBoundingClientRect() {
-        const r = slider.getBoundingClientRect();
-        const min = Number(slider.min) || 0;
-        const max = Number(slider.max) || 100;
-        const val = Number(slider.value) || 0;
-        const pct = max > min ? (val - min) / (max - min) : 0;
-        // Inset by ~half a thumb so the extremes don't overhang the track.
-        const inset = 9;
-        const cx = r.left + inset + pct * (r.width - inset * 2);
-        return { width: 0, height: r.height, x: cx, y: r.top, left: cx, right: cx, top: r.top, bottom: r.bottom };
-      },
-    };
-    place(doseTip, thumbRef);
-  }
-
-  // tip-price → the price cell in the tip's own row (sugar, so it doesn't
-  // collide with the dose tip on the coffee row above).
-  const priceTip = root.querySelector<HTMLElement>('[data-tip-id="tip-price"]');
-  const priceCell = priceTip?.closest('.ingredient-row')?.querySelector<HTMLElement>('.price');
-  if (priceTip && priceCell) place(priceTip, priceCell);
-}
-
 export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhaseCallbacks): void {
   const r = activeRecipe(state);
   const bn = bottleneck(state.stock, r);
   const cups = maxCups(state.stock, r);
   const typeIcon = r.type === 'hot' ? '☕' : '🧊';
-  // Hints auto-show on day 1; the floating "?" button flips replayHints to
-  // bring them back on any later day for the current buy phase.
-  const showHints = state.day === 1 || replayHints;
 
   root.innerHTML = `
     ${appHeaderHtml(state, { variant: 'buy' })}
@@ -182,7 +91,6 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
               <button data-type="hot" class="${r.type === 'hot' ? 'active' : ''}">Hot ☕</button>
               <button data-type="iced" class="${r.type === 'iced' ? 'active' : ''}">Iced 🧊</button>
             </div>
-            ${helpTip('tip-type', "Hot and iced are separate recipes with separate prices — switch which you're serving today.", showHints)}
           </div>
           <div class="serving-main">
             <span class="serving-icon">${typeIcon}</span>
@@ -196,7 +104,7 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
         </div>
 
         <div class="shop-rows">
-          ${INGREDIENTS.map((ing, idx) => shopRow(state, ing, r, bn, showHints && idx === 0, showHints && idx === 1)).join('')}
+          ${INGREDIENTS.map((ing) => shopRow(state, ing, r, bn)).join('')}
         </div>
 
         <div class="cups-producible">
@@ -209,7 +117,7 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
         <button id="start-day-btn">Start Day ▶</button>
       </div>
       </div>
-      <button class="help-fab" id="help-fab-btn" aria-label="Show tutorial hints" title="Show tutorial hints">?</button>
+      <button class="help-fab" id="help-fab-btn" aria-label="Replay tutorial" title="Replay tutorial">?</button>
     </div>
   `;
 
@@ -221,10 +129,18 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
     void openPauseMenu({ state, onRestore: cb.onRestore, onQuitToTitle: cb.onQuitToTitle });
   });
   attachBuyPhaseEvents(root, state, cb);
-  positionHelpTips(root);
+
+  // First-play tour: only on day 1 of a new game, only once per session.
+  // Existing saves from before this feature stay quiet — they reach a later
+  // day before ever rendering with the flag unset, but the day-1 gate keeps
+  // the tour from springing on them mid-game.
+  if (!tutorialAutoStarted && state.day === 1 && !hasSeenTutorial()) {
+    tutorialAutoStarted = true;
+    startBuyPhaseTutorial();
+  }
 }
 
-function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot'], bn: Ingredient | null, showDoseTip: boolean, showPriceTip: boolean): string {
+function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot'], bn: Ingredient | null): string {
   const meta = INGREDIENT_META[ing];
   const price = state.prices[ing];
   const level = classifyPrice(price, PRICE_BANDS[ing]);
@@ -248,9 +164,13 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
     doseCell = `<span class="dose-static">1 per drink</span>`;
   } else {
     const applicable = ing !== 'ice' || r.type === 'iced';
+    // Slider + value share a .dose-control wrapper so the tutorial can spotlight
+    // both as one rectangle (the value is otherwise a separate sibling).
     doseCell = `
-      <input type="range" min="0" max="5" step="1" value="${dose}" data-ing="${ing}" ${applicable ? '' : 'disabled'} />
-      <span class="dose-val" data-dose-val="${ing}">${dose}</span>
+      <div class="dose-control">
+        <input type="range" min="0" max="5" step="1" value="${dose}" data-ing="${ing}" ${applicable ? '' : 'disabled'} />
+        <span class="dose-val" data-dose-val="${ing}">${dose}</span>
+      </div>
     `;
   }
 
@@ -259,7 +179,6 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
       <div class="row-top">
         <div class="name">${meta.emoji} ${meta.label}</div>
         ${doseCell}
-        ${helpTip('tip-dose', 'Drag to set how much of this ingredient goes in each cup.', showDoseTip)}
       </div>
       <div class="row-bottom">
         <div class="stock"><strong>${stock}</strong> <span class="stock-unit">in stock</span></div>
@@ -268,7 +187,6 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
           ${BULK_TIERS.map(({ qty }) => `<button class="buy-btn" data-buy="${ing}" data-qty="${qty}" ${state.cash < bulkCost(price, qty) ? 'disabled' : ''}>Buy ${qty}</button>`).join('')}
           ${BULK_TIERS.map(({ qty }) => `<span class="buy-cost">${formatCents(bulkCost(price, qty))}</span>`).join('')}
         </div>
-        ${helpTip('tip-price', "Today's market price plus the last few days — buy when it dips.", showPriceTip)}
       </div>
       ${spoilWarn}
     </div>
@@ -360,32 +278,13 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
     if (maxCups(state.stock, activeRecipe(state)) <= 0) {
       if (!confirm("You can't brew any cups with your current recipe and stock. Start day anyway?")) return;
     }
-    // Reset hint UI state so a fresh day-1 (new game) or a "?" replay later
-    // starts with all tips visible again.
-    replayHints = false;
-    dismissedTips.clear();
     play('bell');
     cb.onStartDay();
   });
 
-  // Help "?" floating button — bring all hint tips back for the current buy
-  // phase, regardless of day. Cleared by Start Day so it's per-buy-phase only.
+  // Help "?" floating button — replay the guided tour.
   root.querySelector<HTMLButtonElement>('#help-fab-btn')?.addEventListener('click', () => {
-    replayHints = true;
-    dismissedTips.clear();
-    rerender();
-  });
-
-  // × on each tip — dismiss in place without a full rerender (so the surrounding
-  // controls aren't reflowed). Remember the id so subsequent rerenders skip it.
-  root.querySelectorAll<HTMLButtonElement>('[data-dismiss-tip]').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = btn.dataset.dismissTip;
-      if (!id) return;
-      dismissedTips.add(id);
-      btn.closest('.help-tip')?.remove();
-    });
+    startBuyPhaseTutorial();
   });
 }
 
