@@ -890,13 +890,19 @@ input[type="range"] {
    every popover button (close, back, next) accent-brown on hover. The non-
    button rules above don't need this — driver.css's own defaults are the
    only thing they compete with, and source order handles those. */
+/* Match our modal close button (.modal__close-btn): muted glyph, transparent
+   border in the base to keep layout stable, secondary-hover fill on hover. */
 .driver-popover .driver-popover-close-btn {
   color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
 }
 .driver-popover .driver-popover-close-btn:hover,
 .driver-popover .driver-popover-close-btn:focus {
   color: var(--ink);
-  background: transparent;
+  background: var(--secondary-hover);
+  border-color: var(--border);
 }
 .driver-popover .driver-popover-footer button {
   font-family: inherit;
