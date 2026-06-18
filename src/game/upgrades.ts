@@ -17,8 +17,16 @@ export interface Upgrade {
   blurb: string; // one-line description of the effect
 }
 
-// Order here is the display order in the buy phase.
+// Order here is the display order in the buy phase. Cheaper upgrades first so
+// the natural progression reads top-to-bottom.
 export const UPGRADES: Record<UpgradeId, Upgrade> = {
+  cooler: {
+    id: 'cooler',
+    name: 'Cooler',
+    emoji: '🧰',
+    cost: 1500, // $15.00 — natural day 2-3 purchase
+    blurb: 'Keeps perishables from spoiling on moderate days. Hot days still bite.',
+  },
   refrigerator: {
     id: 'refrigerator',
     name: 'Refrigerator',

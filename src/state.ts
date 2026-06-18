@@ -6,7 +6,7 @@ export type Phase = 'buy' | 'street';
 // Persistent between-days purchases. The catalog + effects live in
 // game/upgrades.ts; the id union is here (alongside the other core domain
 // types) so state.ts stays import-free and there's no cycle with upgrades.ts.
-export type UpgradeId = 'refrigerator';
+export type UpgradeId = 'refrigerator' | 'cooler';
 
 export const INGREDIENTS: Ingredient[] = ['coffee', 'sugar', 'milk', 'ice', 'cups'];
 

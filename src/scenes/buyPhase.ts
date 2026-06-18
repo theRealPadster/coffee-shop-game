@@ -1,6 +1,6 @@
 import { GameState, INGREDIENTS, INGREDIENT_META, PRICE_BANDS, formatCents, Ingredient, DrinkType, activeRecipe, activeCupPrice } from '../state';
 import { classifyPrice, PriceLevel, BULK_TIERS, bulkCost } from '../game/economy';
-import { spoilageFraction, SPOILAGE } from '../game/spoilage';
+import { spoilageFraction, SPOILAGE, currentSpoilageTier } from '../game/spoilage';
 import { maxCups, bottleneck } from '../game/recipe';
 import { play } from '../platform/audio';
 import { appHeaderHtml, attachHeaderMenu } from '../ui/header';
@@ -164,14 +164,18 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
   const dose = r.doses[ing] ?? 0;
 
   // Perishables left over after today spoil/melt overnight at today's temperature.
-  // The Refrigerator removes the risk, so the warning is suppressed once owned.
-  const spoilFrac = hasUpgrade(state, 'refrigerator') ? 0 : spoilageFraction(ing, state.weather);
+  // The threshold + rate come from whichever spoilage tier the player's owned
+  // upgrades unlock (none / cooler / refrigerator); the refrigerator tier sets
+  // ratePerDeg to 0, so spoilFrac stays 0 and the warning naturally disappears.
+  const tier = currentSpoilageTier(state);
+  const spoilFrac = spoilageFraction(ing, state.weather, tier);
   let spoilWarn = '';
   if (spoilFrac > 0) {
     const cfg = SPOILAGE[ing]!;
+    const tierCfg = cfg.tiers[tier];
     const bare = cfg.verb.slice(0, -1); // "spoils" → "spoil", "melts" → "melt"
     const verbCap = cfg.verb.charAt(0).toUpperCase() + cfg.verb.slice(1); // "melts" → "Melts"
-    const tooltip = `${meta.label} ${cfg.verb} above ${cfg.temp}°C. Today is ${state.weather.tempC}°C, so some of any unsold ${meta.label.toLowerCase()} will ${bare} overnight.`;
+    const tooltip = `${meta.label} ${cfg.verb} above ${tierCfg.temp}°C. Today is ${state.weather.tempC}°C, so some of any unsold ${meta.label.toLowerCase()} will ${bare} overnight.`;
     spoilWarn = `<div class="spoil-warn" title="${escapeAttr(tooltip)}">⚠ ${verbCap} overnight</div>`;
   }
 
@@ -213,8 +217,18 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
 // the rest a Buy button (disabled when unaffordable). The panel stays visible
 // even after every upgrade is owned, so the player can always see what they
 // have — there's no other affordance for "what upgrades do I own?".
+//
+// The Cooler is functionally superseded by the Refrigerator, so we hide it once
+// the Refrigerator is owned — UNLESS the player bought the Cooler first, in
+// which case the ✓ Owned row stays visible (don't make a paid-for upgrade
+// vanish from view).
 function upgradesPanel(state: GameState): string {
-  const rows = UPGRADE_LIST.map((u) => {
+  const rows = UPGRADE_LIST
+    .filter((u) => {
+      if (u.id !== 'cooler') return true;
+      return !hasUpgrade(state, 'refrigerator') || hasUpgrade(state, 'cooler');
+    })
+    .map((u) => {
     const owned = hasUpgrade(state, u.id);
     const affordable = canAffordUpgrade(state, u.id);
     const action = owned
