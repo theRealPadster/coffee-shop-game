@@ -77,6 +77,11 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
   const cups = maxCups(state.stock, r);
   const typeIcon = r.type === 'hot' ? '☕' : '🧊';
 
+  // Re-rendering replaces root.innerHTML, which recreates .buy-phase (the
+  // scroll container) and resets its scrollTop. Capture it first so we can
+  // restore the position after — otherwise every buy/toggle jumps to the top.
+  const prevScroll = root.querySelector('.buy-phase')?.scrollTop ?? 0;
+
   root.innerHTML = `
     ${appHeaderHtml(state, { variant: 'buy' })}
     <div class="buy-phase">
@@ -133,6 +138,12 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
     void openPauseMenu({ state, onRestore: cb.onRestore, onQuitToTitle: cb.onQuitToTitle });
   });
   attachBuyPhaseEvents(root, state, cb);
+
+  // Restore scroll position (see prevScroll above). The new .buy-phase is laid
+  // out synchronously after the innerHTML assignment, so this takes effect
+  // immediately with no flash.
+  const scroller = root.querySelector<HTMLElement>('.buy-phase');
+  if (scroller) scroller.scrollTop = prevScroll;
 
   // First-play tour: only on day 1 of a new game, only once per session.
   // Existing saves from before this feature stay quiet — they reach a later
