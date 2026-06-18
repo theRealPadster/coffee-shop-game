@@ -199,12 +199,10 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
 }
 
 // Persistent upgrades shop. One row per catalog entry: owned ones show a tag,
-// the rest a Buy button (disabled when unaffordable). The whole panel is hidden
-// once every upgrade is owned so it doesn't sit there empty.
+// the rest a Buy button (disabled when unaffordable). The panel stays visible
+// even after every upgrade is owned, so the player can always see what they
+// have — there's no other affordance for "what upgrades do I own?".
 function upgradesPanel(state: GameState): string {
-  const allOwned = UPGRADE_LIST.every((u) => hasUpgrade(state, u.id));
-  if (allOwned) return '';
-
   const rows = UPGRADE_LIST.map((u) => {
     const owned = hasUpgrade(state, u.id);
     const affordable = canAffordUpgrade(state, u.id);
