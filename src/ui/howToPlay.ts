@@ -85,13 +85,15 @@ export function openHowToPlay(): Promise<void> {
                   <dt>Dose slider (per ingredient)</dt>
                   <dd>How much of each ingredient goes in a cup. Iced ingredient only applies when you're serving iced.</dd>
                   <dt>Stock + spoilage warning</dt>
-                  <dd>How much you have on hand. Milk and ice show a ⚠ "spoils/melts overnight" warning when today's temp is above their threshold — leftovers degrade by morning.</dd>
+                  <dd>How much you have on hand. Milk and ice show a ⚠ "spoils/melts overnight" warning when today's temp is above their threshold — leftovers degrade by morning. (The Refrigerator upgrade stops this.)</dd>
                   <dt>Market price chip + sparkline</dt>
                   <dd>Today's market level (▼▼ bargain → ▲▲ expensive) and a 5-day history. Buy when it dips.</dd>
                   <dt>Buy 5 / 10 / 20</dt>
                   <dd>Larger bundles include a small per-unit discount.</dd>
                   <dt>Bottleneck highlight</dt>
                   <dd>The ingredient capping today's cup count is shaded in the buy panel and named under "Cups producible today".</dd>
+                  <dt>Upgrades</dt>
+                  <dd>Permanent purchases that pay off over time. The Refrigerator stops milk and ice spoiling overnight, so you can stock ahead and bulk-buy without risk on hot days.</dd>
                 </dl>
               </details>
               <details class="howto-subdetails">

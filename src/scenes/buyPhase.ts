@@ -9,6 +9,8 @@ import { weatherChipHtml } from '../ui/chips/weatherChip';
 import { hypeChipHtml } from '../ui/chips/hypeChip';
 import { makeExpandableChip } from '../ui/chips/expandableChip';
 import { startBuyPhaseTutorial, hasSeenTutorial } from '../ui/tutorial';
+import { UpgradeId } from '../state';
+import { UPGRADE_LIST, hasUpgrade, canAffordUpgrade, buyUpgrade } from '../game/upgrades';
 
 export interface BuyPhaseCallbacks {
   onStartDay: () => void;
@@ -113,6 +115,8 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
         </div>
       </div>
 
+      ${upgradesPanel(state)}
+
       <div class="day-footer">
         <button id="start-day-btn">Start Day ▶</button>
       </div>
@@ -149,7 +153,8 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
   const dose = r.doses[ing] ?? 0;
 
   // Perishables left over after today spoil/melt overnight at today's temperature.
-  const spoilFrac = spoilageFraction(ing, state.weather);
+  // The Refrigerator removes the risk, so the warning is suppressed once owned.
+  const spoilFrac = hasUpgrade(state, 'refrigerator') ? 0 : spoilageFraction(ing, state.weather);
   let spoilWarn = '';
   if (spoilFrac > 0) {
     const cfg = SPOILAGE[ing]!;
@@ -189,6 +194,38 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
         </div>
       </div>
       ${spoilWarn}
+    </div>
+  `;
+}
+
+// Persistent upgrades shop. One row per catalog entry: owned ones show a tag,
+// the rest a Buy button (disabled when unaffordable). The whole panel is hidden
+// once every upgrade is owned so it doesn't sit there empty.
+function upgradesPanel(state: GameState): string {
+  const allOwned = UPGRADE_LIST.every((u) => hasUpgrade(state, u.id));
+  if (allOwned) return '';
+
+  const rows = UPGRADE_LIST.map((u) => {
+    const owned = hasUpgrade(state, u.id);
+    const affordable = canAffordUpgrade(state, u.id);
+    const action = owned
+      ? `<span class="upgrade-owned">✓ Owned</span>`
+      : `<button class="upgrade-buy" data-upgrade="${u.id}" ${affordable ? '' : 'disabled'}>${formatCents(u.cost)}</button>`;
+    return `
+      <div class="upgrade-row ${owned ? 'owned' : ''}">
+        <div class="upgrade-info">
+          <div class="upgrade-name">${u.emoji} ${u.name}</div>
+          <div class="upgrade-blurb">${u.blurb}</div>
+        </div>
+        ${action}
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="panel upgrades-panel">
+      <h2>Upgrades</h2>
+      ${rows}
     </div>
   `;
 }
@@ -270,6 +307,17 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
       cb.onStateChange();
       rerender();
       flashBuyFeedback(root, ing);
+    });
+  });
+
+  // Upgrade purchases
+  root.querySelectorAll<HTMLButtonElement>('[data-upgrade]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.upgrade as UpgradeId;
+      if (!buyUpgrade(state, id)) return;
+      play('cashier');
+      cb.onStateChange();
+      rerender();
     });
   });
 

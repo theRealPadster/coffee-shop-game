@@ -3,6 +3,11 @@ export type DrinkType = 'hot' | 'iced';
 export type WeatherCondition = 'sunny' | 'cloudy' | 'rainy' | 'snowy';
 export type Phase = 'buy' | 'street';
 
+// Persistent between-days purchases. The catalog + effects live in
+// game/upgrades.ts; the id union is here (alongside the other core domain
+// types) so state.ts stays import-free and there's no cycle with upgrades.ts.
+export type UpgradeId = 'refrigerator';
+
 export const INGREDIENTS: Ingredient[] = ['coffee', 'sugar', 'milk', 'ice', 'cups'];
 
 export const INGREDIENT_META: Record<Ingredient, { emoji: string; label: string }> = {
@@ -59,6 +64,7 @@ export interface GameState {
   phase: Phase;
   todayStats: TodayStats;
   muted: boolean;
+  upgrades: Partial<Record<UpgradeId, boolean>>; // owned persistent upgrades
 }
 
 export function activeRecipe(state: GameState): Recipe {
@@ -123,6 +129,7 @@ export function initialState(): GameState {
     phase: 'buy',
     todayStats: freshStats(50),
     muted: false,
+    upgrades: {},
   };
 }
 

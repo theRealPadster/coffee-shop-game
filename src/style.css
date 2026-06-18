@@ -524,6 +524,31 @@ input[type="range"] {
 }
 .cup-price-input-wrap input { width: 80px; padding-left: 18px; }
 
+/* ===== Upgrades panel (buy phase) ===== */
+.upgrades-panel { margin-bottom: 16px; }
+.upgrade-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--border);
+}
+.upgrade-row:last-child { border-bottom: none; }
+.upgrade-info { flex: 1; min-width: 0; }
+.upgrade-name { font-weight: 600; }
+.upgrade-blurb { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.upgrade-buy {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.upgrade-owned {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--good);
+}
+
 .day-footer {
   display: flex;
   justify-content: flex-end;

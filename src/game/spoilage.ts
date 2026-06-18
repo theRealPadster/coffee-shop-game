@@ -1,4 +1,5 @@
 import { GameState, Ingredient, Weather } from '../state';
+import { hasUpgrade } from './upgrades';
 
 interface SpoilConfig {
   /** Above this temperature (°C) the perishable starts to degrade overnight. */
@@ -11,7 +12,8 @@ interface SpoilConfig {
 
 // Ice melts at a much lower threshold than milk spoils — a cool day already
 // costs you ice, while milk only turns when it's genuinely hot. The Refrigerator
-// upgrade (see TODO) will negate these.
+// upgrade negates these entirely (see applySpoilage / the buy-phase + weather
+// chip warnings, all gated on hasUpgrade(state, 'refrigerator')).
 export const SPOILAGE: Partial<Record<Ingredient, SpoilConfig>> = {
   milk: { temp: 24, ratePerDeg: 0.1, verb: 'spoils' },
   ice: { temp: 4, ratePerDeg: 0.05, verb: 'melts' },
@@ -31,6 +33,8 @@ export function spoilageFraction(ingredient: Ingredient, weather: Weather): numb
  * amounts lost so the report card can surface them.
  */
 export function applySpoilage(state: GameState): Partial<Record<Ingredient, number>> {
+  // Refrigerator keeps everything fresh overnight — nothing is lost.
+  if (hasUpgrade(state, 'refrigerator')) return {};
   const lost: Partial<Record<Ingredient, number>> = {};
   for (const ingredient of Object.keys(SPOILAGE) as Ingredient[]) {
     const frac = spoilageFraction(ingredient, state.weather);

@@ -12,6 +12,7 @@
 import { GameState, Weather, Ingredient, INGREDIENT_META } from '../../state';
 import { weatherEmoji, weatherEffects } from '../../game/weather';
 import { SPOILAGE, spoilageFraction } from '../../game/spoilage';
+import { hasUpgrade } from '../../game/upgrades';
 
 export type WeatherChipVariant = 'buy' | 'street';
 export type InsightTier = 'vibe' | 'precise';
@@ -22,7 +23,7 @@ interface Insight {
   precise: string;
 }
 
-function weatherInsights(w: Weather): Insight[] {
+function weatherInsights(w: Weather, hasFridge: boolean): Insight[] {
   const fx = weatherEffects(w);
 
   // Foot traffic — how many pedestrians show up (demandMul).
@@ -56,8 +57,9 @@ function weatherInsights(w: Weather): Insight[] {
   // Tie the spoilage warning back to the weather card so the player can see
   // that today's heat is what's putting milk/ice at risk. Only render the row
   // when at least one perishable is actually above its threshold today,
-  // otherwise the chip stays clean on cool days.
-  const perishables = perishableInsight(w);
+  // otherwise the chip stays clean on cool days. The Refrigerator removes the
+  // risk entirely, so the row is suppressed once it's owned.
+  const perishables = hasFridge ? null : perishableInsight(w);
   if (perishables) insights.push(perishables);
 
   return insights;
@@ -101,7 +103,7 @@ export function weatherChipHtml(
   // conveys the condition); the condition name appears once, as the body title,
   // when expanded — so it's never shown twice.
 
-  const rows = weatherInsights(w)
+  const rows = weatherInsights(w, hasUpgrade(state, 'refrigerator'))
     .map((r) => `<li><span>${r.label}</span><strong>${tier === 'precise' ? r.precise : r.vibe}</strong></li>`)
     .join('');
 
