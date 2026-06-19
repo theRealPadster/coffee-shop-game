@@ -10,7 +10,8 @@ import { hypeChipHtml } from '../ui/chips/hypeChip';
 import { makeExpandableChip } from '../ui/chips/expandableChip';
 import { startBuyPhaseTutorial, hasSeenTutorial } from '../ui/tutorial';
 import { UpgradeId } from '../state';
-import { UPGRADE_LIST, hasUpgrade, canAffordUpgrade, buyUpgrade } from '../game/upgrades';
+import { UPGRADE_LIST, hasUpgrade, canAffordUpgrade, buyUpgrade, setUpgrade } from '../game/upgrades';
+import { isDebugMode } from '../platform/debug';
 
 export interface BuyPhaseCallbacks {
   onStartDay: () => void;
@@ -222,18 +223,35 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
 // the Refrigerator is owned — UNLESS the player bought the Cooler first, in
 // which case the ✓ Owned row stays visible (don't make a paid-for upgrade
 // vanish from view).
+//
+// Debug mode swaps the Buy button / ✓ Owned tag for a toggle switch that
+// grants/revokes the upgrade for free, and suppresses the Cooler-hide logic so
+// every upgrade is reachable. A small DEBUG tag in the heading flags that the
+// upgrades aren't being earned normally.
 function upgradesPanel(state: GameState): string {
+  const debug = isDebugMode();
   const rows = UPGRADE_LIST
     .filter((u) => {
+      if (debug) return true;
       if (u.id !== 'cooler') return true;
       return !hasUpgrade(state, 'refrigerator') || hasUpgrade(state, 'cooler');
     })
     .map((u) => {
     const owned = hasUpgrade(state, u.id);
     const affordable = canAffordUpgrade(state, u.id);
-    const action = owned
-      ? `<span class="upgrade-owned">✓ Owned</span>`
-      : `<button class="upgrade-buy" data-upgrade="${u.id}" ${affordable ? '' : 'disabled'}>${formatCents(u.cost)}</button>`;
+    let action: string;
+    if (debug) {
+      action = `
+        <label class="upgrade-toggle" title="Debug: grant/revoke">
+          <input type="checkbox" data-upgrade-toggle="${u.id}" ${owned ? 'checked' : ''} />
+          <span class="upgrade-toggle__track"></span>
+        </label>
+      `;
+    } else if (owned) {
+      action = `<span class="upgrade-owned">✓ Owned</span>`;
+    } else {
+      action = `<button class="upgrade-buy" data-upgrade="${u.id}" ${affordable ? '' : 'disabled'}>${formatCents(u.cost)}</button>`;
+    }
     return `
       <div class="upgrade-row ${owned ? 'owned' : ''}">
         <div class="upgrade-info">
@@ -247,7 +265,7 @@ function upgradesPanel(state: GameState): string {
 
   return `
     <div class="panel upgrades-panel">
-      <h2>Upgrades</h2>
+      <h2>Upgrades${debug ? ' <span class="debug-tag">DEBUG</span>' : ''}</h2>
       ${rows}
     </div>
   `;
@@ -339,6 +357,18 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
       const id = btn.dataset.upgrade as UpgradeId;
       if (!buyUpgrade(state, id)) return;
       play('cashier');
+      cb.onStateChange();
+      rerender();
+    });
+  });
+
+  // Debug toggles — grant/revoke an upgrade without touching cash. Only
+  // rendered by upgradesPanel() when isDebugMode() is true, so this handler is
+  // a no-op outside debug.
+  root.querySelectorAll<HTMLInputElement>('[data-upgrade-toggle]').forEach(input => {
+    input.addEventListener('change', () => {
+      const id = input.dataset.upgradeToggle as UpgradeId;
+      setUpgrade(state, id, input.checked);
       cb.onStateChange();
       rerender();
     });

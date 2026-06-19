@@ -60,3 +60,14 @@ export function buyUpgrade(state: GameState, id: UpgradeId): boolean {
   state.upgrades[id] = true;
   return true;
 }
+
+/**
+ * Grant or revoke an upgrade without touching cash. Debug-only — used by the
+ * Upgrades-panel toggles when debug mode is on, so you can A/B effects without
+ * grinding cash. Not exposed in normal play.
+ */
+export function setUpgrade(state: GameState, id: UpgradeId, owned: boolean): void {
+  if (!state.upgrades) state.upgrades = {};
+  if (owned) state.upgrades[id] = true;
+  else delete state.upgrades[id];
+}
