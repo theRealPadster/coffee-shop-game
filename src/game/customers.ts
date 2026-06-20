@@ -2,6 +2,7 @@ import { GameState, DrinkType, activeRecipe, activeCupPrice } from '../state';
 import { weatherEffects } from './weather';
 import { hypePriceTolerance, hypeStopMultiplier } from './hype';
 import { maxCups } from './recipe';
+import { hasUpgrade } from './upgrades';
 import { randomPedestrianSprite, Sprite } from '../render';
 
 export type CustomerPhase = 'walking' | 'queuing' | 'considering' | 'buying' | 'leaving';
@@ -35,6 +36,7 @@ export interface Customer {
   // buyers defer to this beat so the two read consistently.
   postSaleReaction: string | null;
   postSaleHype: number; // taste-reaction hype delta, applied when postSaleReaction is voiced
+  postSaleTip: number; // tip cents, paid when postSaleReaction is voiced (0 if no tip)
   remarked: boolean; // whether this passerby has already had a chance to badmouth the shop
 }
 
@@ -78,6 +80,7 @@ export function spawnCustomer(state: GameState, _canvasWidth: number, canvasHeig
     hasBought: false,
     postSaleReaction: null,
     postSaleHype: 0,
+    postSaleTip: 0,
     remarked: false,
   };
 }
@@ -88,6 +91,35 @@ export interface DecisionResult {
   hypeDelta: number;
   complaintKey: string; // for the report card
   isHappy: boolean;
+  tip: number; // tip cents on top of cup price; 0 unless happy + Tip jar owned
+}
+
+// Tips are a Tip jar upgrade reward: only happy buyers tip, and only some of
+// them. The tier (3 = "Best in town", 2 = regular happy) sets the base chance
+// and the fraction of cup price. Hype scales the chance (better buzz → people
+// reach for change more often) but is capped so it can't dwarf the cup price.
+// A ±20% jitter on the amount keeps tips from always being identical.
+//
+// IMPORTANT: tips never apply hype. The direction is one-way — hype influences
+// tip chance, but receiving a tip does not call applyHype. That keeps the loop
+// from snowballing (more money is the reward, full stop).
+export function computeTip(state: GameState, hypeDelta: number, cupPrice: number): number {
+  if (!hasUpgrade(state, 'tipJar')) return 0;
+  if (hypeDelta <= 0) return 0;
+
+  let chance: number;
+  let factor: number;
+  if (hypeDelta >= 3) { chance = 0.75; factor = 0.25; }
+  else                { chance = 0.35; factor = 0.10; }
+
+  // At +100 hype: chances scale to 1.5×; at -100: 0.5×. Cap matters — without
+  // it, the chance can exceed 1 at high hype and we silently lose variability.
+  const hypeMult = Math.min(1.5, Math.max(0.5, 1 + state.hype / 200));
+  chance *= hypeMult;
+
+  if (Math.random() >= chance) return 0;
+  const jitter = 0.8 + Math.random() * 0.4;
+  return Math.max(1, Math.round(cupPrice * factor * jitter));
 }
 
 export function decide(state: GameState, c: Customer): DecisionResult {
@@ -102,6 +134,7 @@ export function decide(state: GameState, c: Customer): DecisionResult {
       hypeDelta: -2,
       complaintKey: 'Sold out',
       isHappy: false,
+      tip: 0,
     };
   }
 
@@ -174,6 +207,7 @@ export function decide(state: GameState, c: Customer): DecisionResult {
       hypeDelta: top ? top[3] : 0,
       complaintKey: top ? top[2] : '',
       isHappy: false,
+      tip: 0,
     };
   }
 
@@ -182,7 +216,7 @@ export function decide(state: GameState, c: Customer): DecisionResult {
 
   // An empty cup (nothing whatsoever in it) reads as a rip-off, not a taste miss.
   if (coffeeDose === 0 && sugarDose === 0 && milkDose === 0 && iceDose === 0) {
-    return { buy: true, thought: 'This is just an empty cup?! 🤬', hypeDelta: -3, complaintKey: 'Empty cup (scam!)', isHappy: false };
+    return { buy: true, thought: 'This is just an empty cup?! 🤬', hypeDelta: -3, complaintKey: 'Empty cup (scam!)', isHappy: false, tip: 0 };
   }
 
   const recipeComplaints: Array<[number, string, string]> = [];
@@ -199,7 +233,7 @@ export function decide(state: GameState, c: Customer): DecisionResult {
     const [miss, thought, complaintKey] = recipeComplaints[0];
     // Bigger miss → unhappier customer → bigger hit to hype.
     const hypeDelta = miss >= 4 ? -2 : -1;
-    return { buy: true, thought, hypeDelta, complaintKey, isHappy: false };
+    return { buy: true, thought, hypeDelta, complaintKey, isHappy: false, tip: 0 };
   }
 
   // Bought and satisfied — reaction scales with how well the drink landed. A
@@ -218,7 +252,7 @@ export function decide(state: GameState, c: Customer): DecisionResult {
   const repRemark = goodRepRemark(state.hype);
   if (repRemark && Math.random() < 0.6) thought = repRemark;
   if (totalMiss <= 1 && buyScore > 3) { thought = 'Best coffee in town! 🤩'; hype = 3; }
-  return { buy: true, thought, hypeDelta: hype, complaintKey: '', isHappy: true };
+  return { buy: true, thought, hypeDelta: hype, complaintKey: '', isHappy: true, tip: computeTip(state, hype, activeCupPrice(state)) };
 }
 
 // Positive reputation remarks, tiered by how strong the buzz is (checked high→low).

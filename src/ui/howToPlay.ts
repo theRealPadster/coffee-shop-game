@@ -93,7 +93,7 @@ export function openHowToPlay(): Promise<void> {
                   <dt>Bottleneck highlight</dt>
                   <dd>The ingredient capping today's cup count is shaded in the buy panel and named under "Cups producible today".</dd>
                   <dt>Upgrades</dt>
-                  <dd>Permanent purchases that pay off over time. The Cooler ($15) makes moderate days survivable for milk and ice; the Refrigerator ($40) stops spoilage entirely so you can bulk-buy without risk on hot days.</dd>
+                  <dd>Permanent purchases that pay off over time. The Tip jar ($10) lets happy customers leave a tip on top of the cup price; the Cooler ($15) makes moderate days survivable for milk and ice; the Refrigerator ($40) stops spoilage entirely so you can bulk-buy without risk on hot days.</dd>
                 </dl>
               </details>
               <details class="howto-subdetails">

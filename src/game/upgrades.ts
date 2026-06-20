@@ -20,6 +20,13 @@ export interface Upgrade {
 // Order here is the display order in the buy phase. Cheaper upgrades first so
 // the natural progression reads top-to-bottom.
 export const UPGRADES: Record<UpgradeId, Upgrade> = {
+  tipJar: {
+    id: 'tipJar',
+    name: 'Tip jar',
+    emoji: '💰',
+    cost: 1000, // $10.00 — cheap early-game purchase
+    blurb: 'Happy customers leave a tip on top of the cup price. Better drinks get bigger tips.',
+  },
   cooler: {
     id: 'cooler',
     name: 'Cooler',

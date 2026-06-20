@@ -5,6 +5,7 @@ import { weatherEmoji } from '../game/weather';
 import { spawnCustomer, decide, spawnRate, walkByRemark, Customer } from '../game/customers';
 import { applyHype } from '../game/hype';
 import { consumeRecipe, maxCups } from '../game/recipe';
+import { hasUpgrade } from '../game/upgrades';
 import { play } from '../platform/audio';
 import { appHeaderHtml, attachHeaderMenu } from '../ui/header';
 import { openPauseMenu } from '../ui/pauseMenu';
@@ -303,6 +304,13 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
               c.thoughtUntil = now + 1800;
               c.postSaleReaction = null;
               if (c.postSaleHype !== 0) applyHype(state, c.postSaleHype);
+              // Tip lands on the same beat as the praise bubble — the cash counter
+              // pulses naturally and the player makes the connection. No second
+              // applyHype call: tips never feed back into hype.
+              if (c.postSaleTip > 0) {
+                state.cash += c.postSaleTip;
+                state.todayStats.tips += c.postSaleTip;
+              }
               if (c.postSaleHype < 0) play('grumble');
               else if (c.postSaleHype > 0) play('praise');
             }
@@ -411,6 +419,7 @@ function applyOutcome(state: GameState, c: Customer, dec: ReturnType<typeof deci
       }
       c.postSaleReaction = dec.thought;
       c.postSaleHype = dec.hypeDelta - PURCHASE_HYPE;
+      c.postSaleTip = dec.tip;
     } else {
       // Lost the sale to sold-out between scoring and consumption
       c.thought = 'Sold out 🚫';
@@ -522,6 +531,7 @@ function showReportCard(state: GameState, cb: StreetPhaseCallbacks): void {
       <h2>End of Day ${state.day}</h2>
       <div class="row"><span>Cups sold</span><strong>${state.todayStats.sold}</strong></div>
       <div class="row"><span>Revenue</span><strong>${formatCents(state.todayStats.revenue)}</strong></div>
+      ${hasUpgrade(state, 'tipJar') ? `<div class="row"><span>Tips</span><strong>${formatCents(state.todayStats.tips)}</strong></div>` : ''}
       <div class="row"><span>Walk-bys</span><strong>${state.todayStats.walkedBy}</strong></div>
       <div class="row"><span>Happy customers</span><strong>${state.todayStats.happyCount}</strong></div>
       <div class="row"><span>Grumpy customers</span><strong>${state.todayStats.grumpyCount}</strong></div>

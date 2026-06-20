@@ -6,7 +6,7 @@ export type Phase = 'buy' | 'street';
 // Persistent between-days purchases. The catalog + effects live in
 // game/upgrades.ts; the id union is here (alongside the other core domain
 // types) so state.ts stays import-free and there's no cycle with upgrades.ts.
-export type UpgradeId = 'refrigerator' | 'cooler';
+export type UpgradeId = 'refrigerator' | 'cooler' | 'tipJar';
 
 export const INGREDIENTS: Ingredient[] = ['coffee', 'sugar', 'milk', 'ice', 'cups'];
 
@@ -47,6 +47,7 @@ export interface TodayStats {
   complaints: Record<string, number>;
   hypeStart: number;
   spoiled: Partial<Record<Ingredient, number>>; // perishables lost overnight, by ingredient
+  tips: number; // total cents tipped today (Tip jar upgrade)
 }
 
 export interface GameState {
@@ -96,6 +97,7 @@ export function freshStats(hypeStart: number): TodayStats {
     complaints: {},
     hypeStart,
     spoiled: {},
+    tips: 0,
   };
 }
 
