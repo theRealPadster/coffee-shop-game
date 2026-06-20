@@ -116,6 +116,135 @@ export function drawMenuSign(
   ctx.restore();
 }
 
+// A small glass tip jar on the counter, shown when the Tip jar upgrade is
+// owned. Placed on the left end of the counter so it's clear of the queue
+// slots (which start at counter-center and run rightward) and the menu sign
+// to the right of the shop.
+export function drawTipJar(ctx: CanvasRenderingContext2D, shopX: number, shopY: number, shopH: number): void {
+  const counterTopY = shopY + shopH * 0.4;
+  const jarW = 10;
+  const jarH = 14;
+  const x = shopX + 16;
+  const y = counterTopY - jarH;
+
+  ctx.save();
+  // Glass body (slightly translucent so wood tone reads through the rim)
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.78)';
+  ctx.fillRect(x, y + 2, jarW, jarH - 2);
+  // Coins piled inside
+  ctx.fillStyle = '#f4c542';
+  ctx.beginPath();
+  ctx.arc(x + 3, y + jarH - 3, 1.6, 0, Math.PI * 2);
+  ctx.arc(x + jarW - 3, y + jarH - 4, 1.6, 0, Math.PI * 2);
+  ctx.arc(x + jarW / 2, y + jarH - 2, 1.6, 0, Math.PI * 2);
+  ctx.fill();
+  // Rim — a darker band that reads as the jar's lip
+  ctx.fillStyle = '#bcae8f';
+  ctx.fillRect(x - 1, y, jarW + 2, 2);
+  // "TIPS" label slip
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(x + 1, y + 4, jarW - 2, 5);
+  ctx.fillStyle = '#2e7d32';
+  ctx.font = 'bold 5px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('$', x + jarW / 2, y + 6.5);
+  // Outline so it pops against the wooden front
+  ctx.strokeStyle = 'rgba(60,40,20,0.55)';
+  ctx.lineWidth = 0.6;
+  ctx.strokeRect(x, y + 2, jarW, jarH - 2);
+  ctx.restore();
+}
+
+// Cooler sitting on the sidewalk to the left of the stand. Drawn when the
+// Cooler is owned and the Refrigerator (which supersedes it) is not.
+export function drawCooler(ctx: CanvasRenderingContext2D, shopX: number, shopY: number, shopH: number): void {
+  const w = 26;
+  const h = 18;
+  const x = shopX - w - 4;
+  const groundY = shopY + shopH;
+  const y = groundY - h;
+
+  ctx.save();
+  // Drop shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.beginPath();
+  ctx.ellipse(x + w / 2, groundY + 2, w * 0.55, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Body — light blue
+  ctx.fillStyle = '#7ecbe6';
+  ctx.fillRect(x, y, w, h);
+  // Lid — darker band across the top
+  ctx.fillStyle = '#4a9ec0';
+  ctx.fillRect(x, y, w, 5);
+  // Carry handle on top
+  ctx.strokeStyle = '#37798f';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(x + 6, y);
+  ctx.quadraticCurveTo(x + w / 2, y - 4, x + w - 6, y);
+  ctx.stroke();
+  // Snowflake decal
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 9px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('❄', x + w / 2, y + h * 0.65);
+  // Outline
+  ctx.strokeStyle = 'rgba(20,40,60,0.5)';
+  ctx.lineWidth = 0.6;
+  ctx.strokeRect(x, y, w, h);
+  ctx.restore();
+}
+
+// Refrigerator sitting on the sidewalk to the left of the stand. Supersedes
+// the Cooler visually — only one of the two is drawn at a time.
+export function drawRefrigerator(ctx: CanvasRenderingContext2D, shopX: number, shopY: number, shopH: number): void {
+  const w = 28;
+  const h = 46;
+  const x = shopX - w - 4;
+  const groundY = shopY + shopH;
+  const y = groundY - h;
+
+  ctx.save();
+  // Drop shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.beginPath();
+  ctx.ellipse(x + w / 2, groundY + 2, w * 0.55, 3.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Body — off-white
+  ctx.fillStyle = '#f0f2f5';
+  ctx.fillRect(x, y, w, h);
+  // Right-side shading band for depth
+  ctx.fillStyle = '#d4d8de';
+  ctx.fillRect(x + w - 3, y, 3, h);
+  // Freezer / fridge divider
+  const freezerY = y + 12;
+  ctx.strokeStyle = '#bfc4cc';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x, freezerY);
+  ctx.lineTo(x + w, freezerY);
+  ctx.stroke();
+  // Door handles on the right
+  ctx.fillStyle = '#a8aeb6';
+  ctx.fillRect(x + w - 7, y + 3, 2, 6);          // freezer handle
+  ctx.fillRect(x + w - 7, freezerY + 4, 2, 14);  // fridge handle
+  // Snowflake on freezer door
+  ctx.fillStyle = '#5fb2d4';
+  ctx.font = 'bold 7px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('❄', x + w / 2 - 2, y + 6.5);
+  // Outline
+  ctx.strokeStyle = 'rgba(40,50,60,0.45)';
+  ctx.lineWidth = 0.6;
+  ctx.strokeRect(x, y, w, h);
+  ctx.restore();
+}
+
 export function drawShop(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): void {
   // Ground shadow under the stand
   ctx.fillStyle = 'rgba(0,0,0,0.18)';

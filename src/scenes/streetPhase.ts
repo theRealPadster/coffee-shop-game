@@ -1,6 +1,6 @@
 import { GameState, formatCents, freshStats, activeRecipe, activeCupPrice, INGREDIENT_META, Ingredient } from '../state';
 import { applySpoilage, SPOILAGE } from '../game/spoilage';
-import { drawBackground, drawShop, drawMenuSign } from '../render';
+import { drawBackground, drawShop, drawMenuSign, drawTipJar, drawCooler, drawRefrigerator } from '../render';
 import { weatherEmoji } from '../game/weather';
 import { spawnCustomer, decide, spawnRate, walkByRemark, Customer } from '../game/customers';
 import { applyHype } from '../game/hype';
@@ -328,7 +328,13 @@ export function renderStreetPhase(root: HTMLElement, state: GameState, cb: Stree
 
     // Draw
     drawBackground(ctx, viewW, viewH, state.weather.condition, timeOfDay, elapsed);
+    // Cooling appliance to the left of the stand. Refrigerator supersedes the
+    // Cooler visually — only one is rendered at a time, mirroring the buy panel.
+    if (hasUpgrade(state, 'refrigerator')) drawRefrigerator(ctx, shopX, shopY, 110);
+    else if (hasUpgrade(state, 'cooler')) drawCooler(ctx, shopX, shopY, 110);
     drawShop(ctx, shopX, shopY, 120, 110);
+    // Tip jar sits on the counter, drawn over the stand front.
+    if (hasUpgrade(state, 'tipJar')) drawTipJar(ctx, shopX, shopY, 110);
 
     // Menu sandwich-board sign on the sidewalk to the right of the shop
     const signCx = shopX + 120 + 60;
