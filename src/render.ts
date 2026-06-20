@@ -178,13 +178,16 @@ export function drawCooler(ctx: CanvasRenderingContext2D, shopX: number, shopY: 
   // Lid — darker band across the top
   ctx.fillStyle = '#4a9ec0';
   ctx.fillRect(x, y, w, 13);
-  // Carry handle on top
-  ctx.strokeStyle = '#37798f';
-  ctx.lineWidth = 2.4;
-  ctx.beginPath();
-  ctx.moveTo(x + 14, y);
-  ctx.quadraticCurveTo(x + w / 2, y - 10, x + w - 14, y);
-  ctx.stroke();
+  // Low-profile rectangular grip on the lid — two short posts and a flat
+  // bar across the top. Reads as a chest-cooler handle rather than the
+  // arched lunchbox/picnic-basket shape the curve was suggesting.
+  ctx.fillStyle = '#37798f';
+  const postLeft = x + 18;
+  const postRight = x + w - 18;
+  const handleTopY = y - 7;
+  ctx.fillRect(postLeft - 1.5, handleTopY, 3, 8);                 // left post
+  ctx.fillRect(postRight - 1.5, handleTopY, 3, 8);                // right post
+  ctx.fillRect(postLeft, handleTopY, postRight - postLeft, 3);    // top bar
   // Snowflake decal
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 22px sans-serif';
