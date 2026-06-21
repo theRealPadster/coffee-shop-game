@@ -1,6 +1,6 @@
 import { GameState, INGREDIENTS, INGREDIENT_META, PRICE_BANDS, formatCents, Ingredient, DrinkType, activeRecipe, activeCupPrice } from '../state';
 import { classifyPrice, PriceLevel, BULK_TIERS, bulkCost } from '../game/economy';
-import { spoilageFraction, SPOILAGE } from '../game/spoilage';
+import { spoilageFraction, SPOILAGE, currentSpoilageTier } from '../game/spoilage';
 import { maxCups, bottleneck } from '../game/recipe';
 import { play } from '../platform/audio';
 import { appHeaderHtml, attachHeaderMenu } from '../ui/header';
@@ -9,6 +9,9 @@ import { weatherChipHtml } from '../ui/chips/weatherChip';
 import { hypeChipHtml } from '../ui/chips/hypeChip';
 import { makeExpandableChip } from '../ui/chips/expandableChip';
 import { startBuyPhaseTutorial, hasSeenTutorial } from '../ui/tutorial';
+import { UpgradeId } from '../state';
+import { UPGRADE_LIST, hasUpgrade, canAffordUpgrade, buyUpgrade, setUpgrade } from '../game/upgrades';
+import { isDebugMode } from '../platform/debug';
 
 export interface BuyPhaseCallbacks {
   onStartDay: () => void;
@@ -75,6 +78,11 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
   const cups = maxCups(state.stock, r);
   const typeIcon = r.type === 'hot' ? '☕' : '🧊';
 
+  // Re-rendering replaces root.innerHTML, which recreates .buy-phase (the
+  // scroll container) and resets its scrollTop. Capture it first so we can
+  // restore the position after — otherwise every buy/toggle jumps to the top.
+  const prevScroll = root.querySelector('.buy-phase')?.scrollTop ?? 0;
+
   root.innerHTML = `
     ${appHeaderHtml(state, { variant: 'buy' })}
     <div class="buy-phase">
@@ -113,6 +121,8 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
         </div>
       </div>
 
+      ${upgradesPanel(state)}
+
       <div class="day-footer">
         <button id="start-day-btn">Start Day ▶</button>
       </div>
@@ -129,6 +139,12 @@ export function renderBuyPhase(root: HTMLElement, state: GameState, cb: BuyPhase
     void openPauseMenu({ state, onRestore: cb.onRestore, onQuitToTitle: cb.onQuitToTitle });
   });
   attachBuyPhaseEvents(root, state, cb);
+
+  // Restore scroll position (see prevScroll above). The new .buy-phase is laid
+  // out synchronously after the innerHTML assignment, so this takes effect
+  // immediately with no flash.
+  const scroller = root.querySelector<HTMLElement>('.buy-phase');
+  if (scroller) scroller.scrollTop = prevScroll;
 
   // First-play tour: only on day 1 of a new game, only once per session.
   // Existing saves from before this feature stay quiet — they reach a later
@@ -149,13 +165,18 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
   const dose = r.doses[ing] ?? 0;
 
   // Perishables left over after today spoil/melt overnight at today's temperature.
-  const spoilFrac = spoilageFraction(ing, state.weather);
+  // The threshold + rate come from whichever spoilage tier the player's owned
+  // upgrades unlock (none / cooler / refrigerator); the refrigerator tier sets
+  // ratePerDeg to 0, so spoilFrac stays 0 and the warning naturally disappears.
+  const tier = currentSpoilageTier(state);
+  const spoilFrac = spoilageFraction(ing, state.weather, tier);
   let spoilWarn = '';
   if (spoilFrac > 0) {
     const cfg = SPOILAGE[ing]!;
+    const tierCfg = cfg.tiers[tier];
     const bare = cfg.verb.slice(0, -1); // "spoils" → "spoil", "melts" → "melt"
     const verbCap = cfg.verb.charAt(0).toUpperCase() + cfg.verb.slice(1); // "melts" → "Melts"
-    const tooltip = `${meta.label} ${cfg.verb} above ${cfg.temp}°C. Today is ${state.weather.tempC}°C, so some of any unsold ${meta.label.toLowerCase()} will ${bare} overnight.`;
+    const tooltip = `${meta.label} ${cfg.verb} above ${tierCfg.temp}°C. Today is ${state.weather.tempC}°C, so some of any unsold ${meta.label.toLowerCase()} will ${bare} overnight.`;
     spoilWarn = `<div class="spoil-warn" title="${escapeAttr(tooltip)}">⚠ ${verbCap} overnight</div>`;
   }
 
@@ -189,6 +210,63 @@ function shopRow(state: GameState, ing: Ingredient, r: GameState['recipes']['hot
         </div>
       </div>
       ${spoilWarn}
+    </div>
+  `;
+}
+
+// Persistent upgrades shop. One row per catalog entry: owned ones show a tag,
+// the rest a Buy button (disabled when unaffordable). The panel stays visible
+// even after every upgrade is owned, so the player can always see what they
+// have — there's no other affordance for "what upgrades do I own?".
+//
+// The Cooler is functionally superseded by the Refrigerator, so we hide it once
+// the Refrigerator is owned — UNLESS the player bought the Cooler first, in
+// which case the ✓ Owned row stays visible (don't make a paid-for upgrade
+// vanish from view).
+//
+// Debug mode swaps the Buy button / ✓ Owned tag for a toggle switch that
+// grants/revokes the upgrade for free, and suppresses the Cooler-hide logic so
+// every upgrade is reachable. A small DEBUG tag in the heading flags that the
+// upgrades aren't being earned normally.
+function upgradesPanel(state: GameState): string {
+  const debug = isDebugMode();
+  const rows = UPGRADE_LIST
+    .filter((u) => {
+      if (debug) return true;
+      if (u.id !== 'cooler') return true;
+      return !hasUpgrade(state, 'refrigerator') || hasUpgrade(state, 'cooler');
+    })
+    .map((u) => {
+    const owned = hasUpgrade(state, u.id);
+    const affordable = canAffordUpgrade(state, u.id);
+    let action: string;
+    if (debug) {
+      action = `
+        <label class="upgrade-toggle" title="Debug: grant/revoke">
+          <input type="checkbox" data-upgrade-toggle="${u.id}" ${owned ? 'checked' : ''} />
+          <span class="upgrade-toggle__track"></span>
+        </label>
+      `;
+    } else if (owned) {
+      action = `<span class="upgrade-owned">✓ Owned</span>`;
+    } else {
+      action = `<button class="upgrade-buy" data-upgrade="${u.id}" ${affordable ? '' : 'disabled'}>${formatCents(u.cost)}</button>`;
+    }
+    return `
+      <div class="upgrade-row ${owned ? 'owned' : ''}">
+        <div class="upgrade-info">
+          <div class="upgrade-name">${u.emoji} ${u.name}</div>
+          <div class="upgrade-blurb">${u.blurb}</div>
+        </div>
+        ${action}
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="panel upgrades-panel">
+      <h2>Upgrades${debug ? ' <span class="debug-tag">DEBUG</span>' : ''}</h2>
+      ${rows}
     </div>
   `;
 }
@@ -270,6 +348,29 @@ function attachBuyPhaseEvents(root: HTMLElement, state: GameState, cb: BuyPhaseC
       cb.onStateChange();
       rerender();
       flashBuyFeedback(root, ing);
+    });
+  });
+
+  // Upgrade purchases
+  root.querySelectorAll<HTMLButtonElement>('[data-upgrade]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.upgrade as UpgradeId;
+      if (!buyUpgrade(state, id)) return;
+      play('cashier');
+      cb.onStateChange();
+      rerender();
+    });
+  });
+
+  // Debug toggles — grant/revoke an upgrade without touching cash. Only
+  // rendered by upgradesPanel() when isDebugMode() is true, so this handler is
+  // a no-op outside debug.
+  root.querySelectorAll<HTMLInputElement>('[data-upgrade-toggle]').forEach(input => {
+    input.addEventListener('change', () => {
+      const id = input.dataset.upgradeToggle as UpgradeId;
+      setUpgrade(state, id, input.checked);
+      cb.onStateChange();
+      rerender();
     });
   });
 

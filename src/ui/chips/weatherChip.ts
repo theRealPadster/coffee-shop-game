@@ -11,7 +11,7 @@
 
 import { GameState, Weather, Ingredient, INGREDIENT_META } from '../../state';
 import { weatherEmoji, weatherEffects } from '../../game/weather';
-import { SPOILAGE, spoilageFraction } from '../../game/spoilage';
+import { SPOILAGE, SpoilageTier, currentSpoilageTier, spoilageFraction } from '../../game/spoilage';
 
 export type WeatherChipVariant = 'buy' | 'street';
 export type InsightTier = 'vibe' | 'precise';
@@ -22,7 +22,7 @@ interface Insight {
   precise: string;
 }
 
-function weatherInsights(w: Weather): Insight[] {
+function weatherInsights(w: Weather, tier: SpoilageTier): Insight[] {
   const fx = weatherEffects(w);
 
   // Foot traffic — how many pedestrians show up (demandMul).
@@ -55,18 +55,20 @@ function weatherInsights(w: Weather): Insight[] {
 
   // Tie the spoilage warning back to the weather card so the player can see
   // that today's heat is what's putting milk/ice at risk. Only render the row
-  // when at least one perishable is actually above its threshold today,
-  // otherwise the chip stays clean on cool days.
-  const perishables = perishableInsight(w);
+  // when at least one perishable is actually above its threshold for the
+  // current cooling tier; the chip stays clean on cool days, and the
+  // Refrigerator tier (ratePerDeg: 0) returns no at-risk ingredients so the row
+  // disappears entirely.
+  const perishables = perishableInsight(w, tier);
   if (perishables) insights.push(perishables);
 
   return insights;
 }
 
-function perishableInsight(w: Weather): Insight | null {
+function perishableInsight(w: Weather, tier: SpoilageTier): Insight | null {
   const atRisk = (Object.keys(SPOILAGE) as Ingredient[])
     .map((ing) => {
-      const frac = spoilageFraction(ing, w);
+      const frac = spoilageFraction(ing, w, tier);
       if (frac <= 0) return null;
       return {
         label: INGREDIENT_META[ing].label,
@@ -101,7 +103,8 @@ export function weatherChipHtml(
   // conveys the condition); the condition name appears once, as the body title,
   // when expanded — so it's never shown twice.
 
-  const rows = weatherInsights(w)
+  const spoilTier = currentSpoilageTier(state);
+  const rows = weatherInsights(w, spoilTier)
     .map((r) => `<li><span>${r.label}</span><strong>${tier === 'precise' ? r.precise : r.vibe}</strong></li>`)
     .join('');
 

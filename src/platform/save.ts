@@ -57,6 +57,10 @@ export function loadGame(): GameState | null {
       iced: clampDoses(merged.recipes.iced),
     };
 
+    // Pre-tipJar saves don't have todayStats.tips — default it so mid-day
+    // restores don't render undefined in the Tips report-card row.
+    if (typeof merged.todayStats?.tips !== 'number') merged.todayStats.tips = 0;
+
     // Strip orphan fields from the old shape so they don't linger on resave.
     delete (merged as Partial<GameState> & { activeRecipe?: unknown }).activeRecipe;
     delete (merged as Partial<GameState> & { activeRecipeSourceId?: unknown }).activeRecipeSourceId;
