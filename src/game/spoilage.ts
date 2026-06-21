@@ -29,8 +29,8 @@ interface SpoilConfig {
 export const SPOILAGE: Partial<Record<Ingredient, SpoilConfig>> = {
   milk: {
     tiers: {
-      none:         { temp: 18, ratePerDeg: 0.20 },
-      cooler:       { temp: 20, ratePerDeg: 0.10 },
+      none:         { temp: 16, ratePerDeg: 0.20 },
+      cooler:       { temp: 20, ratePerDeg: 0.07 },
       refrigerator: { temp: 24, ratePerDeg: 0    },
     },
     verb: 'spoils',
